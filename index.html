@@ -57,12 +57,36 @@
                 </svg>
                 <span>Androgenic</span>
             </div>
-            <button id="history-btn" class="icon-btn" title="History">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                </svg>
-            </button>
+            <div class="header-actions">
+                <button id="history-btn" class="icon-btn" title="History">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </button>
+                <button id="settings-btn" class="icon-btn" title="Settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Pro Banner -->
+        <div id="pro-banner" class="pro-banner" style="display:none">
+            <div class="pro-banner-content">
+                <span class="pro-banner-text"></span>
+                <button class="pro-banner-btn">Upgrade</button>
+            </div>
+        </div>
+
+        <!-- Free Scans Counter -->
+        <div id="scans-counter" class="scans-counter" style="display:none">
+            <div class="scans-counter-inner">
+                <span class="scans-text"></span>
+                <div class="scans-dots"></div>
+            </div>
         </div>
 
         <div class="home-content">
@@ -342,6 +366,160 @@
         </div>
     </div>
 
+    <!-- Paywall Screen -->
+    <div id="paywall-screen" class="screen">
+        <div class="paywall-header">
+            <button id="paywall-back-btn" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <span>Upgrade to Pro</span>
+            <button id="restore-btn" class="text-btn">Restore</button>
+        </div>
+        <div class="paywall-content">
+            <div class="paywall-hero">
+                <div class="paywall-crown">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+                        <path d="M2 20h20L18 8l-4 5-2-7-2 7-4-5-4 12z" fill="url(#crownGrad)" stroke="url(#crownGrad)"/>
+                        <defs><linearGradient id="crownGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#FFD700"/><stop offset="100%" style="stop-color:#FFA500"/></linearGradient></defs>
+                    </svg>
+                </div>
+                <h2>Androgenic <span class="pro-text-gold">PRO</span></h2>
+                <p>Unlock your full looksmaxxing potential</p>
+            </div>
+
+            <div class="paywall-features">
+                <div class="paywall-feature">
+                    <div class="pf-icon">&#x267E;</div>
+                    <div class="pf-info">
+                        <strong>Unlimited Scans</strong>
+                        <span>Analyze your face as often as you want</span>
+                    </div>
+                </div>
+                <div class="paywall-feature">
+                    <div class="pf-icon">&#x1F4CA;</div>
+                    <div class="pf-info">
+                        <strong>All 7 Score Categories</strong>
+                        <span>Cheekbones, Hair, Skin & Symmetry unlocked</span>
+                    </div>
+                </div>
+                <div class="paywall-feature">
+                    <div class="pf-icon">&#x1F4D0;</div>
+                    <div class="pf-info">
+                        <strong>Facial Ratio Analysis</strong>
+                        <span>Golden ratio, fWHR & 8 detailed ratios</span>
+                    </div>
+                </div>
+                <div class="paywall-feature">
+                    <div class="pf-icon">&#x2B50;</div>
+                    <div class="pf-info">
+                        <strong>Celebrity Look-Alike</strong>
+                        <span>See which celebrity you match</span>
+                    </div>
+                </div>
+                <div class="paywall-feature">
+                    <div class="pf-icon">&#x1F4C8;</div>
+                    <div class="pf-info">
+                        <strong>Progress Tracker</strong>
+                        <span>Track improvements over time with charts</span>
+                    </div>
+                </div>
+                <div class="paywall-feature">
+                    <div class="pf-icon">&#x1F4CB;</div>
+                    <div class="pf-info">
+                        <strong>12-Week Improvement Plan</strong>
+                        <span>Personalized step-by-step glow-up plan</span>
+                    </div>
+                </div>
+                <div class="paywall-feature">
+                    <div class="pf-icon">&#x1F4A1;</div>
+                    <div class="pf-info">
+                        <strong>All Tips Unlocked</strong>
+                        <span>Full recommendations per category</span>
+                    </div>
+                </div>
+                <div class="paywall-feature">
+                    <div class="pf-icon">&#x2728;</div>
+                    <div class="pf-info">
+                        <strong>No Watermarks</strong>
+                        <span>Clean share cards without branding</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pricing-plans" id="pricing-plans">
+                <!-- Dynamically generated -->
+            </div>
+
+            <div class="paywall-actions">
+                <button id="subscribe-btn" class="action-btn primary paywall-cta">
+                    Subscribe Now
+                </button>
+                <button id="trial-btn" class="action-btn trial-btn" style="display:none">
+                    Start 3-Day Free Trial
+                </button>
+            </div>
+
+            <div class="paywall-legal">
+                <p>Cancel anytime. Subscription auto-renews.</p>
+                <div class="legal-links">
+                    <a href="#" onclick="event.preventDefault()">Terms of Use</a>
+                    <span>|</span>
+                    <a href="#" onclick="event.preventDefault()">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Screen -->
+    <div id="settings-screen" class="screen">
+        <div class="settings-header">
+            <button id="settings-back-btn" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <span>Settings</span>
+            <div style="width:40px"></div>
+        </div>
+        <div class="settings-content" id="settings-content">
+            <!-- Dynamically generated -->
+        </div>
+    </div>
+
+    <!-- Progress Screen (PRO) -->
+    <div id="progress-screen" class="screen">
+        <div class="progress-header">
+            <button id="progress-back-btn" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <span>Progress Tracker</span>
+            <span class="pro-badge">PRO</span>
+        </div>
+        <div class="progress-content" id="progress-content">
+            <!-- Dynamically generated -->
+        </div>
+    </div>
+
+    <!-- Improvement Plan Screen (PRO) -->
+    <div id="plan-screen" class="screen">
+        <div class="plan-header">
+            <button id="plan-back-btn" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <span>Improvement Plan</span>
+            <span class="pro-badge">PRO</span>
+        </div>
+        <div class="plan-content" id="plan-content">
+            <!-- Dynamically generated -->
+        </div>
+    </div>
+
     <!-- Share Modal -->
     <div id="share-modal" class="modal">
         <div class="modal-content">
@@ -384,6 +562,7 @@
         </div>
     </div>
 
+    <script src="js/pro.js"></script>
     <script src="js/tips-database.js"></script>
     <script src="js/face-analysis.js"></script>
     <script src="js/share.js"></script>
