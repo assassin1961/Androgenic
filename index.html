@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Androgenic - Face Analysis & Looksmaxxing</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="screen active">
+        <div class="loading-content">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea"/>
+                                <stop offset="100%" style="stop-color:#f093fb"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M50 10 L85 30 L85 70 L50 90 L15 70 L15 30 Z" fill="none" stroke="url(#logoGrad)" stroke-width="3"/>
+                        <circle cx="50" cy="38" r="12" fill="none" stroke="url(#logoGrad)" stroke-width="2.5"/>
+                        <path d="M30 72 Q30 55 50 52 Q70 55 70 72" fill="none" stroke="url(#logoGrad)" stroke-width="2.5"/>
+                    </svg>
+                </div>
+                <h1 class="logo-text">Androgenic</h1>
+                <p class="logo-tagline">AI Face Analysis & Looksmaxxing</p>
+            </div>
+            <div class="loading-bar-container">
+                <div class="loading-bar"></div>
+            </div>
+            <p class="loading-status">Loading AI models...</p>
+        </div>
+    </div>
+
+    <!-- Home Screen -->
+    <div id="home-screen" class="screen">
+        <div class="home-header">
+            <div class="home-logo">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+                    <defs>
+                        <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#667eea"/>
+                            <stop offset="100%" style="stop-color:#f093fb"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M50 10 L85 30 L85 70 L50 90 L15 70 L15 30 Z" fill="none" stroke="url(#logoGrad2)" stroke-width="3"/>
+                    <circle cx="50" cy="38" r="12" fill="none" stroke="url(#logoGrad2)" stroke-width="2.5"/>
+                    <path d="M30 72 Q30 55 50 52 Q70 55 70 72" fill="none" stroke="url(#logoGrad2)" stroke-width="2.5"/>
+                </svg>
+                <span>Androgenic</span>
+            </div>
+            <button id="history-btn" class="icon-btn" title="History">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="home-content">
+            <div class="hero-section">
+                <h2>Unlock Your<br><span class="gradient-text">Full Potential</span></h2>
+                <p>AI-powered face analysis with personalized looksmaxxing recommendations</p>
+            </div>
+
+            <div class="upload-section">
+                <div class="upload-card" id="camera-btn">
+                    <div class="upload-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                    </div>
+                    <h3>Take a Selfie</h3>
+                    <p>Use your camera for instant analysis</p>
+                </div>
+
+                <div class="upload-card" id="upload-btn">
+                    <div class="upload-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                    </div>
+                    <h3>Upload Photo</h3>
+                    <p>Choose from your gallery</p>
+                </div>
+            </div>
+
+            <input type="file" id="file-input" accept="image/*" style="display:none">
+            <input type="file" id="camera-input" accept="image/*" capture="user" style="display:none">
+
+            <div class="features-section">
+                <h3>What We Analyze</h3>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <span class="feature-emoji">💪</span>
+                        <span>Masculinity</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-emoji">🦴</span>
+                        <span>Jawline</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-emoji">👀</span>
+                        <span>Eyes</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-emoji">🧬</span>
+                        <span>Cheek Bones</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-emoji">💇</span>
+                        <span>Hair</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-emoji">✨</span>
+                        <span>Skin</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-emoji">📐</span>
+                        <span>Symmetry</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-emoji">🏆</span>
+                        <span>Overall</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-banner">
+                <div class="stat">
+                    <span class="stat-number">50K+</span>
+                    <span class="stat-label">Faces Analyzed</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">4.8</span>
+                    <span class="stat-label">Rating</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">98%</span>
+                    <span class="stat-label">Accuracy</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Screen -->
+    <div id="camera-screen" class="screen">
+        <div class="camera-header">
+            <button id="camera-back-btn" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <span>Take a Selfie</span>
+            <button id="flip-camera-btn" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 4v6h6M23 20v-6h-6"/>
+                    <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
+                </svg>
+            </button>
+        </div>
+        <div class="camera-container">
+            <video id="camera-video" autoplay playsinline></video>
+            <div class="camera-overlay">
+                <div class="face-guide"></div>
+            </div>
+            <canvas id="camera-canvas" style="display:none"></canvas>
+        </div>
+        <div class="camera-controls">
+            <div class="camera-tips">
+                <p>Position your face within the guide</p>
+                <p class="tip-detail">Good lighting + front-facing = best results</p>
+            </div>
+            <button id="capture-btn" class="capture-button">
+                <div class="capture-ring"></div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Analyzing Screen -->
+    <div id="analyzing-screen" class="screen">
+        <div class="analyzing-content">
+            <div class="analyzing-photo-container">
+                <img id="analyzing-photo" src="" alt="Your photo">
+                <div class="scan-line"></div>
+                <div class="scan-dots">
+                    <div class="scan-dot" style="top:30%;left:35%"></div>
+                    <div class="scan-dot" style="top:30%;left:65%"></div>
+                    <div class="scan-dot" style="top:50%;left:50%"></div>
+                    <div class="scan-dot" style="top:65%;left:40%"></div>
+                    <div class="scan-dot" style="top:65%;left:60%"></div>
+                    <div class="scan-dot" style="top:80%;left:50%"></div>
+                </div>
+            </div>
+            <h2>Analyzing Your Face</h2>
+            <div class="analysis-steps">
+                <div class="analysis-step" id="step-detect">
+                    <div class="step-indicator"></div>
+                    <span>Detecting facial features...</span>
+                </div>
+                <div class="analysis-step" id="step-measure">
+                    <div class="step-indicator"></div>
+                    <span>Measuring proportions...</span>
+                </div>
+                <div class="analysis-step" id="step-score">
+                    <div class="step-indicator"></div>
+                    <span>Computing scores...</span>
+                </div>
+                <div class="analysis-step" id="step-tips">
+                    <div class="step-indicator"></div>
+                    <span>Generating recommendations...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="results-screen" class="screen">
+        <div class="results-header">
+            <button id="results-back-btn" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <span>Your Results</span>
+            <button id="share-btn" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="results-content" id="results-content">
+            <!-- Overall Rating Card -->
+            <div class="overall-card">
+                <div class="overall-photo">
+                    <img id="result-photo" src="" alt="Your photo">
+                </div>
+                <div class="overall-info">
+                    <p class="overall-label">You're a</p>
+                    <div class="overall-score" id="overall-score">0</div>
+                    <p class="overall-sublabel">out of 10</p>
+                    <div class="overall-percentile" id="overall-percentile">Top 50%</div>
+                </div>
+            </div>
+
+            <!-- Score Cards -->
+            <div class="scores-section">
+                <h3>Detailed Analysis</h3>
+                <div class="score-cards" id="score-cards">
+                    <!-- Dynamically generated -->
+                </div>
+            </div>
+
+            <!-- Detailed Stats -->
+            <div class="detailed-stats" id="detailed-stats">
+                <h3>Score Breakdown</h3>
+                <!-- Dynamically generated -->
+            </div>
+
+            <!-- Recommendations -->
+            <div class="recommendations-section" id="recommendations-section">
+                <h3>Recommendations</h3>
+                <!-- Dynamically generated -->
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="result-actions">
+                <button id="retake-btn" class="action-btn secondary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <path d="M1 4v6h6M23 20v-6h-6"/>
+                        <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
+                    </svg>
+                    Retake Photo
+                </button>
+                <button id="share-results-btn" class="action-btn primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                    </svg>
+                    Share Results
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tips Detail Screen -->
+    <div id="tips-screen" class="screen">
+        <div class="tips-header">
+            <button id="tips-back-btn" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <span id="tips-title">Tips</span>
+            <div style="width:40px"></div>
+        </div>
+        <div class="tips-content" id="tips-content">
+            <!-- Dynamically generated -->
+        </div>
+    </div>
+
+    <!-- History Screen -->
+    <div id="history-screen" class="screen">
+        <div class="history-header">
+            <button id="history-back-btn" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <span>History</span>
+            <button id="clear-history-btn" class="icon-btn" title="Clear History">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                </svg>
+            </button>
+        </div>
+        <div class="history-content" id="history-content">
+            <div class="empty-history">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="64" height="64" opacity="0.3">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <p>No analysis history yet</p>
+                <p class="empty-sub">Take a selfie to get started</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="share-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Share Results</h3>
+                <button id="close-modal-btn" class="icon-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <canvas id="share-canvas" style="display:none"></canvas>
+            <div class="share-preview" id="share-preview"></div>
+            <div class="share-options">
+                <button class="share-option" id="download-share">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span>Save Image</span>
+                </button>
+                <button class="share-option" id="copy-share">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                    </svg>
+                    <span>Copy Link</span>
+                </button>
+                <button class="share-option" id="native-share">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                    </svg>
+                    <span>Share</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/tips-database.js"></script>
+    <script src="js/face-analysis.js"></script>
+    <script src="js/share.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
