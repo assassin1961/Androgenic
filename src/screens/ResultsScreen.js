@@ -101,7 +101,7 @@ const ResultsScreen = ({ route, navigation }) => {
                   if (locked) {
                     navigation.navigate('Paywall');
                   } else {
-                    navigation.navigate('Tips', { scores, focusCategory: cat });
+                    navigation.navigate('DetailAnalysis', { category: cat, scores });
                   }
                 }}
               />
@@ -153,6 +153,28 @@ const ResultsScreen = ({ route, navigation }) => {
               </View>
             </View>
           ))}
+        </View>
+
+        {/* Feature Cards */}
+        <View style={styles.featureCards}>
+          <TouchableOpacity style={styles.featureCard} onPress={() => navigation.navigate('FaceShape', { scores })}>
+            <Ionicons name="shapes-outline" size={22} color="#a29bfe" />
+            <Text style={styles.featureCardTitle}>Face Shape</Text>
+            <Text style={styles.featureCardDesc}>Discover your face shape</Text>
+            <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.featureCard} onPress={() => navigation.navigate('Products')}>
+            <Ionicons name="bag-outline" size={22} color="#00d26a" />
+            <Text style={styles.featureCardTitle}>Products</Text>
+            <Text style={styles.featureCardDesc}>Recommended for you</Text>
+            <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.featureCard} onPress={() => navigation.navigate('Challenge')}>
+            <Ionicons name="flame-outline" size={22} color="#ff6b35" />
+            <Text style={styles.featureCardTitle}>30-Day Challenge</Text>
+            <Text style={styles.featureCardDesc}>Transform your look</Text>
+            <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+          </TouchableOpacity>
         </View>
 
         {/* Action Buttons */}
@@ -441,6 +463,31 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 12,
     fontWeight: '500',
+  },
+  featureCards: {
+    gap: 8,
+    marginBottom: 20,
+  },
+  featureCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.bgCard,
+    borderRadius: 14,
+    padding: 14,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  featureCardTitle: {
+    color: COLORS.textPrimary,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  featureCardDesc: {
+    flex: 1,
+    color: COLORS.textMuted,
+    fontSize: 12,
+    textAlign: 'right',
   },
   upsellCard: {
     borderRadius: 16,

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -16,6 +17,12 @@ import RoutineScreen from '../screens/RoutineScreen';
 import CompareScreen from '../screens/CompareScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
+import FaceShapeScreen from '../screens/FaceShapeScreen';
+import ChallengeScreen from '../screens/ChallengeScreen';
+import LeaderboardScreen from '../screens/LeaderboardScreen';
+import DetailAnalysisScreen from '../screens/DetailAnalysisScreen';
+import ProductsScreen from '../screens/ProductsScreen';
+import TabBar from '../components/TabBar';
 
 const Stack = createNativeStackNavigator();
 
@@ -33,7 +40,11 @@ const AppNavigator = () => {
             contentStyle: { backgroundColor: '#0a0a0a' },
           }}
         >
-          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Home" component={HomeWithTabs} />
+          <Stack.Screen name="RoutineTab" component={RoutineWithTabs} />
+          <Stack.Screen name="CompareTab" component={CompareWithTabs} />
+          <Stack.Screen name="LeaderboardTab" component={LeaderboardWithTabs} />
+          <Stack.Screen name="ProfileTab" component={ProfileWithTabs} />
           <Stack.Screen
             name="Analyzing"
             component={AnalyzingScreen}
@@ -58,6 +69,11 @@ const AppNavigator = () => {
           <Stack.Screen name="Routine" component={RoutineScreen} />
           <Stack.Screen name="Compare" component={CompareScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="FaceShape" component={FaceShapeScreen} />
+          <Stack.Screen name="Challenge" component={ChallengeScreen} />
+          <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
+          <Stack.Screen name="DetailAnalysis" component={DetailAnalysisScreen} />
+          <Stack.Screen name="Products" component={ProductsScreen} />
         </Stack.Navigator>
       </NavigationContainer>
       {showOnboarding && (
@@ -66,5 +82,50 @@ const AppNavigator = () => {
     </>
   );
 };
+
+// Wrapper components to add tab bar to main screens
+const withTabBar = (ScreenComponent, tabName) => {
+  return function WrappedScreen(props) {
+    return (
+      <View style={styles.tabContainer}>
+        <View style={styles.screenContent}>
+          <ScreenComponent {...props} />
+        </View>
+        <TabBar
+          activeTab={tabName}
+          onTabPress={(tab) => {
+            const screenMap = {
+              Home: 'Home',
+              Routine: 'RoutineTab',
+              Compare: 'CompareTab',
+              Leaderboard: 'LeaderboardTab',
+              Profile: 'ProfileTab',
+            };
+            const target = screenMap[tab];
+            if (target && target !== (tabName === 'Home' ? 'Home' : tabName + 'Tab')) {
+              props.navigation.navigate(target);
+            }
+          }}
+        />
+      </View>
+    );
+  };
+};
+
+const HomeWithTabs = withTabBar(HomeScreen, 'Home');
+const RoutineWithTabs = withTabBar(RoutineScreen, 'Routine');
+const CompareWithTabs = withTabBar(CompareScreen, 'Compare');
+const LeaderboardWithTabs = withTabBar(LeaderboardScreen, 'Leaderboard');
+const ProfileWithTabs = withTabBar(ProfileScreen, 'Profile');
+
+const styles = StyleSheet.create({
+  tabContainer: {
+    flex: 1,
+    backgroundColor: '#0a0a0a',
+  },
+  screenContent: {
+    flex: 1,
+  },
+});
 
 export default AppNavigator;

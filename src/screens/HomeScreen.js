@@ -127,10 +127,10 @@ const HomeScreen = ({ navigation }) => {
         {/* Features Grid */}
         <View style={styles.features}>
           {[
-            { icon: 'analytics-outline', text: '7 Categories', screen: null },
-            { icon: 'today-outline', text: 'Daily Routine', screen: 'Routine' },
-            { icon: 'trending-up-outline', text: 'Track Progress', screen: 'Progress' },
-            { icon: 'git-compare-outline', text: 'Compare', screen: 'Compare' },
+            { icon: 'flame-outline', text: '30-Day Challenge', screen: 'Challenge' },
+            { icon: 'today-outline', text: 'Daily Routine', screen: 'RoutineTab' },
+            { icon: 'bag-outline', text: 'Products', screen: 'Products' },
+            { icon: 'trophy-outline', text: 'Leaderboard', screen: 'LeaderboardTab' },
           ].map((feat, i) => (
             <TouchableOpacity
               key={i}
