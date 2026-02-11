@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -11,39 +11,59 @@ import HistoryScreen from '../screens/HistoryScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ProgressScreen from '../screens/ProgressScreen';
 import PlanScreen from '../screens/PlanScreen';
+import ShareScreen from '../screens/ShareScreen';
+import RoutineScreen from '../screens/RoutineScreen';
+import CompareScreen from '../screens/CompareScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
+  const [showOnboarding, setShowOnboarding] = useState(true);
+
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Home"
-        screenOptions={{
-          headerShown: false,
-          animation: 'slide_from_right',
-          contentStyle: { backgroundColor: '#0a0a0a' },
-        }}
-      >
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen
-          name="Analyzing"
-          component={AnalyzingScreen}
-          options={{ gestureEnabled: false, animation: 'fade' }}
-        />
-        <Stack.Screen name="Results" component={ResultsScreen} />
-        <Stack.Screen name="Tips" component={TipsScreen} />
-        <Stack.Screen
-          name="Paywall"
-          component={PaywallScreen}
-          options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
-        />
-        <Stack.Screen name="History" component={HistoryScreen} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
-        <Stack.Screen name="Progress" component={ProgressScreen} />
-        <Stack.Screen name="Plan" component={PlanScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName="Home"
+          screenOptions={{
+            headerShown: false,
+            animation: 'slide_from_right',
+            contentStyle: { backgroundColor: '#0a0a0a' },
+          }}
+        >
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen
+            name="Analyzing"
+            component={AnalyzingScreen}
+            options={{ gestureEnabled: false, animation: 'fade' }}
+          />
+          <Stack.Screen name="Results" component={ResultsScreen} />
+          <Stack.Screen name="Tips" component={TipsScreen} />
+          <Stack.Screen
+            name="Paywall"
+            component={PaywallScreen}
+            options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+          />
+          <Stack.Screen name="History" component={HistoryScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="Progress" component={ProgressScreen} />
+          <Stack.Screen name="Plan" component={PlanScreen} />
+          <Stack.Screen
+            name="Share"
+            component={ShareScreen}
+            options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+          />
+          <Stack.Screen name="Routine" component={RoutineScreen} />
+          <Stack.Screen name="Compare" component={CompareScreen} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+      {showOnboarding && (
+        <OnboardingScreen onFinish={() => setShowOnboarding(false)} />
+      )}
+    </>
   );
 };
 

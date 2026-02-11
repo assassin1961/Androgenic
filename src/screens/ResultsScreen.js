@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, SafeAreaView,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, SafeAreaView, Animated, Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,7 @@ import { CATEGORY_INFO } from '../utils/faceAnalysis';
 import { isPro, canAccessCategory, getCelebrityMatch, computeFacialRatios, getMaxTipsForCategory } from '../utils/pro';
 import { getTipsForCategory, getOverallTips } from '../data/tips';
 import ScoreCard from '../components/ScoreCard';
+import ScoreRing from '../components/ScoreRing';
 
 const ResultsScreen = ({ route, navigation }) => {
   const { scores, imageUri } = route.params;
@@ -28,19 +29,22 @@ const ResultsScreen = ({ route, navigation }) => {
             <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Results</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Tips', { scores })} style={styles.tipsBtn}>
-            <Ionicons name="bulb-outline" size={22} color={COLORS.accent} />
-          </TouchableOpacity>
+          <View style={styles.headerRight}>
+            <TouchableOpacity onPress={() => navigation.navigate('Share', { scores })} style={styles.tipsBtn}>
+              <Ionicons name="share-social-outline" size={20} color={COLORS.accent} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('Tips', { scores })} style={styles.tipsBtn}>
+              <Ionicons name="bulb-outline" size={22} color={COLORS.accent} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Overall Score */}
         <View style={styles.overallSection}>
-          <Image source={{ uri: imageUri }} style={styles.resultPhoto} />
-          <LinearGradient colors={GRADIENTS.accent} style={styles.overallBadge}>
-            <Text style={styles.overallLabel}>YOUR RATING</Text>
-            <Text style={styles.overallScore}>{scores.overallRating}</Text>
-            <Text style={styles.overallMax}>/10</Text>
-          </LinearGradient>
+          <View style={styles.overallRingRow}>
+            <Image source={{ uri: imageUri }} style={styles.resultPhoto} />
+            <ScoreRing score={scores.overall} size={130} strokeWidth={10} label={`${scores.overallRating}/10`} delay={200} />
+          </View>
           <Text style={styles.overallDescription}>
             {scores.overallRating >= 8 ? "You're in the top tier. Elite facial aesthetics." :
              scores.overallRating >= 6 ? "Above average. Strong features with room to optimize." :
@@ -173,6 +177,13 @@ const ResultsScreen = ({ route, navigation }) => {
           )}
           <TouchableOpacity
             style={styles.actionBtn}
+            onPress={() => navigation.navigate('Compare')}
+          >
+            <Ionicons name="git-compare-outline" size={20} color={COLORS.accent} />
+            <Text style={styles.actionBtnText}>Compare</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionBtn}
             onPress={() => navigation.navigate('Home')}
           >
             <Ionicons name="refresh" size={20} color={COLORS.accent} />
@@ -229,6 +240,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.textPrimary,
   },
+  headerRight: {
+    flexDirection: 'row',
+    gap: 6,
+  },
   tipsBtn: {
     width: 40,
     height: 40,
@@ -241,37 +256,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
+  overallRingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 20,
+    marginBottom: 12,
+  },
   resultPhoto: {
     width: 100,
     height: 100,
     borderRadius: 50,
     borderWidth: 3,
     borderColor: COLORS.accent,
-    marginBottom: 16,
-  },
-  overallBadge: {
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 40,
-    borderRadius: 20,
-    marginBottom: 12,
-  },
-  overallLabel: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 2,
-  },
-  overallScore: {
-    fontSize: 56,
-    fontWeight: '900',
-    color: '#fff',
-  },
-  overallMax: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: -8,
   },
   overallDescription: {
     color: COLORS.textSecondary,

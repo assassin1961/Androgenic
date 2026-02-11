@@ -77,11 +77,11 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.tagline}>AI Face Analysis</Text>
         </View>
         <View style={styles.headerButtons}>
-          <TouchableOpacity onPress={() => navigation.navigate('History')} style={styles.iconBtn}>
-            <Ionicons name="time-outline" size={22} color={COLORS.textSecondary} />
+          <TouchableOpacity onPress={() => navigation.navigate('Routine')} style={styles.iconBtn}>
+            <Ionicons name="today-outline" size={22} color={COLORS.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.iconBtn}>
-            <Ionicons name="settings-outline" size={22} color={COLORS.textSecondary} />
+          <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.iconBtn}>
+            <Ionicons name="person-outline" size={22} color={COLORS.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -127,15 +127,20 @@ const HomeScreen = ({ navigation }) => {
         {/* Features Grid */}
         <View style={styles.features}>
           {[
-            { icon: 'analytics-outline', text: '7 Categories' },
-            { icon: 'bulb-outline', text: 'Smart Tips' },
-            { icon: 'trending-up-outline', text: 'Track Progress' },
-            { icon: 'people-outline', text: 'Celebrity Match' },
+            { icon: 'analytics-outline', text: '7 Categories', screen: null },
+            { icon: 'today-outline', text: 'Daily Routine', screen: 'Routine' },
+            { icon: 'trending-up-outline', text: 'Track Progress', screen: 'Progress' },
+            { icon: 'git-compare-outline', text: 'Compare', screen: 'Compare' },
           ].map((feat, i) => (
-            <View key={i} style={styles.featureItem}>
+            <TouchableOpacity
+              key={i}
+              style={styles.featureItem}
+              onPress={() => feat.screen && navigation.navigate(feat.screen)}
+              activeOpacity={feat.screen ? 0.7 : 1}
+            >
               <Ionicons name={feat.icon} size={20} color={COLORS.accent} />
               <Text style={styles.featureText}>{feat.text}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       </View>

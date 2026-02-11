@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, Image, Animated, Easing } from 'react-native';
-import { COLORS } from '../utils/theme';
+import { View, Text, StyleSheet, Image, Animated, Easing, Dimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { COLORS, GRADIENTS } from '../utils/theme';
 import { analyzeFace, getAnalysisSteps } from '../utils/faceAnalysis';
 import { useScan } from '../utils/pro';
 import { saveToHistory } from '../utils/history';
@@ -12,6 +14,9 @@ const AnalyzingScreen = ({ route, navigation }) => {
   const spinAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
+  const gridOpacity = useRef(new Animated.Value(0)).current;
+  const scanBeamY = useRef(new Animated.Value(-100)).current;
+  const dotsOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Spin animation
@@ -29,6 +34,28 @@ const AnalyzingScreen = ({ route, navigation }) => {
       Animated.sequence([
         Animated.timing(pulseAnim, { toValue: 1.05, duration: 800, useNativeDriver: true }),
         Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+      ])
+    ).start();
+
+    // Grid overlay fades in
+    Animated.sequence([
+      Animated.delay(400),
+      Animated.timing(gridOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
+    ]).start();
+
+    // Scan beam animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scanBeamY, { toValue: 100, duration: 1500, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(scanBeamY, { toValue: -100, duration: 1500, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
+
+    // Landmark dots
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(dotsOpacity, { toValue: 1, duration: 600, useNativeDriver: true }),
+        Animated.timing(dotsOpacity, { toValue: 0.3, duration: 600, useNativeDriver: true }),
       ])
     ).start();
 
@@ -88,6 +115,28 @@ const AnalyzingScreen = ({ route, navigation }) => {
       <View style={styles.photoContainer}>
         <Animated.View style={[styles.photoWrapper, { transform: [{ scale: pulseAnim }] }]}>
           <Image source={{ uri: imageUri }} style={styles.photo} />
+          {/* Grid overlay */}
+          <Animated.View style={[styles.gridOverlay, { opacity: gridOpacity }]}>
+            <View style={styles.gridLineH1} />
+            <View style={styles.gridLineH2} />
+            <View style={styles.gridLineV1} />
+            <View style={styles.gridLineV2} />
+          </Animated.View>
+          {/* Scan beam */}
+          <Animated.View style={[styles.scanBeam, { transform: [{ translateY: scanBeamY }] }]} />
+          {/* Landmark dots */}
+          <Animated.View style={[styles.landmarkDots, { opacity: dotsOpacity }]}>
+            {[
+              { top: '25%', left: '35%' }, { top: '25%', left: '65%' },
+              { top: '35%', left: '30%' }, { top: '35%', left: '70%' },
+              { top: '50%', left: '50%' }, { top: '60%', left: '40%' },
+              { top: '60%', left: '60%' }, { top: '72%', left: '45%' },
+              { top: '72%', left: '55%' }, { top: '80%', left: '50%' },
+            ].map((pos, i) => (
+              <View key={i} style={[styles.dot, { top: pos.top, left: pos.left }]} />
+            ))}
+          </Animated.View>
+          {/* Spinning ring */}
           <Animated.View style={[styles.scanRing, { transform: [{ rotate: spin }] }]}>
             <View style={styles.scanDot} />
           </Animated.View>
@@ -146,6 +195,42 @@ const styles = StyleSheet.create({
     borderRadius: 90,
     borderWidth: 3,
     borderColor: COLORS.accent,
+  },
+  gridOverlay: {
+    position: 'absolute',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    overflow: 'hidden',
+  },
+  gridLineH1: { position: 'absolute', top: '33%', left: 0, right: 0, height: 1, backgroundColor: 'rgba(108,92,231,0.3)' },
+  gridLineH2: { position: 'absolute', top: '66%', left: 0, right: 0, height: 1, backgroundColor: 'rgba(108,92,231,0.3)' },
+  gridLineV1: { position: 'absolute', left: '33%', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(108,92,231,0.3)' },
+  gridLineV2: { position: 'absolute', left: '66%', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(108,92,231,0.3)' },
+  scanBeam: {
+    position: 'absolute',
+    width: 180,
+    height: 3,
+    backgroundColor: COLORS.accent,
+    opacity: 0.6,
+    shadowColor: COLORS.accent,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+  },
+  landmarkDots: {
+    position: 'absolute',
+    width: 180,
+    height: 180,
+  },
+  dot: {
+    position: 'absolute',
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: COLORS.scoreHigh,
+    marginLeft: -2,
+    marginTop: -2,
   },
   scanRing: {
     position: 'absolute',
