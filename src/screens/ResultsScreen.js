@@ -163,6 +163,18 @@ const ResultsScreen = ({ route, navigation }) => {
             <Text style={styles.featureCardDesc}>Discover your face shape</Text>
             <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
           </TouchableOpacity>
+          <TouchableOpacity style={styles.featureCard} onPress={() => navigation.navigate('AgeEstimate', { scores })}>
+            <Ionicons name="hourglass-outline" size={22} color="#e17055" />
+            <Text style={styles.featureCardTitle}>Age Estimate</Text>
+            <Text style={styles.featureCardDesc}>Perceived vs real age</Text>
+            <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.featureCard} onPress={() => navigation.navigate('SkinTone', { scores })}>
+            <Ionicons name="color-palette-outline" size={22} color="#fdcb6e" />
+            <Text style={styles.featureCardTitle}>Skin Tone</Text>
+            <Text style={styles.featureCardDesc}>Personalized routine</Text>
+            <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.featureCard} onPress={() => navigation.navigate('Products')}>
             <Ionicons name="bag-outline" size={22} color="#00d26a" />
             <Text style={styles.featureCardTitle}>Products</Text>
@@ -173,6 +185,12 @@ const ResultsScreen = ({ route, navigation }) => {
             <Ionicons name="flame-outline" size={22} color="#ff6b35" />
             <Text style={styles.featureCardTitle}>30-Day Challenge</Text>
             <Text style={styles.featureCardDesc}>Transform your look</Text>
+            <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.featureCard} onPress={() => navigation.navigate('BodyFat')}>
+            <Ionicons name="body-outline" size={22} color="#74b9ff" />
+            <Text style={styles.featureCardTitle}>Body Fat</Text>
+            <Text style={styles.featureCardDesc}>Face definition score</Text>
             <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
           </TouchableOpacity>
         </View>

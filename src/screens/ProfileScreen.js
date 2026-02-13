@@ -199,6 +199,9 @@ const ProfileScreen = ({ navigation }) => {
             { icon: 'git-compare-outline', label: 'Compare', screen: 'Compare', color: COLORS.scoreMid },
             { icon: 'today-outline', label: 'Routine', screen: 'Routine', color: COLORS.scoreHigh },
             { icon: 'trending-up', label: 'Progress', screen: 'Progress', color: COLORS.accent },
+            { icon: 'barbell-outline', label: 'Workout', screen: 'Workout', color: '#ff4757' },
+            { icon: 'water-outline', label: 'Water', screen: 'WaterTracker', color: '#74b9ff' },
+            { icon: 'body-outline', label: 'Body Fat', screen: 'BodyFat', color: '#e17055' },
             { icon: 'share-social-outline', label: 'Share', screen: stats?.totalScans > 0 ? 'Share' : null, color: COLORS.accentLight },
           ].map((action, i) => (
             <TouchableOpacity

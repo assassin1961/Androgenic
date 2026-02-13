@@ -22,6 +22,13 @@ import ChallengeScreen from '../screens/ChallengeScreen';
 import LeaderboardScreen from '../screens/LeaderboardScreen';
 import DetailAnalysisScreen from '../screens/DetailAnalysisScreen';
 import ProductsScreen from '../screens/ProductsScreen';
+import WorkoutScreen from '../screens/WorkoutScreen';
+import WaterTrackerScreen from '../screens/WaterTrackerScreen';
+import AgeEstimateScreen from '../screens/AgeEstimateScreen';
+import SkinToneScreen from '../screens/SkinToneScreen';
+import BodyFatScreen from '../screens/BodyFatScreen';
+import PrivacyScreen from '../screens/PrivacyScreen';
+import AppLockScreen from '../screens/AppLockScreen';
 import TabBar from '../components/TabBar';
 
 const Stack = createNativeStackNavigator();
@@ -74,6 +81,17 @@ const AppNavigator = () => {
           <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
           <Stack.Screen name="DetailAnalysis" component={DetailAnalysisScreen} />
           <Stack.Screen name="Products" component={ProductsScreen} />
+          <Stack.Screen name="Workout" component={WorkoutScreen} />
+          <Stack.Screen name="WaterTracker" component={WaterTrackerScreen} />
+          <Stack.Screen name="AgeEstimate" component={AgeEstimateScreen} />
+          <Stack.Screen name="SkinTone" component={SkinToneScreen} />
+          <Stack.Screen name="BodyFat" component={BodyFatScreen} />
+          <Stack.Screen name="Privacy" component={PrivacyScreen} />
+          <Stack.Screen
+            name="AppLock"
+            component={AppLockSetupScreen}
+            options={{ presentation: 'modal', animation: 'fade', gestureEnabled: false }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
       {showOnboarding && (
@@ -110,6 +128,16 @@ const withTabBar = (ScreenComponent, tabName) => {
       </View>
     );
   };
+};
+
+// Wrapper for AppLock setup via navigation
+const AppLockSetupScreen = ({ navigation }) => {
+  return (
+    <AppLockScreen
+      isSetup={true}
+      onUnlock={() => navigation.goBack()}
+    />
+  );
 };
 
 const HomeWithTabs = withTabBar(HomeScreen, 'Home');

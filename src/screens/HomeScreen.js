@@ -131,6 +131,10 @@ const HomeScreen = ({ navigation }) => {
             { icon: 'today-outline', text: 'Daily Routine', screen: 'RoutineTab' },
             { icon: 'bag-outline', text: 'Products', screen: 'Products' },
             { icon: 'trophy-outline', text: 'Leaderboard', screen: 'LeaderboardTab' },
+            { icon: 'barbell-outline', text: 'Workouts', screen: 'Workout' },
+            { icon: 'water-outline', text: 'Water Tracker', screen: 'WaterTracker' },
+            { icon: 'color-palette-outline', text: 'Skin Tone', screen: 'SkinTone' },
+            { icon: 'body-outline', text: 'Body Fat', screen: 'BodyFat' },
           ].map((feat, i) => (
             <TouchableOpacity
               key={i}

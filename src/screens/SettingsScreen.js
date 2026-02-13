@@ -1,16 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Alert,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Alert, Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../utils/theme';
 import { isPro, isTrialActive, getTrialDaysLeft, getProState, cancelSubscription, PRO_CONFIG } from '../utils/pro';
 import { clearHistory } from '../utils/history';
+import { isLockEnabled, disableLock } from './AppLockScreen';
 
 const SettingsScreen = ({ navigation }) => {
   const pro = isPro();
   const trial = isTrialActive();
   const state = getProState();
+  const [lockEnabled, setLockEnabled] = useState(false);
+
+  useEffect(() => {
+    isLockEnabled().then(setLockEnabled);
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      isLockEnabled().then(setLockEnabled);
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const handleClearData = () => {
     Alert.alert('Clear All Data', 'This will delete your history and reset all settings. Continue?', [
@@ -39,6 +52,25 @@ const SettingsScreen = ({ navigation }) => {
         },
       },
     ]);
+  };
+
+  const handleToggleLock = async (val) => {
+    if (val) {
+      // Navigate to setup screen
+      navigation.navigate('AppLock', { isSetup: true });
+    } else {
+      Alert.alert('Disable App Lock', 'Remove PIN protection?', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Disable',
+          style: 'destructive',
+          onPress: async () => {
+            await disableLock();
+            setLockEnabled(false);
+          },
+        },
+      ]);
+    }
   };
 
   return (
@@ -87,6 +119,26 @@ const SettingsScreen = ({ navigation }) => {
           </View>
         </View>
 
+        {/* Security */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>SECURITY</Text>
+          <View style={styles.toggleCard}>
+            <View style={styles.toggleRow}>
+              <Ionicons name="lock-closed-outline" size={20} color={COLORS.accent} />
+              <View style={styles.toggleInfo}>
+                <Text style={styles.menuText}>App Lock</Text>
+                <Text style={styles.toggleDesc}>PIN + biometric protection</Text>
+              </View>
+              <Switch
+                value={lockEnabled}
+                onValueChange={handleToggleLock}
+                trackColor={{ false: COLORS.bgSecondary, true: COLORS.accent + '60' }}
+                thumbColor={lockEnabled ? COLORS.accent : COLORS.textMuted}
+              />
+            </View>
+          </View>
+        </View>
+
         {/* Features */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>FEATURES</Text>
@@ -99,22 +151,52 @@ const SettingsScreen = ({ navigation }) => {
             <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
           </TouchableOpacity>
           {pro && (
-            <>
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => navigation.navigate('Progress')}
-              >
-                <Ionicons name="trending-up" size={20} color={COLORS.textSecondary} />
-                <Text style={styles.menuText}>Progress</Text>
-                <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
-              </TouchableOpacity>
-            </>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => navigation.navigate('Progress')}
+            >
+              <Ionicons name="trending-up" size={20} color={COLORS.textSecondary} />
+              <Text style={styles.menuText}>Progress</Text>
+              <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+            </TouchableOpacity>
           )}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Workout')}
+          >
+            <Ionicons name="barbell-outline" size={20} color={COLORS.textSecondary} />
+            <Text style={styles.menuText}>Workouts</Text>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('WaterTracker')}
+          >
+            <Ionicons name="water-outline" size={20} color={COLORS.textSecondary} />
+            <Text style={styles.menuText}>Water Tracker</Text>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Challenge')}
+          >
+            <Ionicons name="flame-outline" size={20} color={COLORS.textSecondary} />
+            <Text style={styles.menuText}>30-Day Challenge</Text>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+          </TouchableOpacity>
         </View>
 
-        {/* Data */}
+        {/* Data & Privacy */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>DATA</Text>
+          <Text style={styles.sectionLabel}>DATA & PRIVACY</Text>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Privacy')}
+          >
+            <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.accent} />
+            <Text style={styles.menuText}>Privacy & Data Management</Text>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.menuItem} onPress={handleClearData}>
             <Ionicons name="trash-outline" size={20} color={COLORS.scoreLow} />
             <Text style={[styles.menuText, { color: COLORS.scoreLow }]}>Clear All Data</Text>
@@ -223,6 +305,27 @@ const styles = StyleSheet.create({
     color: COLORS.scoreLow,
     fontSize: 14,
     fontWeight: '600',
+  },
+  toggleCard: {
+    backgroundColor: COLORS.bgCard,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  toggleInfo: {
+    flex: 1,
+  },
+  toggleDesc: {
+    color: COLORS.textMuted,
+    fontSize: 12,
+    marginTop: 1,
   },
   menuItem: {
     flexDirection: 'row',
