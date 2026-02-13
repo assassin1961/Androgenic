@@ -1,29 +1,47 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
-import { COLORS, getScoreColor, getScoreLabel } from '../utils/theme';
+import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
+import { COLORS, getScoreColor, getScoreLabel, getScoreGradient } from '../utils/theme';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const ScoreRing = ({ score, size = 120, strokeWidth = 8, label, showLabel = true, animated = true, delay = 0 }) => {
   const animValue = useRef(new Animated.Value(0)).current;
+  const glowOpacity = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const color = getScoreColor(score);
+  const gradient = getScoreGradient(score);
 
   useEffect(() => {
     if (animated) {
       Animated.sequence([
         Animated.delay(delay),
-        Animated.timing(animValue, {
-          toValue: score / 100,
-          duration: 1200,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: false,
-        }),
+        Animated.parallel([
+          Animated.timing(animValue, {
+            toValue: score / 100,
+            duration: 1200,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: false,
+          }),
+          Animated.spring(scaleAnim, {
+            toValue: 1,
+            friction: 6,
+            tension: 80,
+            useNativeDriver: true,
+          }),
+          Animated.timing(glowOpacity, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ]),
       ]).start();
     } else {
       animValue.setValue(score / 100);
+      scaleAnim.setValue(1);
+      glowOpacity.setValue(1);
     }
   }, [score]);
 
@@ -37,9 +55,30 @@ const ScoreRing = ({ score, size = 120, strokeWidth = 8, label, showLabel = true
     outputRange: [0, score],
   });
 
+  const glowSize = size + 20;
+
   return (
-    <View style={[styles.container, { width: size, height: size }]}>
+    <Animated.View style={[styles.container, { width: size, height: size, transform: [{ scale: scaleAnim }] }]}>
+      {/* Glow effect behind the ring */}
+      <Animated.View
+        style={[styles.glow, {
+          width: glowSize,
+          height: glowSize,
+          borderRadius: glowSize / 2,
+          backgroundColor: color,
+          opacity: glowOpacity.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 0.12],
+          }),
+        }]}
+      />
       <Svg width={size} height={size} style={styles.svg}>
+        <Defs>
+          <SvgGradient id="scoreGrad" x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0" stopColor={gradient[0]} />
+            <Stop offset="1" stopColor={gradient[1]} />
+          </SvgGradient>
+        </Defs>
         {/* Background circle */}
         <Circle
           cx={size / 2}
@@ -49,13 +88,22 @@ const ScoreRing = ({ score, size = 120, strokeWidth = 8, label, showLabel = true
           strokeWidth={strokeWidth}
           fill="none"
         />
-        {/* Score circle */}
+        {/* Track circle (subtle) */}
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={color + '15'}
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        {/* Score circle with gradient */}
         <AnimatedCircle
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={color}
-          strokeWidth={strokeWidth}
+          stroke="url(#scoreGrad)"
+          strokeWidth={strokeWidth + 1}
           fill="none"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
@@ -71,7 +119,7 @@ const ScoreRing = ({ score, size = 120, strokeWidth = 8, label, showLabel = true
           </Text>
         )}
       </View>
-    </View>
+    </Animated.View>
   );
 };
 
@@ -99,6 +147,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
   },
+  glow: {
+    position: 'absolute',
+  },
   svg: {
     position: 'absolute',
   },
@@ -108,6 +159,7 @@ const styles = StyleSheet.create({
   },
   score: {
     fontWeight: '900',
+    letterSpacing: -1,
   },
   label: {
     fontWeight: '700',
