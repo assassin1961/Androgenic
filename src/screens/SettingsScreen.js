@@ -184,6 +184,14 @@ const SettingsScreen = ({ navigation }) => {
             <Text style={styles.menuText}>30-Day Challenge</Text>
             <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Guides')}
+          >
+            <Ionicons name="book-outline" size={20} color={COLORS.textSecondary} />
+            <Text style={styles.menuText}>Guides & Tutorials</Text>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+          </TouchableOpacity>
         </View>
 
         {/* Data & Privacy */}

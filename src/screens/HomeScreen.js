@@ -17,7 +17,7 @@ const HomeScreen = ({ navigation }) => {
   const heroRotate = useRef(new Animated.Value(0)).current;
   const fadeIn = useRef(new Animated.Value(0)).current;
   const slideUp = useRef(new Animated.Value(40)).current;
-  const featureAnims = useRef([...Array(8)].map(() => new Animated.Value(0))).current;
+  const featureAnims = useRef([...Array(10)].map(() => new Animated.Value(0))).current;
   const pulseRing = useRef(new Animated.Value(1)).current;
   const btnScale = useRef(new Animated.Value(0.9)).current;
 
@@ -126,6 +126,8 @@ const HomeScreen = ({ navigation }) => {
     { icon: 'water-outline', text: 'Water Tracker', screen: 'WaterTracker', color: '#00e5ff' },
     { icon: 'color-palette-outline', text: 'Skin Tone', screen: 'SkinTone', color: '#ff6090' },
     { icon: 'body-outline', text: 'Body Fat', screen: 'BodyFat', color: '#a89afa' },
+    { icon: 'book-outline', text: 'Guides', screen: 'Guides', color: '#1de9b6' },
+    { icon: 'nutrition-outline', text: 'Nutrition', screen: 'NutritionGuide', color: '#ffab40' },
   ];
 
   return (

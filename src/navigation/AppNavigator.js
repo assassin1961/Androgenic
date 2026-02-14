@@ -29,6 +29,15 @@ import SkinToneScreen from '../screens/SkinToneScreen';
 import BodyFatScreen from '../screens/BodyFatScreen';
 import PrivacyScreen from '../screens/PrivacyScreen';
 import AppLockScreen from '../screens/AppLockScreen';
+import GuidesScreen from '../screens/GuidesScreen';
+import MewingGuideScreen from '../screens/MewingGuideScreen';
+import SkinCareGuideScreen from '../screens/SkinCareGuideScreen';
+import JawlineGuideScreen from '../screens/JawlineGuideScreen';
+import HairGuideScreen from '../screens/HairGuideScreen';
+import BoneStructureGuideScreen from '../screens/BoneStructureGuideScreen';
+import NutritionGuideScreen from '../screens/NutritionGuideScreen';
+import SleepGuideScreen from '../screens/SleepGuideScreen';
+import PostureGuideScreen from '../screens/PostureGuideScreen';
 import TabBar from '../components/TabBar';
 
 const Stack = createNativeStackNavigator();
@@ -87,6 +96,15 @@ const AppNavigator = () => {
           <Stack.Screen name="SkinTone" component={SkinToneScreen} />
           <Stack.Screen name="BodyFat" component={BodyFatScreen} />
           <Stack.Screen name="Privacy" component={PrivacyScreen} />
+          <Stack.Screen name="Guides" component={GuidesScreen} />
+          <Stack.Screen name="MewingGuide" component={MewingGuideScreen} />
+          <Stack.Screen name="SkinCareGuide" component={SkinCareGuideScreen} />
+          <Stack.Screen name="JawlineGuide" component={JawlineGuideScreen} />
+          <Stack.Screen name="HairGuide" component={HairGuideScreen} />
+          <Stack.Screen name="BoneStructureGuide" component={BoneStructureGuideScreen} />
+          <Stack.Screen name="NutritionGuide" component={NutritionGuideScreen} />
+          <Stack.Screen name="SleepGuide" component={SleepGuideScreen} />
+          <Stack.Screen name="PostureGuide" component={PostureGuideScreen} />
           <Stack.Screen
             name="AppLock"
             component={AppLockSetupScreen}
