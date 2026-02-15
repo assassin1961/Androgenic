@@ -82,12 +82,12 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID"
+        "projectId": "ecd7fa1d-cb25-4636-9623-a050339bf1fe"
       }
     },
-    "owner": "androgenic",
+    "owner": "adeelahmedrahman",
     "updates": {
-      "url": "https://u.expo.dev/YOUR_EAS_PROJECT_ID"
+      "url": "https://u.expo.dev/ecd7fa1d-cb25-4636-9623-a050339bf1fe"
     }
   }
 }
