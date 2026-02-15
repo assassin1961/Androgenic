@@ -38,6 +38,10 @@ import BoneStructureGuideScreen from '../screens/BoneStructureGuideScreen';
 import NutritionGuideScreen from '../screens/NutritionGuideScreen';
 import SleepGuideScreen from '../screens/SleepGuideScreen';
 import PostureGuideScreen from '../screens/PostureGuideScreen';
+import ProFeaturesScreen from '../screens/ProFeaturesScreen';
+import AIRecommendationsScreen from '../screens/AIRecommendationsScreen';
+import GlowUpReportScreen from '../screens/GlowUpReportScreen';
+import BeforeAfterScreen from '../screens/BeforeAfterScreen';
 import TabBar from '../components/TabBar';
 
 const Stack = createNativeStackNavigator();
@@ -105,6 +109,10 @@ const AppNavigator = () => {
           <Stack.Screen name="NutritionGuide" component={NutritionGuideScreen} />
           <Stack.Screen name="SleepGuide" component={SleepGuideScreen} />
           <Stack.Screen name="PostureGuide" component={PostureGuideScreen} />
+          <Stack.Screen name="ProFeatures" component={ProFeaturesScreen} />
+          <Stack.Screen name="AIRecommendations" component={AIRecommendationsScreen} />
+          <Stack.Screen name="GlowUpReport" component={GlowUpReportScreen} />
+          <Stack.Screen name="BeforeAfter" component={BeforeAfterScreen} />
           <Stack.Screen
             name="AppLock"
             component={AppLockSetupScreen}

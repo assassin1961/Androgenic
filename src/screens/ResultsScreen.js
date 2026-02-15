@@ -63,6 +63,9 @@ const ResultsScreen = ({ route, navigation }) => {
     { screen: 'Products', params: undefined, icon: 'bag-outline', title: 'Products', desc: 'Recommended for you', color: '#00d26a' },
     { screen: 'Challenge', params: undefined, icon: 'flame-outline', title: '30-Day Challenge', desc: 'Transform your look', color: '#ff6b35' },
     { screen: 'BodyFat', params: undefined, icon: 'body-outline', title: 'Body Fat', desc: 'Face definition score', color: '#74b9ff' },
+    { screen: 'AIRecommendations', params: undefined, icon: 'sparkles-outline', title: 'AI Recommendations', desc: 'Personalized action plan', color: '#7c6cf0', pro: true },
+    { screen: 'GlowUpReport', params: undefined, icon: 'document-text-outline', title: 'Glow-Up Report', desc: 'Full analysis breakdown', color: '#00e676', pro: true },
+    { screen: 'BeforeAfter', params: undefined, icon: 'images-outline', title: 'Transformations', desc: 'Track your journey', color: '#ffab40', pro: true },
   ];
 
   return (
@@ -235,9 +238,15 @@ const ResultsScreen = ({ route, navigation }) => {
                 <Text style={styles.featureCardTitle}>{item.title}</Text>
                 <Text style={styles.featureCardDesc}>{item.desc}</Text>
               </View>
-              <View style={styles.featureArrow}>
-                <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
-              </View>
+              {item.pro && !pro ? (
+                <View style={styles.proBadgeSm}>
+                  <Text style={styles.proBadgeText}>PRO</Text>
+                </View>
+              ) : (
+                <View style={styles.featureArrow}>
+                  <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+                </View>
+              )}
             </TouchableOpacity>
           ))}
         </Animated.View>

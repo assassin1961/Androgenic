@@ -213,6 +213,72 @@ const HomeScreen = ({ navigation }) => {
             </Animated.View>
           ))}
         </View>
+
+        {/* PRO Feature Teasers */}
+        {!isPro() && (
+          <View style={styles.proTeasers}>
+            <TouchableOpacity
+              style={styles.proTeaser}
+              onPress={() => navigation.navigate('AIRecommendations')}
+              activeOpacity={0.7}
+            >
+              <LinearGradient colors={['rgba(124,108,240,0.12)', 'rgba(124,108,240,0.04)']} style={styles.proTeaserBg}>
+                <View style={styles.proTeaserLeft}>
+                  <View style={[styles.proTeaserIcon, { backgroundColor: 'rgba(124,108,240,0.2)' }]}>
+                    <Ionicons name="sparkles" size={18} color={COLORS.accent} />
+                  </View>
+                  <View>
+                    <Text style={styles.proTeaserTitle}>AI Recommendations</Text>
+                    <Text style={styles.proTeaserDesc}>Personalized action plan</Text>
+                  </View>
+                </View>
+                <View style={styles.proTeaserBadge}>
+                  <Text style={styles.proTeaserBadgeText}>PRO</Text>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.proTeaser}
+              onPress={() => navigation.navigate('GlowUpReport')}
+              activeOpacity={0.7}
+            >
+              <LinearGradient colors={['rgba(0,230,118,0.10)', 'rgba(0,230,118,0.03)']} style={styles.proTeaserBg}>
+                <View style={styles.proTeaserLeft}>
+                  <View style={[styles.proTeaserIcon, { backgroundColor: 'rgba(0,230,118,0.2)' }]}>
+                    <Ionicons name="document-text" size={18} color="#00e676" />
+                  </View>
+                  <View>
+                    <Text style={styles.proTeaserTitle}>Glow-Up Report</Text>
+                    <Text style={styles.proTeaserDesc}>Full analysis breakdown</Text>
+                  </View>
+                </View>
+                <View style={styles.proTeaserBadge}>
+                  <Text style={styles.proTeaserBadgeText}>PRO</Text>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.proTeaser}
+              onPress={() => navigation.navigate('BeforeAfter')}
+              activeOpacity={0.7}
+            >
+              <LinearGradient colors={['rgba(255,171,64,0.10)', 'rgba(255,171,64,0.03)']} style={styles.proTeaserBg}>
+                <View style={styles.proTeaserLeft}>
+                  <View style={[styles.proTeaserIcon, { backgroundColor: 'rgba(255,171,64,0.2)' }]}>
+                    <Ionicons name="images" size={18} color="#ffab40" />
+                  </View>
+                  <View>
+                    <Text style={styles.proTeaserTitle}>Transformations</Text>
+                    <Text style={styles.proTeaserDesc}>Track your progress</Text>
+                  </View>
+                </View>
+                <View style={styles.proTeaserBadge}>
+                  <Text style={styles.proTeaserBadgeText}>PRO</Text>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
       </Animated.View>
     </SafeAreaView>
   );
@@ -397,6 +463,55 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     flex: 1,
+  },
+  proTeasers: {
+    paddingHorizontal: 20,
+    gap: 6,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  proTeaser: {},
+  proTeaserBg: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  proTeaserLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  proTeaserIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  proTeaserTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  proTeaserDesc: {
+    fontSize: 11,
+    color: COLORS.textMuted,
+  },
+  proTeaserBadge: {
+    backgroundColor: COLORS.gold,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  proTeaserBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#000',
+    letterSpacing: 1,
   },
 });
 
