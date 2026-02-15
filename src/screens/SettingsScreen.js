@@ -7,6 +7,7 @@ import { COLORS } from '../utils/theme';
 import { isPro, isTrialActive, getTrialDaysLeft, getProState, cancelSubscription, PRO_CONFIG } from '../utils/pro';
 import { clearHistory } from '../utils/history';
 import { isLockEnabled, disableLock } from './AppLockScreen';
+import { getManageSubscriptionUrl } from '../config/iap';
 
 const SettingsScreen = ({ navigation }) => {
   const pro = isPro();
@@ -233,11 +234,11 @@ const SettingsScreen = ({ navigation }) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => navigation.navigate('Paywall')}
+            onPress={() => isPro() ? Linking.openURL(getManageSubscriptionUrl()) : navigation.navigate('Paywall')}
           >
             <Ionicons name="card-outline" size={20} color={COLORS.textSecondary} />
-            <Text style={styles.menuText}>Manage Subscription</Text>
-            <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+            <Text style={styles.menuText}>{isPro() ? 'Manage Subscription' : 'Upgrade to PRO'}</Text>
+            <Ionicons name={isPro() ? 'open-outline' : 'chevron-forward'} size={isPro() ? 16 : 18} color={COLORS.textMuted} />
           </TouchableOpacity>
         </View>
 

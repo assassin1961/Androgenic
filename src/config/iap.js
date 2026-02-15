@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 // In-App Purchase Product IDs
 // These must match the products configured in App Store Connect and Google Play Console
 
@@ -11,7 +13,12 @@ export const IAP_PRODUCTS = {
   LIFETIME: 'com.androgenic.faceanalysis.pro.lifetime',
 };
 
-// Subscription group name (App Store Connect)
+// All product IDs as array (for store queries)
+export const ALL_PRODUCT_IDS = Object.values(IAP_PRODUCTS);
+export const SUBSCRIPTION_IDS = [IAP_PRODUCTS.WEEKLY, IAP_PRODUCTS.MONTHLY, IAP_PRODUCTS.YEARLY];
+export const ONE_TIME_IDS = [IAP_PRODUCTS.LIFETIME];
+
+// Subscription group name (App Store Connect) / Base plan (Google Play)
 export const SUBSCRIPTION_GROUP = 'Androgenic PRO';
 
 // Product details for display (fallback if store fetch fails)
@@ -58,3 +65,25 @@ export const PRO_ENTITLEMENTS = [
   'unlimited_tips',
   'unlimited_history',
 ];
+
+// Platform-specific subscription management URLs
+export const getManageSubscriptionUrl = () => {
+  if (Platform.OS === 'ios') {
+    return 'https://apps.apple.com/account/subscriptions';
+  }
+  return 'https://play.google.com/store/account/subscriptions?package=com.androgenic.faceanalysis';
+};
+
+// Google Play Billing config
+export const GOOGLE_PLAY_CONFIG = {
+  // Base plan IDs for Google Play subscriptions (must match Play Console)
+  basePlans: {
+    weekly: 'weekly-base-plan',
+    monthly: 'monthly-base-plan',
+    yearly: 'yearly-base-plan',
+  },
+  // Offer IDs for free trials
+  offers: {
+    freeTrial: 'free-trial-3-day',
+  },
+};

@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Alert, Animated, Dimensions,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Alert, Animated, Dimensions, Platform, Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, GRADIENTS, SHADOWS, GLASS } from '../utils/theme';
 import { PRO_CONFIG, startFreeTrial, purchasePlan, hasUsedTrial, isPro } from '../utils/pro';
+import { getManageSubscriptionUrl } from '../config/iap';
 
 const { width } = Dimensions.get('window');
 
@@ -235,12 +236,24 @@ const PaywallScreen = ({ navigation }) => {
 
           {/* Legal */}
           <Text style={styles.legalText}>
-            Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period. You can manage and cancel your subscriptions in your App Store account settings. Any unused portion of a free trial will be forfeited when you purchase a subscription.
+            {Platform.OS === 'ios'
+              ? 'Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period. You can manage and cancel your subscriptions in your App Store account settings.'
+              : 'Payment will be charged to your Google Play account at confirmation of purchase. Subscription automatically renews unless canceled at least 24 hours before the end of the current period. You can manage and cancel your subscriptions in Google Play Store > Account > Subscriptions.'}
+            {' '}Any unused portion of a free trial will be forfeited when you purchase a subscription.
           </Text>
-          <Text style={styles.legalText}>
-            Terms of Service: https://androgenic.app/terms{'\n'}
-            Privacy Policy: https://androgenic.app/privacy
-          </Text>
+          <View style={styles.legalLinks}>
+            <TouchableOpacity onPress={() => Linking.openURL('https://androgenic.app/terms')}>
+              <Text style={styles.legalLink}>Terms of Service</Text>
+            </TouchableOpacity>
+            <Text style={styles.legalDivider}>|</Text>
+            <TouchableOpacity onPress={() => Linking.openURL('https://androgenic.app/privacy')}>
+              <Text style={styles.legalLink}>Privacy Policy</Text>
+            </TouchableOpacity>
+            <Text style={styles.legalDivider}>|</Text>
+            <TouchableOpacity onPress={() => Linking.openURL(getManageSubscriptionUrl())}>
+              <Text style={styles.legalLink}>Manage Subscription</Text>
+            </TouchableOpacity>
+          </View>
 
           <View style={{ height: 30 }} />
         </Animated.View>
@@ -303,6 +316,9 @@ const styles = StyleSheet.create({
   restoreBtn: { alignItems: 'center', paddingVertical: 8 },
   restoreText: { color: COLORS.textMuted, fontSize: 13, textDecorationLine: 'underline' },
   legalText: { fontSize: 10, color: COLORS.textMuted, textAlign: 'center', lineHeight: 14, marginTop: 8, paddingHorizontal: 10 },
+  legalLinks: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 10 },
+  legalLink: { fontSize: 11, color: COLORS.accent, textDecorationLine: 'underline' },
+  legalDivider: { fontSize: 11, color: COLORS.textMuted },
   alreadyPro: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
   proBadgeSuccess: { width: 72, height: 72, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   alreadyProTitle: { fontSize: 24, fontWeight: '800', color: COLORS.gold, marginBottom: 8 },

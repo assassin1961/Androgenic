@@ -10,9 +10,14 @@
     "build:ios": "eas build --platform ios --profile production",
     "build:android": "eas build --platform android --profile production",
     "build:preview": "eas build --platform ios --profile preview",
+    "build:android-preview": "eas build --platform android --profile preview",
+    "build:android-internal": "eas build --platform android --profile preview:internal-testing",
     "submit:ios": "eas submit --platform ios --profile production",
     "submit:android": "eas submit --platform android --profile production",
-    "build:all": "eas build --platform all --profile production"
+    "submit:android-internal": "eas submit --platform android --profile internal-testing",
+    "submit:android-beta": "eas submit --platform android --profile open-testing",
+    "build:all": "eas build --platform all --profile production",
+    "update": "eas update --branch production --message"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
