@@ -235,7 +235,11 @@ const PaywallScreen = ({ navigation }) => {
 
           {/* Legal */}
           <Text style={styles.legalText}>
-            Payment will be charged to your account. Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period.
+            Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period. You can manage and cancel your subscriptions in your App Store account settings. Any unused portion of a free trial will be forfeited when you purchase a subscription.
+          </Text>
+          <Text style={styles.legalText}>
+            Terms of Service: https://androgenic.app/terms{'\n'}
+            Privacy Policy: https://androgenic.app/privacy
           </Text>
 
           <View style={{ height: 30 }} />

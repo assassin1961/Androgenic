@@ -39,3 +39,13 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# EAS
+.easignore
+
+# Google Play service account
+google-services.json
+
+# Secrets
+*.secret
+credentials.json

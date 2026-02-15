@@ -3,10 +3,14 @@
     "name": "Androgenic",
     "slug": "androgenic",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "scheme": "androgenic",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -14,12 +18,28 @@
     },
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.androgenic.faceanalysis",
+      "buildNumber": "1",
       "infoPlist": {
-        "NSCameraUsageDescription": "Androgenic needs camera access to analyze your face",
-        "NSPhotoLibraryUsageDescription": "Androgenic needs photo library access to analyze your face"
+        "NSCameraUsageDescription": "Androgenic uses the camera to scan and analyze your facial features for personalized improvement recommendations.",
+        "NSPhotoLibraryUsageDescription": "Androgenic accesses your photo library so you can select photos for facial analysis.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "privacyManifests": {
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          }
+        ]
       }
     },
     "android": {
+      "package": "com.androgenic.faceanalysis",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a0a0a"
@@ -47,6 +67,15 @@
           "cameraPermission": "Allow Androgenic to access your camera for face analysis"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_EAS_PROJECT_ID"
+      }
+    },
+    "owner": "androgenic",
+    "updates": {
+      "url": "https://u.expo.dev/YOUR_EAS_PROJECT_ID"
+    }
   }
 }

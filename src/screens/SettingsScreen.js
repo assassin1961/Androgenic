@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Alert, Switch,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Alert, Switch, Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../utils/theme';
@@ -208,6 +208,35 @@ const SettingsScreen = ({ navigation }) => {
           <TouchableOpacity style={styles.menuItem} onPress={handleClearData}>
             <Ionicons name="trash-outline" size={20} color={COLORS.scoreLow} />
             <Text style={[styles.menuText, { color: COLORS.scoreLow }]}>Clear All Data</Text>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Legal */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>LEGAL</Text>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => Linking.openURL('https://androgenic.app/privacy')}
+          >
+            <Ionicons name="document-text-outline" size={20} color={COLORS.textSecondary} />
+            <Text style={styles.menuText}>Privacy Policy</Text>
+            <Ionicons name="open-outline" size={16} color={COLORS.textMuted} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => Linking.openURL('https://androgenic.app/terms')}
+          >
+            <Ionicons name="reader-outline" size={20} color={COLORS.textSecondary} />
+            <Text style={styles.menuText}>Terms of Service</Text>
+            <Ionicons name="open-outline" size={16} color={COLORS.textMuted} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Paywall')}
+          >
+            <Ionicons name="card-outline" size={20} color={COLORS.textSecondary} />
+            <Text style={styles.menuText}>Manage Subscription</Text>
             <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
           </TouchableOpacity>
         </View>
