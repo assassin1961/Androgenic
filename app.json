@@ -78,7 +78,8 @@
           "photosPermission": "Allow Androgenic to access your photos for face analysis",
           "cameraPermission": "Allow Androgenic to access your camera for face analysis"
         }
-      ]
+      ],
+      "react-native-iap"
     ],
     "extra": {
       "eas": {

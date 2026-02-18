@@ -40,19 +40,20 @@ const SettingsScreen = ({ navigation }) => {
     ]);
   };
 
-  const handleCancelSub = () => {
-    Alert.alert('Cancel Subscription', 'Are you sure you want to cancel PRO?', [
-      { text: 'Keep PRO', style: 'cancel' },
-      {
-        text: 'Cancel',
-        style: 'destructive',
-        onPress: async () => {
-          await cancelSubscription();
-          Alert.alert('Cancelled', 'Your PRO subscription has been cancelled.');
-          navigation.goBack();
+  const handleManageSub = () => {
+    Alert.alert(
+      'Manage Subscription',
+      'You will be redirected to Google Play to manage or cancel your subscription.',
+      [
+        { text: 'Not Now', style: 'cancel' },
+        {
+          text: 'Go to Play Store',
+          onPress: async () => {
+            await cancelSubscription();
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
 
   const handleToggleLock = async (val) => {
@@ -113,8 +114,8 @@ const SettingsScreen = ({ navigation }) => {
               </TouchableOpacity>
             )}
             {pro && !trial && (
-              <TouchableOpacity onPress={handleCancelSub} style={styles.cancelBtn}>
-                <Text style={styles.cancelBtnText}>Cancel Subscription</Text>
+              <TouchableOpacity onPress={handleManageSub} style={styles.cancelBtn}>
+                <Text style={styles.cancelBtnText}>Manage Subscription</Text>
               </TouchableOpacity>
             )}
           </View>

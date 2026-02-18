@@ -5,7 +5,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, GRADIENTS, SHADOWS, GLASS } from '../utils/theme';
-import { PRO_CONFIG, startFreeTrial, purchasePlan, hasUsedTrial, isPro } from '../utils/pro';
+import { PRO_CONFIG, startFreeTrial, purchasePlan, hasUsedTrial, isPro, restorePurchases } from '../utils/pro';
 import { getManageSubscriptionUrl } from '../config/iap';
 
 const { width } = Dimensions.get('window');
@@ -29,6 +29,7 @@ const PRO_FEATURES_DISPLAY = [
 
 const PaywallScreen = ({ navigation }) => {
   const [selectedPlan, setSelectedPlan] = useState('monthly');
+  const [loading, setLoading] = useState(false);
   const trialUsed = hasUsedTrial();
   const alreadyPro = isPro();
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -58,31 +59,55 @@ const PaywallScreen = ({ navigation }) => {
   const shimmerTranslate = shimmer.interpolate({ inputRange: [0, 1], outputRange: [-width, width] });
 
   const handleSubscribe = async () => {
-    Alert.alert(
-      'Confirm Purchase',
-      `Subscribe to ${PRO_CONFIG.plans.find(p => p.id === selectedPlan)?.label} plan?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Subscribe',
-          onPress: async () => {
-            await purchasePlan(selectedPlan);
-            Alert.alert('Welcome to PRO!', 'All features are now unlocked.', [
-              { text: 'Let\'s Go!', onPress: () => navigation.goBack() },
-            ]);
-          },
-        },
-      ]
-    );
+    try {
+      setLoading(true);
+      await purchasePlan(selectedPlan);
+      Alert.alert('Welcome to PRO!', 'All features are now unlocked.', [
+        { text: "Let's Go!", onPress: () => navigation.goBack() },
+      ]);
+    } catch (err) {
+      if (err.message !== 'CANCELLED') {
+        Alert.alert('Purchase Failed', 'Something went wrong. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleStartTrial = async () => {
-    await startFreeTrial();
-    Alert.alert(
-      'Trial Started!',
-      `Your ${PRO_CONFIG.trialDays}-day free trial has begun. Enjoy all PRO features!`,
-      [{ text: 'Explore PRO', onPress: () => navigation.goBack() }]
-    );
+    try {
+      setLoading(true);
+      await purchasePlan('monthly');
+      Alert.alert(
+        'Welcome to PRO!',
+        `Your ${PRO_CONFIG.trialDays}-day free trial has started. Enjoy all PRO features!`,
+        [{ text: 'Explore PRO', onPress: () => navigation.goBack() }]
+      );
+    } catch (err) {
+      if (err.message !== 'CANCELLED') {
+        Alert.alert('Error', 'Could not start trial. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    try {
+      setLoading(true);
+      const result = await restorePurchases();
+      if (result) {
+        Alert.alert('Restored!', 'Your PRO access has been restored.', [
+          { text: 'Great!', onPress: () => navigation.goBack() },
+        ]);
+      } else {
+        Alert.alert('No Purchases Found', 'No previous purchases were found for this account.');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Could not restore purchases. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (alreadyPro) {
@@ -207,7 +232,7 @@ const PaywallScreen = ({ navigation }) => {
                   <Ionicons name="gift-outline" size={20} color="#000" />
                   <View style={styles.trialBtnContent}>
                     <Text style={styles.trialBtnText}>Start {PRO_CONFIG.trialDays}-Day Free Trial</Text>
-                    <Text style={styles.trialBtnSub}>No payment required</Text>
+                    <Text style={styles.trialBtnSub}>Cancel anytime during trial</Text>
                   </View>
                 </LinearGradient>
               </Animated.View>
@@ -230,7 +255,7 @@ const PaywallScreen = ({ navigation }) => {
           </View>
 
           {/* Restore */}
-          <TouchableOpacity onPress={() => Alert.alert('Restore', 'No previous purchases found.')} style={styles.restoreBtn}>
+          <TouchableOpacity onPress={handleRestore} style={styles.restoreBtn} disabled={loading}>
             <Text style={styles.restoreText}>Restore Purchase</Text>
           </TouchableOpacity>
 

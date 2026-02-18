@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StatusBar, View } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
 import AppLockScreen, { isLockEnabled } from './src/screens/AppLockScreen';
+import { endIAP } from './src/services/iapService';
 
 export default function App() {
   const [locked, setLocked] = useState(false);
@@ -12,6 +13,10 @@ export default function App() {
       setLocked(enabled);
       setCheckingLock(false);
     });
+
+    return () => {
+      endIAP();
+    };
   }, []);
 
   if (checkingLock) {

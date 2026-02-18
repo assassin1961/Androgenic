@@ -1,4 +1,18 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Linking } from 'react-native';
+import {
+  initIAP,
+  endIAP,
+  fetchProducts,
+  getPurchaseState,
+  refreshPurchaseState,
+  purchaseSubscriptionProduct,
+  purchaseLifetimeProduct,
+  restorePurchases as iapRestore,
+  planIdToProductId,
+  getLocalizedPrice,
+} from '../services/iapService';
+import { getManageSubscriptionUrl } from '../config/iap';
 
 const STORAGE_KEY = 'androgenic_pro';
 
@@ -48,6 +62,27 @@ export const loadProState = async () => {
   } catch {
     proState = defaultState();
   }
+
+  // Initialize real IAP and fetch store products
+  await initIAP();
+  await fetchProducts();
+
+  // Update plan prices with real store prices
+  PRO_CONFIG.plans.forEach((plan) => {
+    const productId = planIdToProductId(plan.id);
+    const realPrice = getLocalizedPrice(productId);
+    if (realPrice) {
+      plan.price = realPrice;
+    }
+  });
+
+  // Sync pro status from IAP
+  const purchaseState = getPurchaseState();
+  if (purchaseState?.isPro) {
+    proState.isPro = true;
+    proState.plan = purchaseState.plan;
+  }
+
   return proState;
 };
 
@@ -62,26 +97,34 @@ const saveProState = async () => {
 export const getProState = () => proState || defaultState();
 
 export const isPro = () => {
-  if (!proState) return false;
-  if (proState.isPro) return true;
-  if (proState.trialStart) {
-    const elapsed = Date.now() - proState.trialStart;
-    const trialMs = PRO_CONFIG.trialDays * 24 * 60 * 60 * 1000;
-    return elapsed < trialMs;
-  }
+  // Check real IAP state first
+  const purchaseState = getPurchaseState();
+  if (purchaseState?.isPro) return true;
+
+  // Fallback to local cache for offline
+  if (proState?.isPro) return true;
+
   return false;
 };
 
 export const isTrialActive = () => {
-  if (!proState || !proState.trialStart) return false;
-  const elapsed = Date.now() - proState.trialStart;
+  // With Google Play, trial is part of the subscription offer.
+  // Approximate: if subscription is active and purchased < trialDays ago
+  const purchaseState = getPurchaseState();
+  if (!purchaseState?.isPro || purchaseState?.isLifetime) return false;
+  if (!purchaseState?.purchaseTime) return false;
+
+  const elapsed = Date.now() - purchaseState.purchaseTime;
   const trialMs = PRO_CONFIG.trialDays * 24 * 60 * 60 * 1000;
-  return elapsed < trialMs && !proState.isPro;
+  return elapsed < trialMs;
 };
 
 export const getTrialDaysLeft = () => {
-  if (!proState || !proState.trialStart) return 0;
-  const elapsed = Date.now() - proState.trialStart;
+  const purchaseState = getPurchaseState();
+  if (!purchaseState?.isPro || !purchaseState?.purchaseTime) return 0;
+  if (purchaseState?.isLifetime) return 0;
+
+  const elapsed = Date.now() - purchaseState.purchaseTime;
   const trialMs = PRO_CONFIG.trialDays * 24 * 60 * 60 * 1000;
   const remaining = trialMs - elapsed;
   return Math.max(0, Math.ceil(remaining / (24 * 60 * 60 * 1000)));
@@ -116,32 +159,64 @@ export const getMaxTipsForCategory = () => {
   return PRO_CONFIG.freeTipsPerCategory;
 };
 
-export const startFreeTrial = async () => {
-  if (!proState) await loadProState();
-  proState.trialStart = Date.now();
-  proState.trialUsed = true;
-  await saveProState();
-  return true;
+export const purchasePlan = async (planId) => {
+  const productId = planIdToProductId(planId);
+  if (!productId) throw new Error('Unknown plan: ' + planId);
+
+  return new Promise((resolve, reject) => {
+    const onSuccess = async (state) => {
+      if (!proState) await loadProState();
+      proState.isPro = true;
+      proState.plan = planId;
+      proState.purchaseDate = Date.now();
+      await saveProState();
+      resolve(state);
+    };
+    const onError = (error) => {
+      if (error.cancelled || error.code === 'E_USER_CANCELLED') {
+        reject(new Error('CANCELLED'));
+      } else {
+        reject(error);
+      }
+    };
+
+    if (planId === 'lifetime') {
+      purchaseLifetimeProduct(onSuccess, onError);
+    } else {
+      purchaseSubscriptionProduct(productId, onSuccess, onError);
+    }
+  });
 };
 
-export const purchasePlan = async (planId) => {
-  if (!proState) await loadProState();
-  proState.isPro = true;
-  proState.plan = planId;
-  proState.purchaseDate = Date.now();
-  await saveProState();
-  return true;
+export const startFreeTrial = async () => {
+  // Google Play handles free trial as part of subscription offer.
+  // Starting a trial = subscribing to monthly (trial configured in Play Console).
+  return purchasePlan('monthly');
 };
 
 export const cancelSubscription = async () => {
-  if (!proState) await loadProState();
-  proState.isPro = false;
-  proState.plan = null;
-  await saveProState();
+  // Google Play doesn't allow programmatic cancellation.
+  // Redirect user to Play Store subscription management.
+  await Linking.openURL(getManageSubscriptionUrl());
 };
 
 export const hasUsedTrial = () => {
+  // Google Play tracks trial eligibility per account.
+  const purchaseState = getPurchaseState();
+  if (purchaseState?.isPro) return true;
   return proState?.trialUsed || false;
+};
+
+export const restorePurchases = async () => {
+  const result = await iapRestore();
+  if (result) {
+    if (!proState) proState = defaultState();
+    proState.isPro = true;
+    proState.plan = result.plan;
+    proState.purchaseDate = result.purchaseTime;
+    await saveProState();
+  }
+  return result;
 };
 
 // Celebrity match database
