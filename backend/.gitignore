@@ -1,0 +1,6 @@
+node_modules/
+.env
+androgenic.db
+androgenic.db-wal
+androgenic.db-shm
+uploads/

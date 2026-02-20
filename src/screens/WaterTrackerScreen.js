@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Circle, Defs, LinearGradient as SvgGrad, Stop } from 'react-native-svg';
 import { COLORS, GRADIENTS } from '../utils/theme';
+import { isLoggedIn, getWater as apiGetWater, addWater as apiAddWater } from '../services/api';
 
 const WATER_KEY = 'androgenic_water';
 const DAILY_GOAL = 3000; // ml
@@ -49,6 +50,17 @@ const WaterTrackerScreen = ({ navigation }) => {
   }, [intake]);
 
   const loadData = async () => {
+    // Try backend first
+    if (isLoggedIn()) {
+      try {
+        const data = await apiGetWater();
+        if (data) {
+          setIntake(data.today || 0);
+          setHistory(data.history || []);
+          return;
+        }
+      } catch {}
+    }
     try {
       const data = await AsyncStorage.getItem(WATER_KEY);
       if (data) {
@@ -86,10 +98,13 @@ const WaterTrackerScreen = ({ navigation }) => {
     } catch {}
   };
 
-  const addWater = (ml) => {
+  const addWater = async (ml) => {
     const newIntake = Math.min(intake + ml, 5000);
     setIntake(newIntake);
     saveData(newIntake);
+    if (isLoggedIn()) {
+      try { await apiAddWater(ml); } catch {}
+    }
 
     // Drop animation
     dropOpacity.setValue(1);

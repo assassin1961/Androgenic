@@ -14,6 +14,7 @@ import {
   flushFailedPurchasesCachedAsPendingAndroid,
 } from 'react-native-iap';
 import { SUBSCRIPTION_IDS, ONE_TIME_IDS, IAP_PRODUCTS } from '../config/iap';
+import { isLoggedIn, verifyPurchase } from './api';
 
 const IAP_CACHE_KEY = 'androgenic_iap_cache';
 
@@ -51,6 +52,20 @@ export const initIAP = async () => {
           isLifetime: purchase.productId === IAP_PRODUCTS.LIFETIME,
         };
         await savePurchaseCache(currentPurchaseState);
+
+        // Verify purchase with backend for server-side validation
+        if (isLoggedIn()) {
+          try {
+            await verifyPurchase(
+              purchase.productId,
+              purchase.purchaseToken,
+              planId,
+              purchase.productId === IAP_PRODUCTS.LIFETIME
+            );
+          } catch (e) {
+            console.warn('Backend purchase verification failed (purchase still valid locally):', e);
+          }
+        }
 
         if (_onPurchaseSuccess) {
           _onPurchaseSuccess(currentPurchaseState);

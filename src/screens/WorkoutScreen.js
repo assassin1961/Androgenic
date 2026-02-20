@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, GRADIENTS } from '../utils/theme';
+import { isLoggedIn, getWorkout as apiGetWorkout, toggleWorkout as apiToggleWorkout } from '../services/api';
 
 const WORKOUT_KEY = 'androgenic_workouts';
 
@@ -81,6 +82,17 @@ const WorkoutScreen = ({ navigation }) => {
   };
 
   const loadState = async () => {
+    // Try backend first
+    if (isLoggedIn()) {
+      try {
+        const data = await apiGetWorkout();
+        if (data && data.completed) {
+          setCompleted(data.completed || {});
+          await AsyncStorage.setItem(WORKOUT_KEY, JSON.stringify({ date: new Date().toDateString(), completed: data.completed }));
+          return;
+        }
+      } catch {}
+    }
     try {
       const data = await AsyncStorage.getItem(WORKOUT_KEY);
       if (data) {
@@ -102,6 +114,9 @@ const WorkoutScreen = ({ navigation }) => {
         completed: updated,
       }));
     } catch {}
+    if (isLoggedIn()) {
+      try { await apiToggleWorkout(name); } catch {}
+    }
   };
 
   const program = PROGRAMS[activeProgram];

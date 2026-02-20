@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, GRADIENTS } from '../utils/theme';
+import { isLoggedIn, getRoutine as apiGetRoutine, toggleRoutine as apiToggleRoutine } from '../services/api';
 
 const ROUTINE_KEY = 'androgenic_routine';
 
@@ -63,11 +64,21 @@ const RoutineScreen = ({ navigation }) => {
   }, []);
 
   const loadRoutineState = async () => {
+    // Try backend first
+    if (isLoggedIn()) {
+      try {
+        const data = await apiGetRoutine();
+        if (data && data.tasks) {
+          setCompletedTasks(data.tasks || {});
+          await AsyncStorage.setItem(ROUTINE_KEY, JSON.stringify({ date: new Date().toDateString(), tasks: data.tasks }));
+          return;
+        }
+      } catch {}
+    }
     try {
       const data = await AsyncStorage.getItem(ROUTINE_KEY);
       if (data) {
         const parsed = JSON.parse(data);
-        // Reset if it's a new day
         if (parsed.date !== new Date().toDateString()) {
           setCompletedTasks({});
         } else {
@@ -86,10 +97,13 @@ const RoutineScreen = ({ navigation }) => {
     } catch {}
   };
 
-  const toggleTask = (taskId) => {
+  const toggleTask = async (taskId) => {
     const updated = { ...completedTasks, [taskId]: !completedTasks[taskId] };
     setCompletedTasks(updated);
     saveRoutineState(updated);
+    if (isLoggedIn()) {
+      try { await apiToggleRoutine(taskId); } catch {}
+    }
   };
 
   const routine = ROUTINES[activeTab];

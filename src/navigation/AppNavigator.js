@@ -42,6 +42,7 @@ import ProFeaturesScreen from '../screens/ProFeaturesScreen';
 import AIRecommendationsScreen from '../screens/AIRecommendationsScreen';
 import GlowUpReportScreen from '../screens/GlowUpReportScreen';
 import BeforeAfterScreen from '../screens/BeforeAfterScreen';
+import AuthScreen from '../screens/AuthScreen';
 import TabBar from '../components/TabBar';
 
 const Stack = createNativeStackNavigator();
@@ -60,6 +61,7 @@ const AppNavigator = () => {
             contentStyle: { backgroundColor: '#0a0a0a' },
           }}
         >
+          <Stack.Screen name="Auth" component={AuthScreen} options={{ animation: 'fade' }} />
           <Stack.Screen name="Home" component={HomeWithTabs} />
           <Stack.Screen name="RoutineTab" component={RoutineWithTabs} />
           <Stack.Screen name="CompareTab" component={CompareWithTabs} />

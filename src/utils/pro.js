@@ -13,6 +13,7 @@ import {
   getLocalizedPrice,
 } from '../services/iapService';
 import { getManageSubscriptionUrl } from '../config/iap';
+import { isLoggedIn, restoreServerPurchases, getSubscriptionStatus } from '../services/api';
 
 const STORAGE_KEY = 'androgenic_pro';
 
@@ -81,6 +82,17 @@ export const loadProState = async () => {
   if (purchaseState?.isPro) {
     proState.isPro = true;
     proState.plan = purchaseState.plan;
+  }
+
+  // Also check backend subscription status if logged in
+  if (isLoggedIn()) {
+    try {
+      const subStatus = await getSubscriptionStatus();
+      if (subStatus?.isPro) {
+        proState.isPro = true;
+        proState.plan = subStatus.plan || proState.plan;
+      }
+    } catch {}
   }
 
   return proState;
@@ -215,6 +227,16 @@ export const restorePurchases = async () => {
     proState.plan = result.plan;
     proState.purchaseDate = result.purchaseTime;
     await saveProState();
+
+    // Also restore on backend
+    if (isLoggedIn() && result.purchaseToken) {
+      try {
+        await restoreServerPurchases([{
+          productId: result.productId,
+          purchaseToken: result.purchaseToken,
+        }]);
+      } catch {}
+    }
   }
   return result;
 };
@@ -334,6 +356,13 @@ export const togglePlanTask = async (taskId) => {
   if (!proState.planTasks) proState.planTasks = {};
   proState.planTasks[taskId] = !proState.planTasks[taskId];
   await saveProState();
+  // Sync with backend
+  if (isLoggedIn()) {
+    try {
+      const { toggleTask: apiToggleTask } = require('../services/api');
+      await apiToggleTask(taskId);
+    } catch {}
+  }
   return proState.planTasks[taskId];
 };
 

@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, GRADIENTS } from '../utils/theme';
+import { isLoggedIn, getChallenge as apiGetChallenge, startChallenge as apiStartChallenge, toggleChallengeDay as apiToggleDay } from '../services/api';
 
 const CHALLENGE_KEY = 'androgenic_challenge';
 
@@ -56,6 +57,23 @@ const ChallengeScreen = ({ navigation }) => {
   }, []);
 
   const loadState = async () => {
+    // Try backend first
+    if (isLoggedIn()) {
+      try {
+        const data = await apiGetChallenge();
+        if (data.challenge) {
+          const backendState = {
+            startDate: data.challenge.start_date ? new Date(data.challenge.start_date).getTime() : null,
+            completed: data.challenge.completed || {},
+            streak: data.challenge.streak || 0,
+          };
+          setState(backendState);
+          animateProgress(backendState);
+          await AsyncStorage.setItem(CHALLENGE_KEY, JSON.stringify(backendState));
+          return;
+        }
+      } catch {}
+    }
     try {
       const data = await AsyncStorage.getItem(CHALLENGE_KEY);
       if (data) {
@@ -89,11 +107,15 @@ const ChallengeScreen = ({ navigation }) => {
     ]).start();
   };
 
-  const startChallenge = () => {
-    saveState({ startDate: Date.now(), completed: {}, streak: 0 });
+  const startChallenge = async () => {
+    const newState = { startDate: Date.now(), completed: {}, streak: 0 };
+    saveState(newState);
+    if (isLoggedIn()) {
+      try { await apiStartChallenge(); } catch {}
+    }
   };
 
-  const toggleDay = (day) => {
+  const toggleDay = async (day) => {
     const updated = { ...state };
     if (!updated.completed) updated.completed = {};
     if (updated.completed[day]) {
@@ -109,6 +131,9 @@ const ChallengeScreen = ({ navigation }) => {
     }
     updated.streak = streak;
     saveState(updated);
+    if (isLoggedIn()) {
+      try { await apiToggleDay(day); } catch {}
+    }
   };
 
   const completedCount = Object.keys(state.completed || {}).length;
