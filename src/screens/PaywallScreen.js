@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { COLORS, GRADIENTS, SHADOWS, GLASS } from '../utils/theme';
 import { PRO_CONFIG, startFreeTrial, purchasePlan, hasUsedTrial, isPro, restorePurchases } from '../utils/pro';
 import { getManageSubscriptionUrl } from '../config/iap';
@@ -61,7 +62,9 @@ const PaywallScreen = ({ navigation }) => {
   const handleSubscribe = async () => {
     try {
       setLoading(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       await purchasePlan(selectedPlan);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert('Welcome to PRO!', 'All features are now unlocked.', [
         { text: "Let's Go!", onPress: () => navigation.goBack() },
       ]);
@@ -202,7 +205,7 @@ const PaywallScreen = ({ navigation }) => {
           {PRO_CONFIG.plans.map((plan) => {
             const isSelected = selectedPlan === plan.id;
             return (
-              <TouchableOpacity key={plan.id} onPress={() => setSelectedPlan(plan.id)} activeOpacity={0.7}>
+              <TouchableOpacity key={plan.id} onPress={() => { Haptics.selectionAsync(); setSelectedPlan(plan.id); }} activeOpacity={0.7}>
                 <View style={[styles.planCard, isSelected && styles.planCardSelected]}>
                   <View style={styles.planLeft}>
                     <View style={[styles.planRadio, isSelected && styles.planRadioSelected]}>

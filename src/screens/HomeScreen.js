@@ -1,33 +1,54 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Animated, Easing, Dimensions,
+  View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Animated, Easing, Dimensions, ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as Haptics from 'expo-haptics';
 import { COLORS, GRADIENTS, SHADOWS, GLASS } from '../utils/theme';
 import { loadProState, getScansRemaining, isPro } from '../utils/pro';
+import { loadStreakState, getStreakState, markDayActive, getCurrentLevel, getLevelProgress, getUnlockedCount, ACHIEVEMENTS } from '../utils/streaks';
 import ProBanner from '../components/ProBanner';
 
 const { width } = Dimensions.get('window');
 
+const DAILY_MOTIVATION = [
+  "Your glow-up starts today. Take a scan.",
+  "Consistency is the secret. Keep going.",
+  "Every scan tracks your progress. Don't skip today.",
+  "Small daily improvements lead to stunning results.",
+  "The best investment you can make is in yourself.",
+  "Champions are built through daily discipline.",
+  "Your potential is unlimited. Prove it today.",
+];
+
 const HomeScreen = ({ navigation }) => {
   const [ready, setReady] = useState(false);
+  const [streakData, setStreakData] = useState(null);
   const heroGlow = useRef(new Animated.Value(0.6)).current;
   const heroRotate = useRef(new Animated.Value(0)).current;
   const fadeIn = useRef(new Animated.Value(0)).current;
   const slideUp = useRef(new Animated.Value(40)).current;
-  const featureAnims = useRef([...Array(10)].map(() => new Animated.Value(0))).current;
+  const featureAnims = useRef([...Array(12)].map(() => new Animated.Value(0))).current;
   const pulseRing = useRef(new Animated.Value(1)).current;
   const btnScale = useRef(new Animated.Value(0.9)).current;
+  const streakPulse = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    loadProState().then(() => setReady(true));
+    Promise.all([loadProState(), loadStreakState()]).then(() => {
+      setStreakData(getStreakState());
+      markDayActive().then(() => setStreakData(getStreakState()));
+      setReady(true);
+    });
   }, []);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      loadProState().then(() => setReady(true));
+      Promise.all([loadProState(), loadStreakState()]).then(() => {
+        setStreakData(getStreakState());
+        setReady(true);
+      });
     });
     return unsubscribe;
   }, [navigation]);
@@ -70,9 +91,22 @@ const HomeScreen = ({ navigation }) => {
         Animated.timing(pulseRing, { toValue: 1, duration: 1500, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
       ])
     ).start();
+
+    // Streak flame pulse
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(streakPulse, { toValue: 1.2, duration: 800, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(streakPulse, { toValue: 1, duration: 800, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
   }, [ready]);
 
+  const level = streakData ? getCurrentLevel() : null;
+  const levelProgress = streakData ? getLevelProgress() : 0;
+  const motivation = DAILY_MOTIVATION[new Date().getDate() % DAILY_MOTIVATION.length];
+
   const handleCamera = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (!isPro() && getScansRemaining() <= 0) {
       navigation.navigate('Paywall');
       return;
@@ -120,10 +154,12 @@ const HomeScreen = ({ navigation }) => {
   const FEATURES = [
     { icon: 'flame-outline', text: '30-Day Challenge', screen: 'Challenge', color: '#ff6b35' },
     { icon: 'today-outline', text: 'Daily Routine', screen: 'RoutineTab', color: '#00e676' },
-    { icon: 'bag-outline', text: 'Products', screen: 'Products', color: '#ffab40' },
-    { icon: 'trophy-outline', text: 'Leaderboard', screen: 'LeaderboardTab', color: '#FFD700' },
+    { icon: 'trophy-outline', text: 'Achievements', screen: 'Achievements', color: '#FFD700' },
+    { icon: 'analytics-outline', text: 'Weekly Insights', screen: 'WeeklyInsights', color: '#6c5ce7' },
     { icon: 'barbell-outline', text: 'Workouts', screen: 'Workout', color: '#ff5252' },
     { icon: 'water-outline', text: 'Water Tracker', screen: 'WaterTracker', color: '#00e5ff' },
+    { icon: 'bag-outline', text: 'Products', screen: 'Products', color: '#ffab40' },
+    { icon: 'podium-outline', text: 'Leaderboard', screen: 'LeaderboardTab', color: '#FFD700' },
     { icon: 'color-palette-outline', text: 'Skin Tone', screen: 'SkinTone', color: '#ff6090' },
     { icon: 'body-outline', text: 'Body Fat', screen: 'BodyFat', color: '#a89afa' },
     { icon: 'book-outline', text: 'Guides', screen: 'Guides', color: '#1de9b6' },
@@ -156,7 +192,48 @@ const HomeScreen = ({ navigation }) => {
       </View>
 
       {/* Main Content */}
+      <ScrollView showsVerticalScrollIndicator={false}>
       <Animated.View style={[styles.mainContent, { opacity: fadeIn, transform: [{ translateY: slideUp }] }]}>
+
+        {/* Streak & Level Widget */}
+        {streakData && (
+          <TouchableOpacity
+            style={styles.streakWidget}
+            onPress={() => navigation.navigate('Achievements')}
+            activeOpacity={0.8}
+          >
+            <Animated.View style={[styles.streakFlame, { transform: [{ scale: streakPulse }] }]}>
+              <LinearGradient colors={['#ff6b35', '#ff4757']} style={styles.streakFlameBg}>
+                <Ionicons name="flame" size={18} color="#fff" />
+                <Text style={styles.streakCount}>{streakData.currentStreak}</Text>
+              </LinearGradient>
+            </Animated.View>
+            <View style={styles.streakInfo}>
+              <View style={styles.streakTopRow}>
+                <Text style={styles.streakLabel}>
+                  {level ? `Level ${level.level}` : 'Level 1'}{' '}
+                  <Text style={[styles.streakLevelName, level && { color: level.color }]}>
+                    {level?.name || 'Newbie'}
+                  </Text>
+                </Text>
+                <Text style={styles.streakXP}>{streakData.totalXP} XP</Text>
+              </View>
+              <View style={styles.streakBar}>
+                <View style={[styles.streakBarFill, { width: `${Math.max(levelProgress * 100, 2)}%` }]}>
+                  <LinearGradient colors={GRADIENTS.accent} style={{ flex: 1 }} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
+                </View>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        )}
+
+        {/* Daily Motivation */}
+        <View style={styles.motivationBanner}>
+          <Ionicons name="sparkles" size={14} color={COLORS.accent} />
+          <Text style={styles.motivationText}>{motivation}</Text>
+        </View>
+
         {/* Hero */}
         <View style={styles.hero}>
           <View style={styles.heroCenter}>
@@ -219,13 +296,33 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.proTeasers}>
             <TouchableOpacity
               style={styles.proTeaser}
+              onPress={() => navigation.navigate('GlowUpSimulator')}
+              activeOpacity={0.7}
+            >
+              <LinearGradient colors={['rgba(255,96,144,0.12)', 'rgba(255,96,144,0.04)']} style={styles.proTeaserBg}>
+                <View style={styles.proTeaserLeft}>
+                  <View style={[styles.proTeaserIcon, { backgroundColor: 'rgba(255,96,144,0.2)' }]}>
+                    <Ionicons name="sparkles" size={18} color="#ff6090" />
+                  </View>
+                  <View>
+                    <Text style={styles.proTeaserTitle}>Glow-Up Simulator</Text>
+                    <Text style={styles.proTeaserDesc}>See your potential transformation</Text>
+                  </View>
+                </View>
+                <View style={styles.proTeaserBadge}>
+                  <Text style={styles.proTeaserBadgeText}>PRO</Text>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.proTeaser}
               onPress={() => navigation.navigate('AIRecommendations')}
               activeOpacity={0.7}
             >
               <LinearGradient colors={['rgba(124,108,240,0.12)', 'rgba(124,108,240,0.04)']} style={styles.proTeaserBg}>
                 <View style={styles.proTeaserLeft}>
                   <View style={[styles.proTeaserIcon, { backgroundColor: 'rgba(124,108,240,0.2)' }]}>
-                    <Ionicons name="sparkles" size={18} color={COLORS.accent} />
+                    <Ionicons name="bulb" size={18} color={COLORS.accent} />
                   </View>
                   <View>
                     <Text style={styles.proTeaserTitle}>AI Recommendations</Text>
@@ -279,7 +376,9 @@ const HomeScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
         )}
+        <View style={{ height: 100 }} />
       </Animated.View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -328,10 +427,29 @@ const styles = StyleSheet.create({
     paddingTop: 6,
   },
   mainContent: {
-    flex: 1,
     paddingHorizontal: 20,
-    justifyContent: 'center',
   },
+  streakWidget: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: COLORS.bgCard, borderRadius: 14, padding: 12,
+    marginBottom: 8, borderWidth: 1, borderColor: COLORS.border,
+  },
+  streakFlame: {},
+  streakFlameBg: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  streakCount: { color: '#fff', fontSize: 11, fontWeight: '900', marginTop: -2 },
+  streakInfo: { flex: 1 },
+  streakTopRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
+  streakLabel: { color: COLORS.textPrimary, fontSize: 12, fontWeight: '600' },
+  streakLevelName: { fontWeight: '800' },
+  streakXP: { color: COLORS.textMuted, fontSize: 11, fontWeight: '600' },
+  streakBar: { height: 4, backgroundColor: COLORS.bgSecondary, borderRadius: 2, overflow: 'hidden' },
+  streakBarFill: { height: '100%', borderRadius: 2, overflow: 'hidden' },
+  motivationBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 8,
+    backgroundColor: COLORS.accent + '08', borderRadius: 10, marginBottom: 12,
+    borderWidth: 1, borderColor: COLORS.accent + '15',
+  },
+  motivationText: { color: COLORS.accentLight, fontSize: 11, fontWeight: '500', flex: 1, fontStyle: 'italic' },
   hero: {
     alignItems: 'center',
     marginBottom: 28,

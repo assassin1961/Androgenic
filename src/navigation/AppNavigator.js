@@ -43,6 +43,10 @@ import AIRecommendationsScreen from '../screens/AIRecommendationsScreen';
 import GlowUpReportScreen from '../screens/GlowUpReportScreen';
 import BeforeAfterScreen from '../screens/BeforeAfterScreen';
 import AuthScreen from '../screens/AuthScreen';
+import GlowUpSimulatorScreen from '../screens/GlowUpSimulatorScreen';
+import AchievementsScreen from '../screens/AchievementsScreen';
+import WeeklyInsightsScreen from '../screens/WeeklyInsightsScreen';
+import ShareCardScreen from '../screens/ShareCardScreen';
 import TabBar from '../components/TabBar';
 
 const Stack = createNativeStackNavigator();
@@ -115,6 +119,14 @@ const AppNavigator = () => {
           <Stack.Screen name="AIRecommendations" component={AIRecommendationsScreen} />
           <Stack.Screen name="GlowUpReport" component={GlowUpReportScreen} />
           <Stack.Screen name="BeforeAfter" component={BeforeAfterScreen} />
+          <Stack.Screen name="GlowUpSimulator" component={GlowUpSimulatorScreen} />
+          <Stack.Screen name="Achievements" component={AchievementsScreen} />
+          <Stack.Screen name="WeeklyInsights" component={WeeklyInsightsScreen} />
+          <Stack.Screen
+            name="ShareCard"
+            component={ShareCardScreen}
+            options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+          />
           <Stack.Screen
             name="AppLock"
             component={AppLockSetupScreen}

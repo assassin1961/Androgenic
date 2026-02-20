@@ -5,6 +5,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
 import { COLORS, GRADIENTS } from '../utils/theme';
 import { isLoggedIn, getRoutine as apiGetRoutine, toggleRoutine as apiToggleRoutine } from '../services/api';
 
@@ -101,6 +102,7 @@ const RoutineScreen = ({ navigation }) => {
     const updated = { ...completedTasks, [taskId]: !completedTasks[taskId] };
     setCompletedTasks(updated);
     saveRoutineState(updated);
+    Haptics.impactAsync(updated[taskId] ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light);
     if (isLoggedIn()) {
       try { await apiToggleRoutine(taskId); } catch {}
     }

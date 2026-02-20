@@ -5,6 +5,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
 import { COLORS, GRADIENTS } from '../utils/theme';
 import { isLoggedIn, getChallenge as apiGetChallenge, startChallenge as apiStartChallenge, toggleChallengeDay as apiToggleDay } from '../services/api';
 
@@ -120,8 +121,10 @@ const ChallengeScreen = ({ navigation }) => {
     if (!updated.completed) updated.completed = {};
     if (updated.completed[day]) {
       delete updated.completed[day];
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } else {
       updated.completed[day] = Date.now();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
     // Calc streak
     let streak = 0;

@@ -4,12 +4,26 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { COLORS, GRADIENTS, SHADOWS, GLASS, getScoreColor, getScoreLabel } from '../utils/theme';
 import { CATEGORY_INFO } from '../utils/faceAnalysis';
 import { isPro, canAccessCategory, getCelebrityMatch, computeFacialRatios, getMaxTipsForCategory } from '../utils/pro';
 import { getTipsForCategory, getOverallTips } from '../data/tips';
+import { recordScan } from '../utils/streaks';
 import ScoreCard from '../components/ScoreCard';
 import ScoreRing from '../components/ScoreRing';
+
+const getPercentile = (score) => {
+  if (score >= 95) return { pct: 1, label: 'Top 1%', color: '#FFD700' };
+  if (score >= 90) return { pct: 5, label: 'Top 5%', color: '#FFD700' };
+  if (score >= 85) return { pct: 10, label: 'Top 10%', color: '#ff6090' };
+  if (score >= 80) return { pct: 15, label: 'Top 15%', color: '#a89afa' };
+  if (score >= 75) return { pct: 20, label: 'Top 20%', color: '#00e676' };
+  if (score >= 70) return { pct: 30, label: 'Top 30%', color: '#00e676' };
+  if (score >= 60) return { pct: 45, label: 'Top 45%', color: '#ffab40' };
+  if (score >= 50) return { pct: 55, label: 'Top 55%', color: '#ffab40' };
+  return { pct: 70, label: 'Top 70%', color: '#ff5252' };
+};
 
 const ResultsScreen = ({ route, navigation }) => {
   const { scores, imageUri } = route.params;
@@ -17,6 +31,7 @@ const ResultsScreen = ({ route, navigation }) => {
   const celebrity = pro ? getCelebrityMatch(scores) : null;
   const ratios = pro ? computeFacialRatios(scores) : null;
   const overallColor = getScoreColor(scores.overall);
+  const percentile = getPercentile(scores.overall);
 
   const categories = ['masculinity', 'jawline', 'eyes', 'cheekbones', 'hair', 'skin', 'symmetry'];
 
@@ -54,9 +69,17 @@ const ResultsScreen = ({ route, navigation }) => {
         Animated.timing(photoGlow, { toValue: 0.3, duration: 1500, useNativeDriver: true }),
       ])
     ).start();
+
+    // Haptic feedback on score reveal
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    // Record scan for streak/XP system
+    recordScan(scores.overall);
   }, []);
 
   const featureItems = [
+    { screen: 'GlowUpSimulator', params: { scores, imageUri }, icon: 'sparkles-outline', title: 'Glow-Up Simulator', desc: 'See your potential transformation', color: '#ff6090', pro: true },
+    { screen: 'ShareCard', params: { scores, imageUri }, icon: 'share-social-outline', title: 'Share Card', desc: 'Create a viral share card', color: '#00e5ff' },
     { screen: 'FaceShape', params: { scores }, icon: 'shapes-outline', title: 'Face Shape', desc: 'Discover your face shape', color: '#a29bfe' },
     { screen: 'AgeEstimate', params: { scores }, icon: 'hourglass-outline', title: 'Age Estimate', desc: 'Perceived vs real age', color: '#e17055' },
     { screen: 'SkinTone', params: { scores }, icon: 'color-palette-outline', title: 'Skin Tone', desc: 'Personalized routine', color: '#fdcb6e' },
@@ -97,9 +120,15 @@ const ResultsScreen = ({ route, navigation }) => {
               </View>
               <ScoreRing score={scores.overall} size={130} strokeWidth={10} label={`${scores.overallRating}/10`} delay={200} />
             </View>
-            <View style={styles.ratingPill}>
-              <View style={[styles.ratingDot, { backgroundColor: overallColor }]} />
-              <Text style={[styles.ratingText, { color: overallColor }]}>{getScoreLabel(scores.overall)}</Text>
+            <View style={styles.ratingRow}>
+              <View style={styles.ratingPill}>
+                <View style={[styles.ratingDot, { backgroundColor: overallColor }]} />
+                <Text style={[styles.ratingText, { color: overallColor }]}>{getScoreLabel(scores.overall)}</Text>
+              </View>
+              <View style={[styles.percentilePill, { backgroundColor: percentile.color + '20', borderColor: percentile.color + '40' }]}>
+                <Ionicons name="trending-up" size={12} color={percentile.color} />
+                <Text style={[styles.percentileText, { color: percentile.color }]}>{percentile.label}</Text>
+              </View>
             </View>
             <Text style={styles.overallDescription}>
               {scores.overallRating >= 8 ? "You're in the top tier. Elite facial aesthetics." :
@@ -394,6 +423,12 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     borderWidth: 3,
   },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
   ratingPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -402,7 +437,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
     gap: 6,
-    marginBottom: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
@@ -410,6 +444,20 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+  percentilePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    gap: 4,
+    borderWidth: 1,
+  },
+  percentileText: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   ratingText: {
     fontSize: 12,

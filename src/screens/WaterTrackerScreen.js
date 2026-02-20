@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Circle, Defs, LinearGradient as SvgGrad, Stop } from 'react-native-svg';
+import * as Haptics from 'expo-haptics';
 import { COLORS, GRADIENTS } from '../utils/theme';
 import { isLoggedIn, getWater as apiGetWater, addWater as apiAddWater } from '../services/api';
 
@@ -102,6 +103,10 @@ const WaterTrackerScreen = ({ navigation }) => {
     const newIntake = Math.min(intake + ml, 5000);
     setIntake(newIntake);
     saveData(newIntake);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (newIntake >= DAILY_GOAL && intake < DAILY_GOAL) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
     if (isLoggedIn()) {
       try { await apiAddWater(ml); } catch {}
     }

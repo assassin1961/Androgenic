@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, Image, Animated, Easing, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { COLORS, GRADIENTS, SHADOWS } from '../utils/theme';
 import { analyzeFace, getAnalysisSteps } from '../utils/faceAnalysis';
 import { useScan } from '../utils/pro';
@@ -83,10 +84,16 @@ const AnalyzingScreen = ({ route, navigation }) => {
     // Status text fade in
     Animated.timing(statusFade, { toValue: 1, duration: 600, delay: 200, useNativeDriver: true }).start();
 
+    // Initial haptic on scan start
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
     // Progress through steps
     const stepInterval = setInterval(() => {
       setCurrentStep((prev) => {
-        if (prev < steps.length - 1) return prev + 1;
+        if (prev < steps.length - 1) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          return prev + 1;
+        }
         return prev;
       });
     }, 500);
@@ -104,6 +111,7 @@ const AnalyzingScreen = ({ route, navigation }) => {
         await saveToHistory(scores, imageUri);
         setTimeout(() => {
           clearInterval(stepInterval);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           navigation.replace('Results', { scores, imageUri });
         }, 3800);
       } catch (err) {

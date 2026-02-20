@@ -5,6 +5,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
 import { COLORS, GRADIENTS } from '../utils/theme';
 import { isLoggedIn, getWorkout as apiGetWorkout, toggleWorkout as apiToggleWorkout } from '../services/api';
 
@@ -108,6 +109,7 @@ const WorkoutScreen = ({ navigation }) => {
     const updated = { ...completedExercises };
     updated[name] = !updated[name];
     setCompleted(updated);
+    Haptics.impactAsync(updated[name] ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light);
     try {
       await AsyncStorage.setItem(WORKOUT_KEY, JSON.stringify({
         date: new Date().toDateString(),
