@@ -1,39 +1,23 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Animated, Easing, Dimensions, ScrollView,
+  View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar,
+  Animated, Dimensions, ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
-import { COLORS, GRADIENTS, SHADOWS, GLASS } from '../utils/theme';
+import { COLORS, GRADIENTS, SHADOWS } from '../utils/theme';
 import { loadProState, getScansRemaining, isPro } from '../utils/pro';
-import { loadStreakState, getStreakState, markDayActive, getCurrentLevel, getLevelProgress, getUnlockedCount, ACHIEVEMENTS } from '../utils/streaks';
-import ProBanner from '../components/ProBanner';
+import { loadStreakState, getStreakState, markDayActive, getCurrentLevel, getLevelProgress } from '../utils/streaks';
 
 const { width } = Dimensions.get('window');
-
-const DAILY_MOTIVATION = [
-  "Your glow-up starts today. Take a scan.",
-  "Consistency is the secret. Keep going.",
-  "Every scan tracks your progress. Don't skip today.",
-  "Small daily improvements lead to stunning results.",
-  "The best investment you can make is in yourself.",
-  "Champions are built through daily discipline.",
-  "Your potential is unlimited. Prove it today.",
-];
+const COL3 = (width - 56) / 3;
 
 const HomeScreen = ({ navigation }) => {
   const [ready, setReady] = useState(false);
   const [streakData, setStreakData] = useState(null);
-  const heroGlow = useRef(new Animated.Value(0.6)).current;
-  const heroRotate = useRef(new Animated.Value(0)).current;
   const fadeIn = useRef(new Animated.Value(0)).current;
-  const slideUp = useRef(new Animated.Value(40)).current;
-  const featureAnims = useRef([...Array(12)].map(() => new Animated.Value(0))).current;
-  const pulseRing = useRef(new Animated.Value(1)).current;
-  const btnScale = useRef(new Animated.Value(0.9)).current;
-  const streakPulse = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Promise.all([loadProState(), loadStreakState()]).then(() => {
@@ -44,68 +28,24 @@ const HomeScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
+    const unsub = navigation.addListener('focus', () => {
       Promise.all([loadProState(), loadStreakState()]).then(() => {
         setStreakData(getStreakState());
         setReady(true);
       });
     });
-    return unsubscribe;
+    return unsub;
   }, [navigation]);
 
   useEffect(() => {
     if (!ready) return;
-
-    // Entrance animations
-    Animated.parallel([
-      Animated.timing(fadeIn, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.spring(slideUp, { toValue: 0, friction: 8, useNativeDriver: true }),
-      Animated.spring(btnScale, { toValue: 1, friction: 6, delay: 200, useNativeDriver: true }),
-    ]).start();
-
-    // Staggered feature grid entrance
-    featureAnims.forEach((anim, i) => {
-      Animated.sequence([
-        Animated.delay(400 + i * 60),
-        Animated.spring(anim, { toValue: 1, friction: 7, useNativeDriver: true }),
-      ]).start();
-    });
-
-    // Pulsing hero glow
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(heroGlow, { toValue: 1, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(heroGlow, { toValue: 0.6, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-      ])
-    ).start();
-
-    // Slow rotating ring
-    Animated.loop(
-      Animated.timing(heroRotate, { toValue: 1, duration: 8000, easing: Easing.linear, useNativeDriver: true })
-    ).start();
-
-    // Pulse ring
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseRing, { toValue: 1.15, duration: 1500, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(pulseRing, { toValue: 1, duration: 1500, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-      ])
-    ).start();
-
-    // Streak flame pulse
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(streakPulse, { toValue: 1.2, duration: 800, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(streakPulse, { toValue: 1, duration: 800, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-      ])
-    ).start();
+    Animated.timing(fadeIn, { toValue: 1, duration: 400, useNativeDriver: true }).start();
   }, [ready]);
 
   const level = streakData ? getCurrentLevel() : null;
   const levelProgress = streakData ? getLevelProgress() : 0;
-  const motivation = DAILY_MOTIVATION[new Date().getDate() % DAILY_MOTIVATION.length];
 
-  const handleCamera = async () => {
+  const handleCamera = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (!isPro() && getScansRemaining() <= 0) {
       navigation.navigate('Paywall');
@@ -117,267 +57,199 @@ const HomeScreen = ({ navigation }) => {
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
+      allowsEditing: true, aspect: [1, 1], quality: 0.8,
     });
     if (!result.canceled && result.assets?.[0]) {
       navigation.navigate('Analyzing', { imageUri: result.assets[0].uri });
     }
-  };
+  }, [navigation]);
 
-  const handleUpload = async () => {
+  const handleUpload = useCallback(async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (!isPro() && getScansRemaining() <= 0) {
       navigation.navigate('Paywall');
       return;
     }
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      alert('Photo library permission is required to upload a photo.');
+      alert('Photo library permission is required.');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
+      mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.8,
     });
     if (!result.canceled && result.assets?.[0]) {
       navigation.navigate('Analyzing', { imageUri: result.assets[0].uri });
     }
-  };
+  }, [navigation]);
 
   if (!ready) return <View style={styles.container} />;
 
-  const spin = heroRotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+  const scansLeft = getScansRemaining();
+  const pro = isPro();
 
   const FEATURES = [
-    { icon: 'flame-outline', text: '30-Day Challenge', screen: 'Challenge', color: '#ff6b35' },
-    { icon: 'today-outline', text: 'Daily Routine', screen: 'RoutineTab', color: '#00e676' },
-    { icon: 'trophy-outline', text: 'Achievements', screen: 'Achievements', color: '#FFD700' },
-    { icon: 'analytics-outline', text: 'Weekly Insights', screen: 'WeeklyInsights', color: '#0055dd' },
-    { icon: 'barbell-outline', text: 'Workouts', screen: 'Workout', color: '#ff5252' },
-    { icon: 'water-outline', text: 'Water Tracker', screen: 'WaterTracker', color: '#00e5ff' },
-    { icon: 'bag-outline', text: 'Products', screen: 'Products', color: '#ffab40' },
-    { icon: 'podium-outline', text: 'Leaderboard', screen: 'LeaderboardTab', color: '#FFD700' },
-    { icon: 'color-palette-outline', text: 'Skin Tone', screen: 'SkinTone', color: '#ff6090' },
-    { icon: 'body-outline', text: 'Body Fat', screen: 'BodyFat', color: '#4d94ff' },
-    { icon: 'book-outline', text: 'Guides', screen: 'Guides', color: '#1de9b6' },
-    { icon: 'nutrition-outline', text: 'Nutrition', screen: 'NutritionGuide', color: '#ffab40' },
+    { icon: 'flame', text: 'Challenge', screen: 'Challenge', color: '#ff6b35' },
+    { icon: 'today', text: 'Routine', screen: 'RoutineTab', color: '#00e676' },
+    { icon: 'trophy', text: 'Achievements', screen: 'Achievements', color: '#FFD700' },
+    { icon: 'analytics', text: 'Insights', screen: 'WeeklyInsights', color: '#0066ff' },
+    { icon: 'barbell', text: 'Workouts', screen: 'Workout', color: '#ff5252' },
+    { icon: 'water', text: 'Water', screen: 'WaterTracker', color: '#00b4d8' },
+    { icon: 'bag', text: 'Products', screen: 'Products', color: '#ffab40' },
+    { icon: 'podium', text: 'Ranks', screen: 'LeaderboardTab', color: '#FFD700' },
+    { icon: 'body', text: 'Body Fat', screen: 'BodyFat', color: '#4d94ff' },
+    { icon: 'color-palette', text: 'Skin Tone', screen: 'SkinTone', color: '#ff6090' },
+    { icon: 'book', text: 'Guides', screen: 'Guides', color: '#1de9b6' },
+    { icon: 'sparkles', text: 'Glow-Up', screen: 'GlowUpSimulator', color: '#00e5ff' },
   ];
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.bgPrimary} />
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.logo}>ANDROGENIC</Text>
-          <Text style={styles.tagline}>AI Face Analysis</Text>
-        </View>
-        <View style={styles.headerButtons}>
-          <TouchableOpacity onPress={() => navigation.navigate('Routine')} style={styles.iconBtn}>
-            <Ionicons name="today-outline" size={20} color={COLORS.textSecondary} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.iconBtn}>
-            <Ionicons name="person-outline" size={20} color={COLORS.textSecondary} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Pro Banner */}
-      <View style={styles.bannerContainer}>
-        <ProBanner onUpgrade={() => navigation.navigate('Paywall')} />
-      </View>
-
-      {/* Main Content */}
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-      <Animated.View style={[styles.mainContent, { opacity: fadeIn, transform: [{ translateY: slideUp }] }]}>
-
-        {/* Streak & Level Widget */}
-        {streakData && (
-          <TouchableOpacity
-            style={styles.streakWidget}
-            onPress={() => navigation.navigate('Achievements')}
-            activeOpacity={0.8}
-          >
-            <Animated.View style={[styles.streakFlame, { transform: [{ scale: streakPulse }] }]}>
-              <LinearGradient colors={['#ff6b35', '#ff4757']} style={styles.streakFlameBg}>
-                <Ionicons name="flame" size={18} color="#fff" />
-                <Text style={styles.streakCount}>{streakData.currentStreak}</Text>
-              </LinearGradient>
-            </Animated.View>
-            <View style={styles.streakInfo}>
-              <View style={styles.streakTopRow}>
-                <Text style={styles.streakLabel}>
-                  {level ? `Level ${level.level}` : 'Level 1'}{' '}
-                  <Text style={[styles.streakLevelName, level && { color: level.color }]}>
-                    {level?.name || 'Newbie'}
-                  </Text>
-                </Text>
-                <Text style={styles.streakXP}>{streakData.totalXP} XP</Text>
-              </View>
-              <View style={styles.streakBar}>
-                <View style={[styles.streakBarFill, { width: `${Math.max(levelProgress * 100, 2)}%` }]}>
-                  <LinearGradient colors={GRADIENTS.accent} style={{ flex: 1 }} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
-                </View>
-              </View>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
-          </TouchableOpacity>
-        )}
-
-        {/* Daily Motivation */}
-        <View style={styles.motivationBanner}>
-          <Ionicons name="sparkles" size={14} color={COLORS.accent} />
-          <Text style={styles.motivationText}>{motivation}</Text>
-        </View>
-
-        {/* Hero */}
-        <View style={styles.hero}>
-          <View style={styles.heroCenter}>
-            {/* Outer rotating ring */}
-            <Animated.View style={[styles.heroRingOuter, { transform: [{ rotate: spin }, { scale: pulseRing }] }]}>
-              <View style={styles.ringDotTop} />
-              <View style={styles.ringDotBottom} />
-            </Animated.View>
-            {/* Glow */}
-            <Animated.View style={[styles.heroGlowCircle, { opacity: heroGlow }]} />
-            {/* Icon */}
-            <LinearGradient colors={GRADIENTS.accent} style={styles.heroIconBg}>
-              <Ionicons name="scan" size={38} color="#fff" />
-            </LinearGradient>
+      <Animated.View style={{ flex: 1, opacity: fadeIn }}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.logo}>ANDROGENIC</Text>
+            <Text style={styles.tagline}>AI Face Analysis</Text>
           </View>
-          <Text style={styles.heroTitle}>Analyze Your Face</Text>
-          <Text style={styles.heroSubtitle}>
-            AI-powered scoring across 7 categories with personalized looksmax tips
-          </Text>
+          <View style={styles.headerRight}>
+            {streakData && streakData.currentStreak > 0 && (
+              <TouchableOpacity style={styles.streakChip} onPress={() => navigation.navigate('Achievements')} activeOpacity={0.7}>
+                <Ionicons name="flame" size={14} color="#ff6b35" />
+                <Text style={styles.streakNum}>{streakData.currentStreak}</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.iconBtn} activeOpacity={0.7}>
+              <Ionicons name="person-outline" size={18} color={COLORS.textSecondary} />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Action Buttons */}
-        <Animated.View style={[styles.actions, { transform: [{ scale: btnScale }] }]}>
-          <TouchableOpacity onPress={handleCamera} activeOpacity={0.85}>
-            <LinearGradient colors={GRADIENTS.accent} style={[styles.primaryBtn, SHADOWS.accentGlow]}>
-              <Ionicons name="camera" size={22} color="#fff" />
-              <Text style={styles.primaryBtnText}>Take a Selfie</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={true}
+          overScrollMode="always"
+        >
+          {/* Level Bar */}
+          {streakData && (
+            <TouchableOpacity style={styles.levelBar} onPress={() => navigation.navigate('Achievements')} activeOpacity={0.7}>
+              <View style={styles.levelLeft}>
+                <Text style={styles.levelLabel}>
+                  Lv.{level?.level || 1}
+                </Text>
+                <Text style={[styles.levelName, level && { color: level.color }]}>
+                  {level?.name || 'Newbie'}
+                </Text>
+              </View>
+              <View style={styles.xpBarOuter}>
+                <View style={[styles.xpBarInner, { width: `${Math.max(levelProgress * 100, 3)}%` }]} />
+              </View>
+              <Text style={styles.xpText}>{streakData.totalXP} XP</Text>
+              <Ionicons name="chevron-forward" size={14} color={COLORS.textMuted} />
+            </TouchableOpacity>
+          )}
 
-          <TouchableOpacity onPress={handleUpload} style={[styles.secondaryBtn, GLASS.card]} activeOpacity={0.85}>
-            <Ionicons name="image-outline" size={22} color={COLORS.accentLight} />
-            <Text style={styles.secondaryBtnText}>Upload Photo</Text>
-          </TouchableOpacity>
-        </Animated.View>
+          {/* Scan CTA */}
+          <View style={styles.scanSection}>
+            <View style={styles.scanIconWrap}>
+              <LinearGradient colors={['#0055dd', '#0088ff']} style={styles.scanIconBg}>
+                <Ionicons name="scan" size={32} color="#fff" />
+              </LinearGradient>
+            </View>
+            <Text style={styles.scanTitle}>Analyze Your Face</Text>
+            <Text style={styles.scanSub}>
+              AI scoring across 7 categories{'\n'}with personalized improvement tips
+            </Text>
 
-        {/* Features Grid */}
-        <View style={styles.features}>
-          {FEATURES.map((feat, i) => (
-            <Animated.View key={i} style={{
-              opacity: featureAnims[i],
-              transform: [{ scale: featureAnims[i].interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] }) }],
-            }}>
+            <View style={styles.scanButtons}>
+              <TouchableOpacity onPress={handleCamera} activeOpacity={0.85} style={{ flex: 1 }}>
+                <LinearGradient colors={['#0055dd', '#0077ff']} style={styles.scanBtn}>
+                  <Ionicons name="camera" size={20} color="#fff" />
+                  <Text style={styles.scanBtnText}>Take Selfie</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleUpload} activeOpacity={0.85} style={styles.uploadBtn}>
+                <Ionicons name="image-outline" size={20} color={COLORS.accentLight} />
+              </TouchableOpacity>
+            </View>
+
+            {!pro && (
+              <View style={styles.scansRow}>
+                <View style={styles.scansDots}>
+                  {[0, 1, 2].map((i) => (
+                    <View key={i} style={[styles.scanDot, i < scansLeft && styles.scanDotActive]} />
+                  ))}
+                </View>
+                <Text style={styles.scansLabel}>
+                  {scansLeft} free scan{scansLeft !== 1 ? 's' : ''} left
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* PRO Upgrade */}
+          {!pro && (
+            <TouchableOpacity onPress={() => navigation.navigate('Paywall')} activeOpacity={0.8}>
+              <LinearGradient colors={GRADIENTS.gold} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.proBanner}>
+                <Ionicons name="diamond" size={16} color="#000" />
+                <Text style={styles.proBannerText}>Unlock Unlimited Scans</Text>
+                <View style={styles.proBannerArrow}>
+                  <Ionicons name="arrow-forward" size={14} color="#000" />
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+
+          {/* Features Grid - 3 columns */}
+          <Text style={styles.sectionTitle}>Tools</Text>
+          <View style={styles.grid}>
+            {FEATURES.map((f, i) => (
               <TouchableOpacity
-                style={styles.featureItem}
-                onPress={() => feat.screen && navigation.navigate(feat.screen)}
+                key={i}
+                style={styles.gridItem}
+                onPress={() => navigation.navigate(f.screen)}
                 activeOpacity={0.7}
               >
-                <View style={[styles.featureIconBg, { backgroundColor: feat.color + '18' }]}>
-                  <Ionicons name={feat.icon} size={18} color={feat.color} />
+                <View style={[styles.gridIcon, { backgroundColor: f.color + '15' }]}>
+                  <Ionicons name={f.icon} size={20} color={f.color} />
                 </View>
-                <Text style={styles.featureText}>{feat.text}</Text>
+                <Text style={styles.gridText} numberOfLines={1}>{f.text}</Text>
               </TouchableOpacity>
-            </Animated.View>
-          ))}
-        </View>
-
-        {/* PRO Feature Teasers */}
-        {!isPro() && (
-          <View style={styles.proTeasers}>
-            <TouchableOpacity
-              style={styles.proTeaser}
-              onPress={() => navigation.navigate('GlowUpSimulator')}
-              activeOpacity={0.7}
-            >
-              <LinearGradient colors={['rgba(255,96,144,0.12)', 'rgba(255,96,144,0.04)']} style={styles.proTeaserBg}>
-                <View style={styles.proTeaserLeft}>
-                  <View style={[styles.proTeaserIcon, { backgroundColor: 'rgba(255,96,144,0.2)' }]}>
-                    <Ionicons name="sparkles" size={18} color="#ff6090" />
-                  </View>
-                  <View>
-                    <Text style={styles.proTeaserTitle}>Glow-Up Simulator</Text>
-                    <Text style={styles.proTeaserDesc}>See your potential transformation</Text>
-                  </View>
-                </View>
-                <View style={styles.proTeaserBadge}>
-                  <Text style={styles.proTeaserBadgeText}>PRO</Text>
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.proTeaser}
-              onPress={() => navigation.navigate('AIRecommendations')}
-              activeOpacity={0.7}
-            >
-              <LinearGradient colors={['rgba(0,102,255,0.12)', 'rgba(0,102,255,0.04)']} style={styles.proTeaserBg}>
-                <View style={styles.proTeaserLeft}>
-                  <View style={[styles.proTeaserIcon, { backgroundColor: 'rgba(0,102,255,0.2)' }]}>
-                    <Ionicons name="bulb" size={18} color={COLORS.accent} />
-                  </View>
-                  <View>
-                    <Text style={styles.proTeaserTitle}>AI Recommendations</Text>
-                    <Text style={styles.proTeaserDesc}>Personalized action plan</Text>
-                  </View>
-                </View>
-                <View style={styles.proTeaserBadge}>
-                  <Text style={styles.proTeaserBadgeText}>PRO</Text>
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.proTeaser}
-              onPress={() => navigation.navigate('GlowUpReport')}
-              activeOpacity={0.7}
-            >
-              <LinearGradient colors={['rgba(0,230,118,0.10)', 'rgba(0,230,118,0.03)']} style={styles.proTeaserBg}>
-                <View style={styles.proTeaserLeft}>
-                  <View style={[styles.proTeaserIcon, { backgroundColor: 'rgba(0,230,118,0.2)' }]}>
-                    <Ionicons name="document-text" size={18} color="#00e676" />
-                  </View>
-                  <View>
-                    <Text style={styles.proTeaserTitle}>Glow-Up Report</Text>
-                    <Text style={styles.proTeaserDesc}>Full analysis breakdown</Text>
-                  </View>
-                </View>
-                <View style={styles.proTeaserBadge}>
-                  <Text style={styles.proTeaserBadgeText}>PRO</Text>
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.proTeaser}
-              onPress={() => navigation.navigate('BeforeAfter')}
-              activeOpacity={0.7}
-            >
-              <LinearGradient colors={['rgba(255,171,64,0.10)', 'rgba(255,171,64,0.03)']} style={styles.proTeaserBg}>
-                <View style={styles.proTeaserLeft}>
-                  <View style={[styles.proTeaserIcon, { backgroundColor: 'rgba(255,171,64,0.2)' }]}>
-                    <Ionicons name="images" size={18} color="#ffab40" />
-                  </View>
-                  <View>
-                    <Text style={styles.proTeaserTitle}>Transformations</Text>
-                    <Text style={styles.proTeaserDesc}>Track your progress</Text>
-                  </View>
-                </View>
-                <View style={styles.proTeaserBadge}>
-                  <Text style={styles.proTeaserBadgeText}>PRO</Text>
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
+            ))}
           </View>
-        )}
+
+          {/* Quick Links */}
+          {!pro && (
+            <>
+              <Text style={styles.sectionTitle}>PRO Features</Text>
+              {[
+                { icon: 'sparkles', title: 'Glow-Up Simulator', sub: 'See your potential transformation', screen: 'GlowUpSimulator', color: '#00e5ff' },
+                { icon: 'document-text', title: 'Glow-Up Report', sub: 'Detailed analysis breakdown', screen: 'GlowUpReport', color: '#00e676' },
+                { icon: 'images', title: 'Transformations', sub: 'Before & after tracking', screen: 'BeforeAfter', color: '#ffab40' },
+              ].map((item, i) => (
+                <TouchableOpacity key={i} style={styles.proCard} onPress={() => navigation.navigate(item.screen)} activeOpacity={0.7}>
+                  <View style={[styles.proCardIcon, { backgroundColor: item.color + '15' }]}>
+                    <Ionicons name={item.icon} size={18} color={item.color} />
+                  </View>
+                  <View style={styles.proCardInfo}>
+                    <Text style={styles.proCardTitle}>{item.title}</Text>
+                    <Text style={styles.proCardSub}>{item.sub}</Text>
+                  </View>
+                  <View style={styles.proPill}>
+                    <Text style={styles.proPillText}>PRO</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </>
+          )}
+
+          <View style={{ height: 20 }} />
+        </ScrollView>
       </Animated.View>
-      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -385,250 +257,305 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.bgPrimary,
+    backgroundColor: '#000',
   },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+  },
+
+  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 6,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   logo: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '900',
-    color: COLORS.textPrimary,
-    letterSpacing: 3,
+    color: '#fff',
+    letterSpacing: 2.5,
   },
   tagline: {
-    fontSize: 10,
-    color: COLORS.accent,
+    fontSize: 9,
+    color: '#0077ff',
     fontWeight: '700',
-    letterSpacing: 2,
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
-    marginTop: 2,
+    marginTop: 1,
   },
-  headerButtons: {
+  headerRight: {
     flexDirection: 'row',
-    gap: 10,
+    alignItems: 'center',
+    gap: 8,
+  },
+  streakChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(255,107,53,0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 10,
+  },
+  streakNum: {
+    color: '#ff6b35',
+    fontSize: 13,
+    fontWeight: '800',
   },
   iconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    ...GLASS.card,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: COLORS.bgCard,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  bannerContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 6,
-  },
-  mainContent: {
-    paddingHorizontal: 20,
-  },
-  streakWidget: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: COLORS.bgCard, borderRadius: 14, padding: 12,
-    marginBottom: 8, borderWidth: 1, borderColor: COLORS.border,
-  },
-  streakFlame: {},
-  streakFlameBg: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  streakCount: { color: '#fff', fontSize: 11, fontWeight: '900', marginTop: -2 },
-  streakInfo: { flex: 1 },
-  streakTopRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  streakLabel: { color: COLORS.textPrimary, fontSize: 12, fontWeight: '600' },
-  streakLevelName: { fontWeight: '800' },
-  streakXP: { color: COLORS.textMuted, fontSize: 11, fontWeight: '600' },
-  streakBar: { height: 4, backgroundColor: COLORS.bgSecondary, borderRadius: 2, overflow: 'hidden' },
-  streakBarFill: { height: '100%', borderRadius: 2, overflow: 'hidden' },
-  motivationBanner: {
-    flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 8,
-    backgroundColor: COLORS.accent + '08', borderRadius: 10, marginBottom: 12,
-    borderWidth: 1, borderColor: COLORS.accent + '15',
-  },
-  motivationText: { color: COLORS.accentLight, fontSize: 11, fontWeight: '500', flex: 1, fontStyle: 'italic' },
-  hero: {
+
+  // Level Bar
+  levelBar: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 28,
+    gap: 8,
+    backgroundColor: COLORS.bgCard,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  heroCenter: {
-    width: 130,
-    height: 130,
-    justifyContent: 'center',
+  levelLeft: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 18,
+    gap: 4,
   },
-  heroRingOuter: {
-    position: 'absolute',
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-    borderWidth: 1.5,
-    borderColor: 'rgba(0,102,255,0.25)',
-    borderTopColor: COLORS.accent,
-    borderRightColor: COLORS.accentLight,
+  levelLabel: {
+    color: COLORS.textMuted,
+    fontSize: 11,
+    fontWeight: '700',
   },
-  ringDotTop: {
-    position: 'absolute',
-    top: -3,
-    left: '50%',
-    marginLeft: -3,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.accent,
+  levelName: {
+    color: COLORS.textPrimary,
+    fontSize: 11,
+    fontWeight: '800',
   },
-  ringDotBottom: {
-    position: 'absolute',
-    bottom: -3,
-    left: '50%',
-    marginLeft: -3,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.accentLight,
+  xpBarOuter: {
+    flex: 1,
+    height: 3,
+    backgroundColor: COLORS.bgSecondary,
+    borderRadius: 2,
+    overflow: 'hidden',
   },
-  heroGlowCircle: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: COLORS.accentGlow,
+  xpBarInner: {
+    height: '100%',
+    backgroundColor: '#0066ff',
+    borderRadius: 2,
   },
-  heroIconBg: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
+  xpText: {
+    color: COLORS.textMuted,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+
+  // Scan Section
+  scanSection: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    marginBottom: 8,
+  },
+  scanIconWrap: {
+    marginBottom: 16,
+  },
+  scanIconBg: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     ...SHADOWS.accentGlow,
   },
-  heroTitle: {
-    fontSize: 26,
+  scanTitle: {
+    fontSize: 22,
     fontWeight: '800',
-    color: COLORS.textPrimary,
-    marginBottom: 8,
-    letterSpacing: 0.5,
+    color: '#fff',
+    marginBottom: 6,
+    letterSpacing: 0.3,
   },
-  heroSubtitle: {
+  scanSub: {
     fontSize: 13,
     color: COLORS.textSecondary,
     textAlign: 'center',
     lineHeight: 19,
-    paddingHorizontal: 24,
+    marginBottom: 20,
   },
-  actions: {
+  scanButtons: {
+    flexDirection: 'row',
     gap: 10,
-    marginBottom: 24,
+    width: '100%',
   },
-  primaryBtn: {
+  scanBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 15,
-    borderRadius: 16,
+    paddingVertical: 14,
+    borderRadius: 14,
+    gap: 8,
+  },
+  scanBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  uploadBtn: {
+    width: 50,
+    height: 50,
+    borderRadius: 14,
+    backgroundColor: COLORS.bgCard,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scansRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 12,
+  },
+  scansDots: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  scanDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: COLORS.border,
+  },
+  scanDotActive: {
+    backgroundColor: '#0066ff',
+  },
+  scansLabel: {
+    color: COLORS.textMuted,
+    fontSize: 11,
+    fontWeight: '500',
+  },
+
+  // PRO Banner
+  proBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 20,
     gap: 10,
   },
-  primaryBtnText: {
-    color: '#fff',
-    fontSize: 17,
+  proBannerText: {
+    flex: 1,
+    color: '#000',
+    fontSize: 14,
     fontWeight: '700',
+  },
+  proBannerArrow: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Section
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    marginBottom: 10,
     letterSpacing: 0.3,
   },
-  secondaryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 15,
-    borderRadius: 16,
-    gap: 10,
-  },
-  secondaryBtnText: {
-    color: COLORS.accentLight,
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  features: {
+
+  // 3-col Grid
+  grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 20,
   },
-  featureItem: {
-    width: (width - 52) / 2,
+  gridItem: {
+    width: COL3,
+    alignItems: 'center',
+    backgroundColor: COLORS.bgCard,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 6,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  gridIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  gridText: {
+    color: COLORS.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+
+  // PRO Cards
+  proCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.bgCard,
-    borderRadius: 14,
-    paddingVertical: 11,
-    paddingHorizontal: 12,
-    marginBottom: 8,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  featureIconBg: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  featureText: {
-    color: COLORS.textSecondary,
-    fontSize: 12,
-    fontWeight: '600',
-    flex: 1,
-  },
-  proTeasers: {
-    paddingHorizontal: 20,
-    gap: 6,
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  proTeaser: {},
-  proTeaserBg: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderRadius: 14,
+    borderRadius: 12,
     padding: 12,
+    marginBottom: 6,
+    gap: 10,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  proTeaserLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  proTeaserIcon: {
+  proCardIcon: {
     width: 36,
     height: 36,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  proTeaserTitle: {
-    fontSize: 14,
+  proCardInfo: {
+    flex: 1,
+  },
+  proCardTitle: {
+    color: '#fff',
+    fontSize: 13,
     fontWeight: '700',
-    color: COLORS.textPrimary,
   },
-  proTeaserDesc: {
-    fontSize: 11,
+  proCardSub: {
     color: COLORS.textMuted,
+    fontSize: 11,
+    marginTop: 1,
   },
-  proTeaserBadge: {
+  proPill: {
     backgroundColor: COLORS.gold,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 5,
   },
-  proTeaserBadgeText: {
+  proPillText: {
     fontSize: 9,
     fontWeight: '800',
     color: '#000',
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
 });
 
