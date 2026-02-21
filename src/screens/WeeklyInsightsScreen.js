@@ -267,7 +267,7 @@ const WeeklyInsightsScreen = ({ navigation }) => {
         <Text style={styles.sectionTitle}>Today's Action Plan</Text>
         {dailyTips.length > 0 ? dailyTips.map((tip, i) => {
           const catColor = {
-            jawline: '#ff6b35', skin: '#00e676', eyes: '#6c5ce7', hair: '#ffd93d',
+            jawline: '#ff6b35', skin: '#00e676', eyes: '#0055dd', hair: '#ffd93d',
             symmetry: '#00b4d8', cheekbones: '#ff6090', masculinity: '#ff4757',
           }[tip.category] || COLORS.accent;
 
@@ -307,7 +307,7 @@ const WeeklyInsightsScreen = ({ navigation }) => {
               {weakest.map((cat) => {
                 const score = latestScan[cat] || 0;
                 const catColor = {
-                  jawline: '#ff6b35', skin: '#00e676', eyes: '#6c5ce7', hair: '#ffd93d',
+                  jawline: '#ff6b35', skin: '#00e676', eyes: '#0055dd', hair: '#ffd93d',
                   symmetry: '#00b4d8', cheekbones: '#ff6090', masculinity: '#ff4757',
                 }[cat] || COLORS.accent;
 

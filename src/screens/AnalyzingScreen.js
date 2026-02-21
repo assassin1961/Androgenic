@@ -180,7 +180,7 @@ const AnalyzingScreen = ({ route, navigation }) => {
             {/* Scan beam */}
             <Animated.View style={[styles.scanBeam, { transform: [{ translateY: scanBeamY }] }]}>
               <LinearGradient
-                colors={['rgba(124,108,240,0)', 'rgba(124,108,240,0.6)', 'rgba(124,108,240,0)']}
+                colors={['rgba(0,102,255,0)', 'rgba(0,102,255,0.6)', 'rgba(0,102,255,0)']}
                 style={styles.scanBeamGradient}
               />
             </Animated.View>
@@ -286,10 +286,10 @@ const styles = StyleSheet.create({
   cornerBL: { bottom: 20, left: 20, borderBottomWidth: 2, borderLeftWidth: 2 },
   cornerBR: { bottom: 20, right: 20, borderBottomWidth: 2, borderRightWidth: 2 },
   gridOverlay: { position: 'absolute', width: 200, height: 200, borderRadius: 100, overflow: 'hidden' },
-  gridLineH1: { position: 'absolute', top: '33%', left: 0, right: 0, height: 1, backgroundColor: 'rgba(124,108,240,0.2)' },
-  gridLineH2: { position: 'absolute', top: '66%', left: 0, right: 0, height: 1, backgroundColor: 'rgba(124,108,240,0.2)' },
-  gridLineV1: { position: 'absolute', left: '33%', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(124,108,240,0.2)' },
-  gridLineV2: { position: 'absolute', left: '66%', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(124,108,240,0.2)' },
+  gridLineH1: { position: 'absolute', top: '33%', left: 0, right: 0, height: 1, backgroundColor: 'rgba(0,102,255,0.2)' },
+  gridLineH2: { position: 'absolute', top: '66%', left: 0, right: 0, height: 1, backgroundColor: 'rgba(0,102,255,0.2)' },
+  gridLineV1: { position: 'absolute', left: '33%', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(0,102,255,0.2)' },
+  gridLineV2: { position: 'absolute', left: '66%', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(0,102,255,0.2)' },
   scanBeam: { position: 'absolute', width: 200, height: 40, overflow: 'hidden' },
   scanBeamGradient: { width: '100%', height: '100%' },
   landmarkDots: { position: 'absolute', width: 200, height: 200 },
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
   scanRingInner: {
     position: 'absolute', width: 216, height: 216, borderRadius: 108,
     borderWidth: 1, borderColor: 'transparent',
-    borderBottomColor: 'rgba(124,108,240,0.3)', borderLeftColor: 'rgba(168,154,250,0.2)',
+    borderBottomColor: 'rgba(0,102,255,0.3)', borderLeftColor: 'rgba(77,148,255,0.2)',
   },
   ringDotInner: {
     position: 'absolute', right: -3, top: '50%', marginTop: -3,

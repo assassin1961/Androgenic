@@ -62,7 +62,7 @@ const AppNavigator = () => {
           screenOptions={{
             headerShown: false,
             animation: 'slide_from_right',
-            contentStyle: { backgroundColor: '#0a0a0a' },
+            contentStyle: { backgroundColor: '#000000' },
           }}
         >
           <Stack.Screen name="Auth" component={AuthScreen} options={{ animation: 'fade' }} />
@@ -189,7 +189,7 @@ const ProfileWithTabs = withTabBar(ProfileScreen, 'Profile');
 const styles = StyleSheet.create({
   tabContainer: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#000000',
   },
   screenContent: {
     flex: 1,

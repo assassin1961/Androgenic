@@ -151,8 +151,8 @@ const ChallengeScreen = ({ navigation }) => {
   });
 
   const getCatColor = (cat) => {
-    const map = { skin: '#00d26a', jawline: '#f5a623', eyes: '#6c5ce7', symmetry: '#00b4d8',
-      cheekbones: '#ff6b6b', hair: '#ffd93d', masculinity: '#ff4757', overall: '#a29bfe' };
+    const map = { skin: '#00d26a', jawline: '#f5a623', eyes: '#0055dd', symmetry: '#00b4d8',
+      cheekbones: '#ff6b6b', hair: '#ffd93d', masculinity: '#ff4757', overall: '#3388ff' };
     return map[cat] || COLORS.accent;
   };
 

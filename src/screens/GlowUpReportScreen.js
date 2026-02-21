@@ -11,14 +11,14 @@ const REPORT_SECTIONS = [
   { title: 'Overall Rating', icon: 'star-outline', value: '7.2 / 10', desc: 'Above Average — Top 28%', color: '#00e676' },
   { title: 'Strongest Category', icon: 'trophy-outline', value: 'Eyes — 82', desc: 'Hunter eye morphology detected', color: '#FFD700' },
   { title: 'Biggest Opportunity', icon: 'trending-up', value: 'Jawline — 58', desc: '+22 points potential with training', color: '#ff6b35' },
-  { title: 'Symmetry Score', icon: 'git-compare-outline', value: '91 / 100', desc: 'Top 15% facial symmetry', color: '#7c6cf0' },
+  { title: 'Symmetry Score', icon: 'git-compare-outline', value: '91 / 100', desc: 'Top 15% facial symmetry', color: '#0066ff' },
   { title: 'Age Perception', icon: 'hourglass-outline', value: '2 years younger', desc: 'You look younger than your age', color: '#00e5ff' },
-  { title: 'Celebrity Match', icon: 'people-outline', value: 'Henry Cavill — 73%', desc: 'Based on facial structure analysis', color: '#a89afa' },
+  { title: 'Celebrity Match', icon: 'people-outline', value: 'Henry Cavill — 73%', desc: 'Based on facial structure analysis', color: '#4d94ff' },
 ];
 
 const DETAILED_SCORES = [
   { category: 'Masculinity', score: 71, percentile: 'Top 35%', trend: '+3', color: '#ff6b35' },
-  { category: 'Jawline', score: 58, percentile: 'Top 52%', trend: '+5', color: '#7c6cf0' },
+  { category: 'Jawline', score: 58, percentile: 'Top 52%', trend: '+5', color: '#0066ff' },
   { category: 'Eyes', score: 82, percentile: 'Top 18%', trend: '+1', color: '#00e676' },
   { category: 'Cheekbones', score: 65, percentile: 'Top 40%', trend: '+2', color: '#00e5ff' },
   { category: 'Hair', score: 74, percentile: 'Top 30%', trend: '+0', color: '#ffab40' },
@@ -61,7 +61,7 @@ const GlowUpReportScreen = ({ navigation }) => {
           <View style={{ width: 40 }} />
         </View>
         <ScrollView contentContainerStyle={styles.lockedScroll}>
-          <LinearGradient colors={['rgba(124,108,240,0.12)', 'rgba(124,108,240,0.03)']} style={styles.lockedHero}>
+          <LinearGradient colors={['rgba(0,102,255,0.12)', 'rgba(0,102,255,0.03)']} style={styles.lockedHero}>
             <LinearGradient colors={GRADIENTS.accent} style={styles.lockedIcon}>
               <Ionicons name="document-text" size={28} color="#fff" />
             </LinearGradient>

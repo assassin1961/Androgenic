@@ -155,13 +155,13 @@ const HomeScreen = ({ navigation }) => {
     { icon: 'flame-outline', text: '30-Day Challenge', screen: 'Challenge', color: '#ff6b35' },
     { icon: 'today-outline', text: 'Daily Routine', screen: 'RoutineTab', color: '#00e676' },
     { icon: 'trophy-outline', text: 'Achievements', screen: 'Achievements', color: '#FFD700' },
-    { icon: 'analytics-outline', text: 'Weekly Insights', screen: 'WeeklyInsights', color: '#6c5ce7' },
+    { icon: 'analytics-outline', text: 'Weekly Insights', screen: 'WeeklyInsights', color: '#0055dd' },
     { icon: 'barbell-outline', text: 'Workouts', screen: 'Workout', color: '#ff5252' },
     { icon: 'water-outline', text: 'Water Tracker', screen: 'WaterTracker', color: '#00e5ff' },
     { icon: 'bag-outline', text: 'Products', screen: 'Products', color: '#ffab40' },
     { icon: 'podium-outline', text: 'Leaderboard', screen: 'LeaderboardTab', color: '#FFD700' },
     { icon: 'color-palette-outline', text: 'Skin Tone', screen: 'SkinTone', color: '#ff6090' },
-    { icon: 'body-outline', text: 'Body Fat', screen: 'BodyFat', color: '#a89afa' },
+    { icon: 'body-outline', text: 'Body Fat', screen: 'BodyFat', color: '#4d94ff' },
     { icon: 'book-outline', text: 'Guides', screen: 'Guides', color: '#1de9b6' },
     { icon: 'nutrition-outline', text: 'Nutrition', screen: 'NutritionGuide', color: '#ffab40' },
   ];
@@ -192,7 +192,7 @@ const HomeScreen = ({ navigation }) => {
       </View>
 
       {/* Main Content */}
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
       <Animated.View style={[styles.mainContent, { opacity: fadeIn, transform: [{ translateY: slideUp }] }]}>
 
         {/* Streak & Level Widget */}
@@ -319,9 +319,9 @@ const HomeScreen = ({ navigation }) => {
               onPress={() => navigation.navigate('AIRecommendations')}
               activeOpacity={0.7}
             >
-              <LinearGradient colors={['rgba(124,108,240,0.12)', 'rgba(124,108,240,0.04)']} style={styles.proTeaserBg}>
+              <LinearGradient colors={['rgba(0,102,255,0.12)', 'rgba(0,102,255,0.04)']} style={styles.proTeaserBg}>
                 <View style={styles.proTeaserLeft}>
-                  <View style={[styles.proTeaserIcon, { backgroundColor: 'rgba(124,108,240,0.2)' }]}>
+                  <View style={[styles.proTeaserIcon, { backgroundColor: 'rgba(0,102,255,0.2)' }]}>
                     <Ionicons name="bulb" size={18} color={COLORS.accent} />
                   </View>
                   <View>
@@ -376,7 +376,6 @@ const HomeScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
         )}
-        <View style={{ height: 100 }} />
       </Animated.View>
       </ScrollView>
     </SafeAreaView>
@@ -467,7 +466,7 @@ const styles = StyleSheet.create({
     height: 130,
     borderRadius: 65,
     borderWidth: 1.5,
-    borderColor: 'rgba(124,108,240,0.25)',
+    borderColor: 'rgba(0,102,255,0.25)',
     borderTopColor: COLORS.accent,
     borderRightColor: COLORS.accentLight,
   },

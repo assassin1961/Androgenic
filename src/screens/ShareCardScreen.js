@@ -15,10 +15,10 @@ const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 48;
 
 const CARD_THEMES = [
-  { id: 'dark', name: 'Dark', bg: ['#0a0a1a', '#13131e'], text: '#f0f0f5', accent: '#7c6cf0' },
+  { id: 'dark', name: 'Dark', bg: ['#000000', '#0d0d14'], text: '#f0f0f5', accent: '#0066ff' },
   { id: 'midnight', name: 'Midnight', bg: ['#0d1b2a', '#1b263b'], text: '#e0e1dd', accent: '#00b4d8' },
   { id: 'ember', name: 'Ember', bg: ['#1a0a0a', '#2d1414'], text: '#ffd7d7', accent: '#ff4757' },
-  { id: 'royal', name: 'Royal', bg: ['#0a0a20', '#1a1040'], text: '#d4ccff', accent: '#a89afa' },
+  { id: 'royal', name: 'Royal', bg: ['#0a0a20', '#1a1040'], text: '#d4ccff', accent: '#4d94ff' },
   { id: 'gold', name: 'Gold', bg: ['#1a1500', '#2d2400'], text: '#ffe4a0', accent: '#FFD700' },
   { id: 'matrix', name: 'Matrix', bg: ['#000a00', '#001a00'], text: '#00ff41', accent: '#00e676' },
 ];

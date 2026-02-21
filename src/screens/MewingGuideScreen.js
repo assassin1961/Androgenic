@@ -10,7 +10,7 @@ const SECTIONS = [
   {
     title: 'What is Mewing?',
     icon: 'information-circle-outline',
-    color: '#7c6cf0',
+    color: '#0066ff',
     content: `Mewing is a tongue posture technique named after British orthodontist Dr. John Mew. It involves resting your entire tongue flat against the roof of your mouth (palate) while keeping your lips sealed and teeth gently together.\n\nThe theory is that proper tongue posture, maintained consistently over time, can influence facial bone development, improve jawline definition, and enhance overall facial aesthetics.`,
     keyPoints: [
       'Named after Dr. John Mew — orthodontist and orthotropics pioneer',
@@ -76,7 +76,7 @@ const SECTIONS = [
   {
     title: 'Expected Timeline',
     icon: 'calendar-outline',
-    color: '#a89afa',
+    color: '#4d94ff',
     content: `Results vary by age, genetics, and consistency. Here\'s a general progression:`,
     timeline: [
       { period: 'Week 1-2', result: 'Tongue soreness, difficulty maintaining position, increased awareness' },
@@ -114,9 +114,9 @@ const MewingGuideScreen = ({ navigation }) => {
 
         {/* Hero */}
         <Animated.View style={{ opacity: fadeAnim }}>
-          <LinearGradient colors={['rgba(124,108,240,0.15)', 'rgba(124,108,240,0.03)']} style={styles.hero}>
+          <LinearGradient colors={['rgba(0,102,255,0.15)', 'rgba(0,102,255,0.03)']} style={styles.hero}>
             <View style={styles.heroIconBg}>
-              <Ionicons name="fitness-outline" size={32} color="#7c6cf0" />
+              <Ionicons name="fitness-outline" size={32} color="#0066ff" />
             </View>
             <Text style={styles.heroTitle}>Master the Mewing Technique</Text>
             <Text style={styles.heroSubtitle}>The foundation of facial development and looksmaxxing</Text>
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary },
   hero: { padding: 24, borderRadius: 22, borderWidth: 1, borderColor: COLORS.border, marginBottom: 20, alignItems: 'center' },
-  heroIconBg: { width: 60, height: 60, borderRadius: 20, backgroundColor: 'rgba(124,108,240,0.2)', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
+  heroIconBg: { width: 60, height: 60, borderRadius: 20, backgroundColor: 'rgba(0,102,255,0.2)', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
   heroTitle: { fontSize: 22, fontWeight: '800', color: COLORS.textPrimary, textAlign: 'center', marginBottom: 6 },
   heroSubtitle: { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', marginBottom: 14 },
   heroMeta: { flexDirection: 'row', gap: 10 },

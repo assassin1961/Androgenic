@@ -43,7 +43,7 @@ const ROUTINES = {
   evening: {
     title: 'Evening Routine',
     icon: 'moon-outline',
-    color: '#6c5ce7',
+    color: '#0055dd',
     tasks: [
       { id: 'ev1', text: 'Oil cleanser → Gel cleanser', category: 'skin', time: '3 min' },
       { id: 'ev2', text: 'Apply retinol serum', category: 'skin', time: '1 min' },

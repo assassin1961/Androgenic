@@ -28,7 +28,7 @@ const POSTURE_ISSUES = [
   {
     name: 'Rounded Shoulders',
     icon: 'trending-down-outline',
-    color: '#7c6cf0',
+    color: '#0066ff',
     desc: 'Shoulders roll forward and inward. Caused by excessive sitting, chest-dominant training, and device use.',
     faceEffects: [
       'Makes neck appear shorter',
@@ -74,7 +74,7 @@ const EXERCISES = [
     name: 'Wall Angels',
     target: 'Rounded shoulders, thoracic spine',
     sets: '3 × 10 reps',
-    color: '#7c6cf0',
+    color: '#0066ff',
     steps: ['Stand with back flat against wall', 'Arms in "goalpost" position against wall', 'Slide arms up overhead keeping contact with wall', 'Slide back down slowly', 'Keep lower back pressed to wall'],
   },
   {

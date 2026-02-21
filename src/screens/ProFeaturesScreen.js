@@ -15,7 +15,7 @@ const SHOWCASE_FEATURES = [
     desc: 'Scan as many times as you want. Track every change.',
     free: '3/day',
     pro: 'Unlimited',
-    color: '#7c6cf0',
+    color: '#0066ff',
   },
   {
     icon: 'grid-outline',
@@ -55,7 +55,7 @@ const SHOWCASE_FEATURES = [
     desc: 'Personalized improvement plan with 3 phases and 18 actionable tasks.',
     free: 'Locked',
     pro: 'Full Access',
-    color: '#a89afa',
+    color: '#4d94ff',
   },
   {
     icon: 'bulb-outline',
@@ -135,7 +135,7 @@ const ProFeaturesScreen = ({ navigation }) => {
 
         {/* Hero */}
         <Animated.View style={[styles.heroSection, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-          <LinearGradient colors={['rgba(255,215,0,0.12)', 'rgba(124,108,240,0.08)', 'rgba(255,215,0,0.04)']} style={styles.heroBg}>
+          <LinearGradient colors={['rgba(255,215,0,0.12)', 'rgba(0,102,255,0.08)', 'rgba(255,215,0,0.04)']} style={styles.heroBg}>
             <View style={styles.heroGlow}>
               <LinearGradient colors={GRADIENTS.gold} style={styles.heroBadge}>
                 <Ionicons name="diamond" size={32} color="#000" />

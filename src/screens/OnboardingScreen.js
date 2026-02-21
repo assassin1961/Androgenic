@@ -93,7 +93,7 @@ const OnboardingScreen = ({ onFinish }) => {
 
   return (
     <Animated.View style={[styles.container, { opacity: wholeOpacity }]}>
-      <LinearGradient colors={['#05050a', '#0a0a1a', '#05050a']} style={styles.bg}>
+      <LinearGradient colors={['#000000', '#060612', '#000000']} style={styles.bg}>
         {PARTICLES.map((p, i) => (
           <Animated.View
             key={i}
@@ -116,7 +116,7 @@ const OnboardingScreen = ({ onFinish }) => {
         <Animated.Text style={[styles.logoText, { opacity: logoOpacity }]}>ANDROGENIC</Animated.Text>
         <Animated.View style={[styles.scanLine, { opacity: scanLineOpacity, transform: [{ translateY: scanLineY }] }]}>
           <LinearGradient
-            colors={['rgba(124,108,240,0)', COLORS.accent, 'rgba(124,108,240,0)']}
+            colors={['rgba(0,102,255,0)', COLORS.accent, 'rgba(0,102,255,0)']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             style={styles.scanLineGradient}
           />
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   bgGlow: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: COLORS.accentGlow },
   ring: { position: 'absolute', width: 70, height: 70, borderRadius: 35, borderWidth: 2, borderColor: COLORS.accent },
   ring2: { borderColor: COLORS.accentLight },
-  ring3: { borderColor: 'rgba(124,108,240,0.4)' },
+  ring3: { borderColor: 'rgba(0,102,255,0.4)' },
   logoContainer: { marginBottom: 14 },
   logoCircle: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center' },
   logoIcon: { fontSize: 44, fontWeight: '900', color: '#fff' },
@@ -153,8 +153,8 @@ const styles = StyleSheet.create({
   tagline: { fontSize: 14, color: COLORS.accentLight, fontWeight: '600', letterSpacing: 1.5, marginBottom: 36 },
   features: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, paddingHorizontal: 30 },
   featurePill: {
-    backgroundColor: 'rgba(124,108,240,0.12)', borderWidth: 1,
-    borderColor: 'rgba(124,108,240,0.25)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
+    backgroundColor: 'rgba(0,102,255,0.12)', borderWidth: 1,
+    borderColor: 'rgba(0,102,255,0.25)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
   },
   featurePillText: { color: COLORS.accentLight, fontSize: 12, fontWeight: '600' },
 });

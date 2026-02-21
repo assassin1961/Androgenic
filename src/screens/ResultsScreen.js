@@ -17,7 +17,7 @@ const getPercentile = (score) => {
   if (score >= 95) return { pct: 1, label: 'Top 1%', color: '#FFD700' };
   if (score >= 90) return { pct: 5, label: 'Top 5%', color: '#FFD700' };
   if (score >= 85) return { pct: 10, label: 'Top 10%', color: '#ff6090' };
-  if (score >= 80) return { pct: 15, label: 'Top 15%', color: '#a89afa' };
+  if (score >= 80) return { pct: 15, label: 'Top 15%', color: '#4d94ff' };
   if (score >= 75) return { pct: 20, label: 'Top 20%', color: '#00e676' };
   if (score >= 70) return { pct: 30, label: 'Top 30%', color: '#00e676' };
   if (score >= 60) return { pct: 45, label: 'Top 45%', color: '#ffab40' };
@@ -80,13 +80,13 @@ const ResultsScreen = ({ route, navigation }) => {
   const featureItems = [
     { screen: 'GlowUpSimulator', params: { scores, imageUri }, icon: 'sparkles-outline', title: 'Glow-Up Simulator', desc: 'See your potential transformation', color: '#ff6090', pro: true },
     { screen: 'ShareCard', params: { scores, imageUri }, icon: 'share-social-outline', title: 'Share Card', desc: 'Create a viral share card', color: '#00e5ff' },
-    { screen: 'FaceShape', params: { scores }, icon: 'shapes-outline', title: 'Face Shape', desc: 'Discover your face shape', color: '#a29bfe' },
+    { screen: 'FaceShape', params: { scores }, icon: 'shapes-outline', title: 'Face Shape', desc: 'Discover your face shape', color: '#3388ff' },
     { screen: 'AgeEstimate', params: { scores }, icon: 'hourglass-outline', title: 'Age Estimate', desc: 'Perceived vs real age', color: '#e17055' },
     { screen: 'SkinTone', params: { scores }, icon: 'color-palette-outline', title: 'Skin Tone', desc: 'Personalized routine', color: '#fdcb6e' },
     { screen: 'Products', params: undefined, icon: 'bag-outline', title: 'Products', desc: 'Recommended for you', color: '#00d26a' },
     { screen: 'Challenge', params: undefined, icon: 'flame-outline', title: '30-Day Challenge', desc: 'Transform your look', color: '#ff6b35' },
     { screen: 'BodyFat', params: undefined, icon: 'body-outline', title: 'Body Fat', desc: 'Face definition score', color: '#74b9ff' },
-    { screen: 'AIRecommendations', params: undefined, icon: 'sparkles-outline', title: 'AI Recommendations', desc: 'Personalized action plan', color: '#7c6cf0', pro: true },
+    { screen: 'AIRecommendations', params: undefined, icon: 'sparkles-outline', title: 'AI Recommendations', desc: 'Personalized action plan', color: '#0066ff', pro: true },
     { screen: 'GlowUpReport', params: undefined, icon: 'document-text-outline', title: 'Glow-Up Report', desc: 'Full analysis breakdown', color: '#00e676', pro: true },
     { screen: 'BeforeAfter', params: undefined, icon: 'images-outline', title: 'Transformations', desc: 'Track your journey', color: '#ffab40', pro: true },
   ];

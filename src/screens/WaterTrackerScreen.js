@@ -209,7 +209,7 @@ const WaterTrackerScreen = ({ navigation }) => {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Ionicons name="analytics-outline" size={18} color="#a29bfe" />
+            <Ionicons name="analytics-outline" size={18} color="#3388ff" />
             <Text style={styles.statValue}>{avgIntake}ml</Text>
             <Text style={styles.statLabel}>7d Avg</Text>
           </View>

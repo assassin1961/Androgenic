@@ -31,7 +31,7 @@ const AI_CATEGORIES = [
   {
     category: 'Long-Term Strategy',
     icon: 'calendar-outline',
-    color: '#7c6cf0',
+    color: '#0066ff',
     tips: [
       { title: 'Jawline training protocol', impact: 'High', timeline: '3-6 months', desc: 'Your jaw score indicates masseter underdevelopment. Daily mastic gum chewing + jaw exercises will add definition.' },
       { title: 'Neck training for aesthetics', impact: 'Medium', timeline: '2-3 months', desc: 'A thicker neck improves jaw-neck ratio dramatically. Add neck curls 3x/week to your routine.' },
@@ -71,7 +71,7 @@ const AIRecommendationsScreen = ({ navigation }) => {
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.lockedContainer}>
-          <LinearGradient colors={['rgba(255,215,0,0.12)', 'rgba(124,108,240,0.06)']} style={styles.lockedCard}>
+          <LinearGradient colors={['rgba(255,215,0,0.12)', 'rgba(0,102,255,0.06)']} style={styles.lockedCard}>
             <LinearGradient colors={GRADIENTS.gold} style={styles.lockedBadge}>
               <Ionicons name="lock-closed" size={28} color="#000" />
             </LinearGradient>

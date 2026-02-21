@@ -10,7 +10,7 @@ const BONE_AREAS = [
   {
     name: 'Maxilla (Upper Jaw)',
     icon: 'scan-outline',
-    color: '#7c6cf0',
+    color: '#0066ff',
     desc: 'The maxilla is the most impactful bone for facial aesthetics. Forward-grown maxilla creates prominent cheekbones, good undereye support, and attractive midface.',
     ideal: ['Forward projected (no flat midface)', 'Wide palate', 'High cheekbones', 'Good infraorbital rim support'],
     optimize: ['Mewing (tongue posture)', 'Hard food chewing', 'Nasal breathing', 'MSE/SARPE (surgical palate expansion)', 'Lefort I osteotomy (surgical)'],
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   diffRow: { flexDirection: 'row', gap: 4 },
   diffLabel: { fontSize: 11, color: COLORS.textMuted },
   diffValue: { fontSize: 11, fontWeight: '700' },
-  disclaimerCard: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: 'rgba(124,108,240,0.08)', borderRadius: 14, padding: 14, marginTop: 16, gap: 10, borderWidth: 1, borderColor: 'rgba(124,108,240,0.2)' },
+  disclaimerCard: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: 'rgba(0,102,255,0.08)', borderRadius: 14, padding: 14, marginTop: 16, gap: 10, borderWidth: 1, borderColor: 'rgba(0,102,255,0.2)' },
   disclaimerText: { flex: 1, fontSize: 13, color: COLORS.accentLight, lineHeight: 19 },
 });
 

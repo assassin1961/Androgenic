@@ -15,7 +15,7 @@ const PROGRAMS = {
   facial: {
     title: 'Facial Exercises',
     icon: 'happy-outline',
-    color: '#a29bfe',
+    color: '#3388ff',
     desc: 'Target facial muscles for better definition',
     exercises: [
       { name: 'Mewing Hold', sets: '3', reps: '60 sec', rest: '30s', muscle: 'Maxilla/Palate', instructions: 'Press tongue flat against roof of mouth. Teeth lightly together, lips sealed. Hold for 60 seconds.', difficulty: 'Beginner' },

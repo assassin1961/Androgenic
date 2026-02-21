@@ -10,7 +10,7 @@ const GUIDE_CATEGORIES = [
   {
     title: 'Fundamentals',
     guides: [
-      { id: 'mewing', screen: 'MewingGuide', icon: 'fitness-outline', title: 'Mewing Technique', desc: 'Proper tongue posture for facial development', color: '#7c6cf0', duration: '12 min read', level: 'Beginner' },
+      { id: 'mewing', screen: 'MewingGuide', icon: 'fitness-outline', title: 'Mewing Technique', desc: 'Proper tongue posture for facial development', color: '#0066ff', duration: '12 min read', level: 'Beginner' },
       { id: 'skincare', screen: 'SkinCareGuide', icon: 'sparkles-outline', title: 'Skincare Mastery', desc: 'Build the perfect routine for clear skin', color: '#00e676', duration: '15 min read', level: 'All Levels' },
       { id: 'nutrition', screen: 'NutritionGuide', icon: 'nutrition-outline', title: 'Face Nutrition', desc: 'Diet strategies for facial aesthetics', color: '#ffab40', duration: '10 min read', level: 'Beginner' },
     ],
@@ -26,7 +26,7 @@ const GUIDE_CATEGORIES = [
   {
     title: 'Lifestyle & Habits',
     guides: [
-      { id: 'sleep', screen: 'SleepGuide', icon: 'moon-outline', title: 'Sleep Optimization', desc: 'How sleep affects facial appearance', color: '#a89afa', duration: '8 min read', level: 'Beginner' },
+      { id: 'sleep', screen: 'SleepGuide', icon: 'moon-outline', title: 'Sleep Optimization', desc: 'How sleep affects facial appearance', color: '#4d94ff', duration: '8 min read', level: 'Beginner' },
       { id: 'posture', screen: 'PostureGuide', icon: 'body-outline', title: 'Posture & Alignment', desc: 'Neck and posture for jawline definition', color: '#1de9b6', duration: '9 min read', level: 'Beginner' },
     ],
   },

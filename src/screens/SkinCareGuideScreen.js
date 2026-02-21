@@ -28,10 +28,10 @@ const INGREDIENTS_GUIDE = [
   { name: 'Vitamin C', purpose: 'Brightening, antioxidant', rating: 'S-Tier', color: '#ffab40', desc: 'L-Ascorbic Acid at 15-20%. Use AM under sunscreen. Unstable — store in dark, cool place.' },
   { name: 'Niacinamide', purpose: 'Pores, oil control, barrier', rating: 'A-Tier', color: '#00e676', desc: '5% concentration is optimal. Reduces pore appearance, controls oil, strengthens skin barrier.' },
   { name: 'Hyaluronic Acid', purpose: 'Hydration', rating: 'A-Tier', color: '#00e5ff', desc: 'Humectant that draws moisture. Apply to damp skin. Multi-molecular weight formulas work best.' },
-  { name: 'BHA (Salicylic Acid)', purpose: 'Acne, blackheads', rating: 'A-Tier', color: '#a89afa', desc: 'Oil-soluble, penetrates pores. 2% for acne-prone skin. Use 2-3x/week max.' },
+  { name: 'BHA (Salicylic Acid)', purpose: 'Acne, blackheads', rating: 'A-Tier', color: '#4d94ff', desc: 'Oil-soluble, penetrates pores. 2% for acne-prone skin. Use 2-3x/week max.' },
   { name: 'AHA (Glycolic/Lactic)', purpose: 'Exfoliation, glow', rating: 'B-Tier', color: '#ff6090', desc: 'Water-soluble surface exfoliant. Glycolic for normal skin, lactic for sensitive. Increases sun sensitivity.' },
   { name: 'Ceramides', purpose: 'Barrier repair', rating: 'A-Tier', color: '#1de9b6', desc: 'Lipids that form the skin barrier. Essential in moisturizers. Great for all skin types.' },
-  { name: 'Peptides', purpose: 'Anti-aging, firmness', rating: 'B-Tier', color: '#7c6cf0', desc: 'Signal peptides boost collagen production. Copper peptides aid healing. Good complement to retinol.' },
+  { name: 'Peptides', purpose: 'Anti-aging, firmness', rating: 'B-Tier', color: '#0066ff', desc: 'Signal peptides boost collagen production. Copper peptides aid healing. Good complement to retinol.' },
 ];
 
 const SKIN_TYPES = [

@@ -16,11 +16,11 @@ const MACRO_TARGETS = [
 const SKIN_SUPERFOODS = [
   { name: 'Wild Salmon', nutrient: 'Omega-3, Astaxanthin', effect: 'Anti-inflammatory, UV protection, collagen support', color: '#ff6090' },
   { name: 'Bone Broth', nutrient: 'Collagen, Glycine', effect: 'Direct collagen supplementation, gut health, skin repair', color: '#ffab40' },
-  { name: 'Blueberries', nutrient: 'Anthocyanins, Vitamin C', effect: 'Antioxidant, collagen synthesis, free radical protection', color: '#7c6cf0' },
+  { name: 'Blueberries', nutrient: 'Anthocyanins, Vitamin C', effect: 'Antioxidant, collagen synthesis, free radical protection', color: '#0066ff' },
   { name: 'Sweet Potato', nutrient: 'Beta-carotene, Vitamin A', effect: 'Skin cell turnover, natural glow, sun protection', color: '#ff6b35' },
   { name: 'Avocado', nutrient: 'Vitamin E, Healthy Fats', effect: 'Skin hydration, elasticity, anti-aging', color: '#00e676' },
   { name: 'Spinach', nutrient: 'Iron, Folate, Vitamin K', effect: 'Blood circulation to skin, dark circle reduction', color: '#1de9b6' },
-  { name: 'Walnuts', nutrient: 'Omega-3, Zinc, Selenium', effect: 'Skin barrier, wound healing, anti-inflammatory', color: '#a89afa' },
+  { name: 'Walnuts', nutrient: 'Omega-3, Zinc, Selenium', effect: 'Skin barrier, wound healing, anti-inflammatory', color: '#4d94ff' },
   { name: 'Green Tea', nutrient: 'EGCG, Catechins', effect: 'Reduces sebum, anti-aging, UV damage protection', color: '#00e5ff' },
 ];
 
@@ -156,10 +156,10 @@ const NutritionGuideScreen = ({ navigation }) => {
             <View style={styles.suppHeader}>
               <Text style={styles.suppName}>{s.name}</Text>
               <View style={[styles.tierBadge, {
-                backgroundColor: s.tier === 'S' ? '#00e67620' : s.tier === 'A' ? '#7c6cf020' : '#ffab4020'
+                backgroundColor: s.tier === 'S' ? '#00e67620' : s.tier === 'A' ? '#0066ff20' : '#ffab4020'
               }]}>
                 <Text style={[styles.tierText, {
-                  color: s.tier === 'S' ? '#00e676' : s.tier === 'A' ? '#7c6cf0' : '#ffab40'
+                  color: s.tier === 'S' ? '#00e676' : s.tier === 'A' ? '#0066ff' : '#ffab40'
                 }]}>{s.tier}-Tier</Text>
               </View>
             </View>

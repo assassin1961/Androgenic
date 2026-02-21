@@ -22,7 +22,7 @@ const IMPROVEMENT_AREAS = [
     potentialGain: 18, timeline: '3-6 months',
   },
   {
-    id: 'eyes', label: 'Eye Area', icon: 'eye-outline', color: '#6c5ce7',
+    id: 'eyes', label: 'Eye Area', icon: 'eye-outline', color: '#0055dd',
     tips: ['8+ hours sleep on back', 'Cold compress 5min/day', 'Caffeine eye cream PM', 'Stay hydrated 3L/day'],
     potentialGain: 8, timeline: '1-3 months',
   },
@@ -164,7 +164,7 @@ const GlowUpSimulatorScreen = ({ route, navigation }) => {
               <Animated.View style={[styles.scanOverlay, {
                 opacity: scanAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, 0.8, 0] }),
               }]}>
-                <LinearGradient colors={['rgba(124,108,240,0)', 'rgba(124,108,240,0.5)', 'rgba(124,108,240,0)']} style={styles.scanLine} />
+                <LinearGradient colors={['rgba(0,102,255,0)', 'rgba(0,102,255,0.5)', 'rgba(0,102,255,0)']} style={styles.scanLine} />
               </Animated.View>
             )}
           </Animated.View>

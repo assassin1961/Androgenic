@@ -27,7 +27,7 @@ const EXERCISES = [
     sets: '3 sets × 10 reps',
     muscles: 'Platysma, digastric',
     icon: 'arrow-up-outline',
-    color: '#7c6cf0',
+    color: '#0066ff',
     instructions: [
       'Tilt head back looking at ceiling',
       'Push lower jaw forward until stretch felt under chin',
@@ -98,10 +98,10 @@ const EXERCISES = [
 
 const TOOLS = [
   { name: 'Mastic Gum', desc: 'Natural tree resin 10x harder than regular gum. Builds masseter muscle. Chew 30 min/day alternating sides.', rating: 'Essential', color: '#00e676', price: '$' },
-  { name: 'Falim Gum', desc: 'Turkish sugar-free gum. Softer than mastic but still challenging. Good stepping stone.', rating: 'Great', color: '#7c6cf0', price: '$' },
+  { name: 'Falim Gum', desc: 'Turkish sugar-free gum. Softer than mastic but still challenging. Good stepping stone.', rating: 'Great', color: '#0066ff', price: '$' },
   { name: 'Jawzrsize', desc: 'Silicone resistance tool for jaw. Multiple resistance levels. 20 min sessions.', rating: 'Optional', color: '#ffab40', price: '$$' },
   { name: 'Gua Sha Stone', desc: 'Jade/rose quartz scraping tool. Reduces facial bloat, improves lymphatic drainage. Use with oil.', rating: 'Great', color: '#00e5ff', price: '$' },
-  { name: 'Ice Roller', desc: 'Reduces morning puffiness, tightens skin temporarily. Use for 5 min each morning.', rating: 'Good', color: '#a89afa', price: '$' },
+  { name: 'Ice Roller', desc: 'Reduces morning puffiness, tightens skin temporarily. Use for 5 min each morning.', rating: 'Good', color: '#4d94ff', price: '$' },
   { name: 'TENS/EMS Device', desc: 'Electrical muscle stimulation for jaw. Advanced users only. Research thoroughly before use.', rating: 'Advanced', color: '#ff6090', price: '$$$' },
 ];
 

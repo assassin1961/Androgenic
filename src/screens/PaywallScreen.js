@@ -18,12 +18,12 @@ const SOCIAL_PROOF = [
 ];
 
 const PRO_FEATURES_DISPLAY = [
-  { icon: 'infinite-outline', text: 'Unlimited face scans', color: '#7c6cf0' },
+  { icon: 'infinite-outline', text: 'Unlimited face scans', color: '#0066ff' },
   { icon: 'grid-outline', text: 'All 7 analysis categories', color: '#00e676' },
   { icon: 'people-outline', text: 'Celebrity look-alike matching', color: '#ff6b35' },
   { icon: 'analytics-outline', text: '8 facial ratio measurements', color: '#00e5ff' },
   { icon: 'sparkles-outline', text: 'AI-powered recommendations', color: '#ffab40' },
-  { icon: 'document-text-outline', text: 'Detailed glow-up report', color: '#a89afa' },
+  { icon: 'document-text-outline', text: 'Detailed glow-up report', color: '#4d94ff' },
   { icon: 'trending-up', text: 'Progress & transformation tracking', color: '#1de9b6' },
   { icon: 'clipboard-outline', text: '12-week improvement plan', color: '#ff6090' },
 ];
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
   featureText: { fontSize: 12, color: COLORS.textSecondary, fontWeight: '500', flex: 1 },
   plansTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 10 },
   planCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: COLORS.bgCard, borderRadius: 14, padding: 16, marginBottom: 6, borderWidth: 2, borderColor: COLORS.border },
-  planCardSelected: { borderColor: COLORS.accent, backgroundColor: 'rgba(124,108,240,0.06)' },
+  planCardSelected: { borderColor: COLORS.accent, backgroundColor: 'rgba(0,102,255,0.06)' },
   planLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   planRadio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: COLORS.border, justifyContent: 'center', alignItems: 'center' },
   planRadioSelected: { borderColor: COLORS.accent },

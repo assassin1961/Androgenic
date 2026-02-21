@@ -17,7 +17,7 @@ const TRANSFORMATIONS = [
 ];
 
 const MILESTONES = [
-  { week: 1, title: 'Baseline Scan', desc: 'Take your first scan to establish starting scores', icon: 'camera-outline', color: '#7c6cf0' },
+  { week: 1, title: 'Baseline Scan', desc: 'Take your first scan to establish starting scores', icon: 'camera-outline', color: '#0066ff' },
   { week: 2, title: 'First Habits Set', desc: 'Mewing, skincare, and posture habits established', icon: 'checkmark-done-outline', color: '#00e676' },
   { week: 4, title: 'First Comparison', desc: 'Scan again and compare against baseline', icon: 'git-compare-outline', color: '#00e5ff' },
   { week: 8, title: 'Visible Changes', desc: 'Most users report noticeable improvements', icon: 'eye-outline', color: '#ffab40' },
@@ -49,7 +49,7 @@ const BeforeAfterScreen = ({ navigation }) => {
           </View>
 
           {/* Teaser */}
-          <LinearGradient colors={['rgba(124,108,240,0.12)', 'rgba(0,230,118,0.06)']} style={styles.teaserHero}>
+          <LinearGradient colors={['rgba(0,102,255,0.12)', 'rgba(0,230,118,0.06)']} style={styles.teaserHero}>
             <View style={styles.teaserBefore}>
               <Text style={styles.teaserScore}>5.8</Text>
               <Text style={styles.teaserLabel}>BEFORE</Text>

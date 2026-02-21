@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, GRADIENTS, GLASS } from '../utils/theme';
 
 const SLEEP_EFFECTS = [
-  { area: 'Dark Circles', icon: 'eye-outline', color: '#7c6cf0', desc: 'Sleep deprivation causes blood pooling under thin undereye skin. 7-9hrs reduces puffiness and discoloration.' },
+  { area: 'Dark Circles', icon: 'eye-outline', color: '#0066ff', desc: 'Sleep deprivation causes blood pooling under thin undereye skin. 7-9hrs reduces puffiness and discoloration.' },
   { area: 'Skin Repair', icon: 'sparkles-outline', color: '#00e676', desc: 'Growth hormone peaks during deep sleep (stage 3-4), driving collagen production and cellular repair.' },
   { area: 'Facial Bloating', icon: 'water-outline', color: '#00e5ff', desc: 'Poor sleep disrupts cortisol and aldosterone, causing water retention and puffy face.' },
   { area: 'Acne & Breakouts', icon: 'alert-circle-outline', color: '#ff6b35', desc: 'Sleep deprivation spikes cortisol → increased sebum production → more breakouts.' },
@@ -17,11 +17,11 @@ const SLEEP_EFFECTS = [
 
 const SLEEP_PROTOCOL = [
   { time: '6:00 PM', action: 'Last caffeine cutoff (8hr rule)', icon: 'cafe-outline', color: '#ffab40' },
-  { time: '8:00 PM', action: 'Dim lights, enable blue light filter on devices', icon: 'bulb-outline', color: '#a89afa' },
+  { time: '8:00 PM', action: 'Dim lights, enable blue light filter on devices', icon: 'bulb-outline', color: '#4d94ff' },
   { time: '9:00 PM', action: 'No more food — 2-3hr gap before sleep aids digestion', icon: 'restaurant-outline', color: '#ff6b35' },
   { time: '9:30 PM', action: 'Bedroom to 65-68°F (18-20°C) — cool room is critical', icon: 'thermometer-outline', color: '#00e5ff' },
   { time: '10:00 PM', action: 'Magnesium glycinate (400mg) + screens off', icon: 'medical-outline', color: '#00e676' },
-  { time: '10:15 PM', action: 'Mouth tape applied, sleep position set (back sleeping ideal)', icon: 'bandage-outline', color: '#7c6cf0' },
+  { time: '10:15 PM', action: 'Mouth tape applied, sleep position set (back sleeping ideal)', icon: 'bandage-outline', color: '#0066ff' },
   { time: '10:30 PM', action: 'Lights out — room pitch black', icon: 'moon-outline', color: '#1de9b6' },
   { time: '6:00 AM', action: 'Wake at same time daily — 10 min morning sunlight', icon: 'sunny-outline', color: '#ffab40' },
 ];
@@ -58,15 +58,15 @@ const SleepGuideScreen = ({ navigation }) => {
         </View>
 
         <Animated.View style={{ opacity: fadeAnim }}>
-          <LinearGradient colors={['rgba(168,154,250,0.15)', 'rgba(168,154,250,0.03)']} style={styles.hero}>
-            <View style={[styles.heroIconBg, { backgroundColor: 'rgba(168,154,250,0.2)' }]}>
-              <Ionicons name="moon-outline" size={32} color="#a89afa" />
+          <LinearGradient colors={['rgba(77,148,255,0.15)', 'rgba(77,148,255,0.03)']} style={styles.hero}>
+            <View style={[styles.heroIconBg, { backgroundColor: 'rgba(77,148,255,0.2)' }]}>
+              <Ionicons name="moon-outline" size={32} color="#4d94ff" />
             </View>
             <Text style={styles.heroTitle}>Sleep Optimization</Text>
             <Text style={styles.heroSubtitle}>Sleep is the most underrated looksmaxxing tool. Your face literally rebuilds itself while you sleep.</Text>
             <View style={styles.heroMeta}>
-              <View style={styles.metaPill}><Ionicons name="time-outline" size={12} color="#a89afa" /><Text style={styles.metaText}>8 min</Text></View>
-              <View style={styles.metaPill}><Ionicons name="school-outline" size={12} color="#a89afa" /><Text style={styles.metaText}>Beginner</Text></View>
+              <View style={styles.metaPill}><Ionicons name="time-outline" size={12} color="#4d94ff" /><Text style={styles.metaText}>8 min</Text></View>
+              <View style={styles.metaPill}><Ionicons name="school-outline" size={12} color="#4d94ff" /><Text style={styles.metaText}>Beginner</Text></View>
             </View>
           </LinearGradient>
         </Animated.View>

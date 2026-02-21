@@ -10,7 +10,7 @@ const FACE_SHAPES = [
   {
     shape: 'Oval',
     icon: 'ellipse-outline',
-    color: '#7c6cf0',
+    color: '#0066ff',
     best: ['Side part', 'Textured quiff', 'Pompadour', 'Most styles work'],
     avoid: ['Heavy bangs that shorten face'],
     tip: 'You have the most versatile face shape. Experiment freely.',
@@ -59,17 +59,17 @@ const FACE_SHAPES = [
 
 const HAIR_CARE = [
   { title: 'Wash Frequency', desc: 'Oily hair: every other day. Normal: 2-3x/week. Dry: 1-2x/week. Over-washing strips natural oils.', icon: 'water-outline', color: '#00e5ff' },
-  { title: 'Shampoo Technique', desc: 'Apply to scalp only, not lengths. Massage 60 sec with fingertips (not nails). Rinse thoroughly with lukewarm water.', icon: 'hand-left-outline', color: '#7c6cf0' },
+  { title: 'Shampoo Technique', desc: 'Apply to scalp only, not lengths. Massage 60 sec with fingertips (not nails). Rinse thoroughly with lukewarm water.', icon: 'hand-left-outline', color: '#0066ff' },
   { title: 'Conditioner', desc: 'Apply mid-lengths to ends only. Leave 2-3 min. Rinse with cool water to seal cuticles for shine.', icon: 'sparkles-outline', color: '#00e676' },
   { title: 'Towel Drying', desc: 'Never rub vigorously. Gently squeeze and pat with microfiber towel or old t-shirt to prevent frizz and breakage.', icon: 'shirt-outline', color: '#ffab40' },
   { title: 'Heat Protection', desc: 'Always use heat protectant before blow drying. Medium heat, keep dryer 6 inches from hair. Finish with cool shot.', icon: 'flame-outline', color: '#ff6b35' },
-  { title: 'Products Order', desc: 'Apply products to damp hair. Pre-styler → blow dry → post-styler. Less is more — start small, add if needed.', icon: 'layers-outline', color: '#a89afa' },
+  { title: 'Products Order', desc: 'Apply products to damp hair. Pre-styler → blow dry → post-styler. Less is more — start small, add if needed.', icon: 'layers-outline', color: '#4d94ff' },
 ];
 
 const GROWTH_TIPS = [
   { tip: 'Minoxidil (5%)', desc: 'FDA-approved for hair regrowth. Apply 1ml to scalp 2x daily. Takes 3-6 months for visible results. May cause initial shedding.', tier: 'S-Tier', color: '#ff6b35' },
   { tip: 'Finasteride', desc: 'Prescription DHT blocker. Most effective for male pattern baldness prevention. Consult a dermatologist first.', tier: 'S-Tier', color: '#ff5252' },
-  { tip: 'Derma Rolling', desc: '0.5-1.5mm needles on scalp 1x/week. Stimulates collagen and growth factors. Wait 24hr before applying minoxidil.', tier: 'A-Tier', color: '#7c6cf0' },
+  { tip: 'Derma Rolling', desc: '0.5-1.5mm needles on scalp 1x/week. Stimulates collagen and growth factors. Wait 24hr before applying minoxidil.', tier: 'A-Tier', color: '#0066ff' },
   { tip: 'Biotin Supplement', desc: '5000-10000mcg daily. Supports keratin production. Results in 3+ months. Get blood work first.', tier: 'B-Tier', color: '#00e676' },
   { tip: 'Scalp Massage', desc: '5-10 min daily with fingertips. Increases blood flow to follicles. Can use rosemary oil for additional benefit.', tier: 'A-Tier', color: '#00e5ff' },
   { tip: 'Protein & Nutrition', desc: 'Hair is 95% keratin (protein). Eat: eggs, salmon, nuts, spinach, sweet potatoes. Deficiencies cause hair loss.', tier: 'A-Tier', color: '#ffab40' },
