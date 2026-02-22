@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, SafeAreaView, Animated, Easing,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, SafeAreaView, Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -37,38 +37,18 @@ const ResultsScreen = ({ route, navigation }) => {
 
   // Animations
   const heroFade = useRef(new Animated.Value(0)).current;
-  const heroSlide = useRef(new Animated.Value(30)).current;
-  const sectionAnims = useRef(Array.from({ length: 6 }, () => ({
-    fade: new Animated.Value(0),
-    slide: new Animated.Value(25),
-  }))).current;
-  const photoGlow = useRef(new Animated.Value(0.3)).current;
+  const sectionAnims = useRef(Array.from({ length: 6 }, () => new Animated.Value(0))).current;
 
   useEffect(() => {
     // Hero entrance
-    Animated.parallel([
-      Animated.timing(heroFade, { toValue: 1, duration: 500, useNativeDriver: true }),
-      Animated.spring(heroSlide, { toValue: 0, friction: 8, useNativeDriver: true }),
-    ]).start();
+    Animated.timing(heroFade, { toValue: 1, duration: 500, useNativeDriver: true }).start();
 
-    // Staggered section entrances
+    // Staggered section fades (opacity only - no transforms for smooth scroll)
     sectionAnims.forEach((anim, i) => {
-      Animated.sequence([
-        Animated.delay(300 + i * 150),
-        Animated.parallel([
-          Animated.timing(anim.fade, { toValue: 1, duration: 400, useNativeDriver: true }),
-          Animated.spring(anim.slide, { toValue: 0, friction: 8, useNativeDriver: true }),
-        ]),
-      ]).start();
+      Animated.timing(anim, {
+        toValue: 1, duration: 350, delay: 300 + i * 120, useNativeDriver: true,
+      }).start();
     });
-
-    // Photo glow pulse
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(photoGlow, { toValue: 0.7, duration: 1500, useNativeDriver: true }),
-        Animated.timing(photoGlow, { toValue: 0.3, duration: 1500, useNativeDriver: true }),
-      ])
-    ).start();
 
     // Haptic feedback on score reveal
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -111,11 +91,11 @@ const ResultsScreen = ({ route, navigation }) => {
         </View>
 
         {/* Overall Score Hero */}
-        <Animated.View style={[styles.overallSection, { opacity: heroFade, transform: [{ translateY: heroSlide }] }]}>
+        <Animated.View style={[styles.overallSection, { opacity: heroFade }]}>
           <LinearGradient colors={GRADIENTS.hero} style={styles.heroBg}>
             <View style={styles.overallRingRow}>
               <View style={styles.photoWrapper}>
-                <Animated.View style={[styles.photoGlow, { opacity: photoGlow, shadowColor: overallColor }]} />
+                <View style={[styles.photoGlow, { shadowColor: overallColor }]} />
                 <Image source={{ uri: imageUri }} style={[styles.resultPhoto, { borderColor: overallColor }]} />
               </View>
               <ScoreRing score={scores.overall} size={130} strokeWidth={10} label={`${scores.overallRating}/10`} delay={200} />
@@ -140,7 +120,7 @@ const ResultsScreen = ({ route, navigation }) => {
         </Animated.View>
 
         {/* Celebrity Match (PRO) */}
-        <Animated.View style={{ opacity: sectionAnims[0].fade, transform: [{ translateY: sectionAnims[0].slide }] }}>
+        <Animated.View style={{ opacity: sectionAnims[0] }}>
           {pro && celebrity && (
             <View style={styles.celebrityCard}>
               <LinearGradient colors={GRADIENTS.gold} style={styles.celebrityGradient}>
@@ -173,7 +153,7 @@ const ResultsScreen = ({ route, navigation }) => {
         </Animated.View>
 
         {/* Score Cards Grid */}
-        <Animated.View style={{ opacity: sectionAnims[1].fade, transform: [{ translateY: sectionAnims[1].slide }] }}>
+        <Animated.View style={{ opacity: opacity: sectionAnims[1] }}>
           <Text style={styles.sectionTitle}>Category Scores</Text>
           <View style={styles.scoreGrid}>
             {categories.map((cat, index) => {
@@ -203,7 +183,7 @@ const ResultsScreen = ({ route, navigation }) => {
 
         {/* Facial Ratios (PRO) */}
         {pro && ratios && (
-          <Animated.View style={[styles.ratiosSection, { opacity: sectionAnims[2].fade, transform: [{ translateY: sectionAnims[2].slide }] }]}>
+          <Animated.View style={[styles.ratiosSection, { opacity: opacity: sectionAnims[2] }]}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Facial Ratios</Text>
               <View style={styles.proBadgeSm}>
@@ -229,7 +209,7 @@ const ResultsScreen = ({ route, navigation }) => {
         )}
 
         {/* Quick Tips */}
-        <Animated.View style={[styles.tipsPreview, { opacity: sectionAnims[3].fade, transform: [{ translateY: sectionAnims[3].slide }] }]}>
+        <Animated.View style={[styles.tipsPreview, { opacity: opacity: sectionAnims[3] }]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Top Recommendations</Text>
             <TouchableOpacity onPress={() => navigation.navigate('Tips', { scores })}>
@@ -251,7 +231,7 @@ const ResultsScreen = ({ route, navigation }) => {
         </Animated.View>
 
         {/* Feature Cards */}
-        <Animated.View style={[styles.featureCards, { opacity: sectionAnims[4].fade, transform: [{ translateY: sectionAnims[4].slide }] }]}>
+        <Animated.View style={[styles.featureCards, { opacity: opacity: sectionAnims[4] }]}>
           <Text style={styles.sectionTitle}>Explore</Text>
           {featureItems.map((item, i) => (
             <TouchableOpacity
@@ -281,7 +261,7 @@ const ResultsScreen = ({ route, navigation }) => {
         </Animated.View>
 
         {/* Action Buttons */}
-        <Animated.View style={[styles.actionButtons, { opacity: sectionAnims[5].fade, transform: [{ translateY: sectionAnims[5].slide }] }]}>
+        <Animated.View style={[styles.actionButtons, { opacity: opacity: sectionAnims[5] }]}>
           {pro && (
             <>
               <TouchableOpacity

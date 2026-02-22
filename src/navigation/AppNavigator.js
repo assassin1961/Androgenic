@@ -47,6 +47,11 @@ import GlowUpSimulatorScreen from '../screens/GlowUpSimulatorScreen';
 import AchievementsScreen from '../screens/AchievementsScreen';
 import WeeklyInsightsScreen from '../screens/WeeklyInsightsScreen';
 import ShareCardScreen from '../screens/ShareCardScreen';
+import EyeAreaGuideScreen from '../screens/EyeAreaGuideScreen';
+import SymmetryGuideScreen from '../screens/SymmetryGuideScreen';
+import GroomingGuideScreen from '../screens/GroomingGuideScreen';
+import SupplementsGuideScreen from '../screens/SupplementsGuideScreen';
+import DailyTipsScreen from '../screens/DailyTipsScreen';
 import TabBar from '../components/TabBar';
 
 const Stack = createNativeStackNavigator();
@@ -122,6 +127,11 @@ const AppNavigator = () => {
           <Stack.Screen name="GlowUpSimulator" component={GlowUpSimulatorScreen} />
           <Stack.Screen name="Achievements" component={AchievementsScreen} />
           <Stack.Screen name="WeeklyInsights" component={WeeklyInsightsScreen} />
+          <Stack.Screen name="EyeAreaGuide" component={EyeAreaGuideScreen} />
+          <Stack.Screen name="SymmetryGuide" component={SymmetryGuideScreen} />
+          <Stack.Screen name="GroomingGuide" component={GroomingGuideScreen} />
+          <Stack.Screen name="SupplementsGuide" component={SupplementsGuideScreen} />
+          <Stack.Screen name="DailyTips" component={DailyTipsScreen} />
           <Stack.Screen
             name="ShareCard"
             component={ShareCardScreen}
