@@ -49,11 +49,15 @@ const authRoutes = require('./routes/auth');
 const subscriptionRoutes = require('./routes/subscriptions');
 const scanRoutes = require('./routes/scans');
 const userdataRoutes = require('./routes/userdata');
+const forumRoutes = require('./routes/forum');
+const chatRoutes = require('./routes/chat');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/scans', scanRoutes);
 app.use('/api/userdata', userdataRoutes);
+app.use('/api/forum', forumRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

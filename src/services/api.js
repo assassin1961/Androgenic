@@ -189,6 +189,53 @@ export const toggleWorkout = async (exerciseId) => {
   return request('POST', '/userdata/workout/toggle', { exerciseId });
 };
 
+// ---- Forum API ----
+
+export const getForumPosts = async (category, sort) => {
+  let path = '/forum/posts?';
+  if (category && category !== 'All') path += `category=${encodeURIComponent(category)}&`;
+  if (sort) path += `sort=${sort}`;
+  return request('GET', path);
+};
+
+export const createForumPost = async (title, body, category) => {
+  return request('POST', '/forum/posts', { title, body, category });
+};
+
+export const upvoteForumPost = async (postId) => {
+  return request('POST', `/forum/posts/${postId}/upvote`);
+};
+
+export const getForumComments = async (postId) => {
+  return request('GET', `/forum/posts/${postId}/comments`);
+};
+
+export const createForumComment = async (postId, body) => {
+  return request('POST', `/forum/posts/${postId}/comments`, { body });
+};
+
+export const deleteForumPost = async (postId) => {
+  return request('DELETE', `/forum/posts/${postId}`);
+};
+
+// ---- Chat API ----
+
+export const getChatHistory = async (limit) => {
+  return request('GET', `/chat/history?limit=${limit || 100}`);
+};
+
+export const saveChatMessage = async (role, content) => {
+  return request('POST', '/chat/message', { role, content });
+};
+
+export const clearChatHistory = async () => {
+  return request('DELETE', '/chat/history');
+};
+
+export const getChatStats = async () => {
+  return request('GET', '/chat/stats');
+};
+
 // ---- Health Check ----
 
 export const healthCheck = async () => {

@@ -52,6 +52,11 @@ import SymmetryGuideScreen from '../screens/SymmetryGuideScreen';
 import GroomingGuideScreen from '../screens/GroomingGuideScreen';
 import SupplementsGuideScreen from '../screens/SupplementsGuideScreen';
 import DailyTipsScreen from '../screens/DailyTipsScreen';
+import AndrogenicIQScreen from '../screens/AndrogenicIQScreen';
+import ForumScreen from '../screens/ForumScreen';
+import ChatScreen from '../screens/ChatScreen';
+import PostDetailScreen from '../screens/PostDetailScreen';
+import LooksMaxHubScreen from '../screens/LooksMaxHubScreen';
 import TabBar from '../components/TabBar';
 
 const Stack = createNativeStackNavigator();
@@ -132,6 +137,11 @@ const AppNavigator = () => {
           <Stack.Screen name="GroomingGuide" component={GroomingGuideScreen} />
           <Stack.Screen name="SupplementsGuide" component={SupplementsGuideScreen} />
           <Stack.Screen name="DailyTips" component={DailyTipsScreen} />
+          <Stack.Screen name="AndrogenicIQ" component={AndrogenicIQScreen} />
+          <Stack.Screen name="Forum" component={ForumScreen} />
+          <Stack.Screen name="Chat" component={ChatScreen} />
+          <Stack.Screen name="PostDetail" component={PostDetailScreen} />
+          <Stack.Screen name="LooksMaxHub" component={LooksMaxHubScreen} />
           <Stack.Screen
             name="ShareCard"
             component={ShareCardScreen}

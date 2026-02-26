@@ -130,18 +130,24 @@ const HomeScreen = ({ navigation }) => {
   ];
 
   const FEATURES = [
+    { icon: 'bulb', text: 'IQ Score', screen: 'AndrogenicIQ', color: '#FFD700' },
+    { icon: 'people', text: 'Community', screen: 'Forum', color: '#00e676' },
+    { icon: 'chatbubbles', text: 'AI Chat', screen: 'Chat', color: '#0066ff' },
+    { icon: 'globe', text: 'LooksMax', screen: 'LooksMaxHub', color: '#ff6090' },
+    { icon: 'flask', text: 'Peptides', screen: 'Products', color: '#4d94ff' },
     { icon: 'flame', text: 'Challenge', screen: 'Challenge', color: '#ff6b35' },
     { icon: 'today', text: 'Routine', screen: 'RoutineTab', color: '#00e676' },
-    { icon: 'trophy', text: 'Achievements', screen: 'Achievements', color: '#FFD700' },
+    { icon: 'trophy', text: 'Achieve', screen: 'Achievements', color: '#FFD700' },
     { icon: 'analytics', text: 'Insights', screen: 'WeeklyInsights', color: '#0066ff' },
     { icon: 'barbell', text: 'Workouts', screen: 'Workout', color: '#ff5252' },
     { icon: 'water', text: 'Water', screen: 'WaterTracker', color: '#00b4d8' },
-    { icon: 'bag', text: 'Products', screen: 'Products', color: '#ffab40' },
     { icon: 'podium', text: 'Ranks', screen: 'LeaderboardTab', color: '#FFD700' },
     { icon: 'body', text: 'Body Fat', screen: 'BodyFat', color: '#4d94ff' },
     { icon: 'color-palette', text: 'Skin Tone', screen: 'SkinTone', color: '#ff6090' },
     { icon: 'sparkles', text: 'Glow-Up', screen: 'GlowUpSimulator', color: '#00e5ff' },
     { icon: 'nutrition', text: 'Nutrition', screen: 'NutritionGuide', color: '#ffab40' },
+    { icon: 'book', text: 'Guides', screen: 'Guides', color: '#1de9b6' },
+    { icon: 'bag', text: 'Products', screen: 'Products', color: '#ffab40' },
   ];
 
   return (

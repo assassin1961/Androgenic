@@ -153,7 +153,7 @@ const ResultsScreen = ({ route, navigation }) => {
         </Animated.View>
 
         {/* Score Cards Grid */}
-        <Animated.View style={{ opacity: opacity: sectionAnims[1] }}>
+        <Animated.View style={{ opacity: sectionAnims[1] }}>
           <Text style={styles.sectionTitle}>Category Scores</Text>
           <View style={styles.scoreGrid}>
             {categories.map((cat, index) => {
@@ -183,7 +183,7 @@ const ResultsScreen = ({ route, navigation }) => {
 
         {/* Facial Ratios (PRO) */}
         {pro && ratios && (
-          <Animated.View style={[styles.ratiosSection, { opacity: opacity: sectionAnims[2] }]}>
+          <Animated.View style={[styles.ratiosSection, { opacity: sectionAnims[2] }]}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Facial Ratios</Text>
               <View style={styles.proBadgeSm}>
@@ -209,7 +209,7 @@ const ResultsScreen = ({ route, navigation }) => {
         )}
 
         {/* Quick Tips */}
-        <Animated.View style={[styles.tipsPreview, { opacity: opacity: sectionAnims[3] }]}>
+        <Animated.View style={[styles.tipsPreview, { opacity: sectionAnims[3] }]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Top Recommendations</Text>
             <TouchableOpacity onPress={() => navigation.navigate('Tips', { scores })}>
@@ -231,7 +231,7 @@ const ResultsScreen = ({ route, navigation }) => {
         </Animated.View>
 
         {/* Feature Cards */}
-        <Animated.View style={[styles.featureCards, { opacity: opacity: sectionAnims[4] }]}>
+        <Animated.View style={[styles.featureCards, { opacity: sectionAnims[4] }]}>
           <Text style={styles.sectionTitle}>Explore</Text>
           {featureItems.map((item, i) => (
             <TouchableOpacity
@@ -261,7 +261,7 @@ const ResultsScreen = ({ route, navigation }) => {
         </Animated.View>
 
         {/* Action Buttons */}
-        <Animated.View style={[styles.actionButtons, { opacity: opacity: sectionAnims[5] }]}>
+        <Animated.View style={[styles.actionButtons, { opacity: sectionAnims[5] }]}>
           {pro && (
             <>
               <TouchableOpacity
