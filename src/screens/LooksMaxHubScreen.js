@@ -4,8 +4,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, GRADIENTS } from '../utils/theme';
-import { isPro } from '../utils/pro';
+import { COLORS } from '../utils/theme';
 import { getHistory } from '../utils/history';
 import { getStreakState } from '../utils/streaks';
 
@@ -34,7 +33,6 @@ const LooksMaxHubScreen = ({ navigation }) => {
   const [history, setHistory] = useState([]);
   const [streak, setStreak] = useState(null);
   const sectionFades = useRef(Array.from({ length: 7 }, () => new Animated.Value(0))).current;
-  const pro = isPro();
 
   useEffect(() => {
     getHistory().then(setHistory);
