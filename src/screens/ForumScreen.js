@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView,
   Modal, TextInput, FlatList, KeyboardAvoidingView, Platform, Animated,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, GRADIENTS } from '../utils/theme';
@@ -296,6 +297,7 @@ const ForumScreen = ({ navigation }) => {
       {/* New Post Modal */}
       <Modal visible={modalVisible} transparent animationType="none">
         <Animated.View style={[styles.modalOverlay, { opacity: modalFade }]}>
+          <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.modalKeyboard}

@@ -1,10 +1,18 @@
-import React, { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
+import React, { useEffect, memo } from 'react';
+import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../utils/theme';
 
 const { width } = Dimensions.get('window');
 const TAB_WIDTH = width / 5;
+
+const SPRING_CONFIG = { damping: 15, stiffness: 150, mass: 0.5 };
 
 const tabs = [
   { name: 'Home', icon: 'scan-outline', iconActive: 'scan', label: 'Scan' },
@@ -14,38 +22,60 @@ const tabs = [
   { name: 'Profile', icon: 'person-outline', iconActive: 'person', label: 'Profile' },
 ];
 
+const TabItem = memo(({ tab, isActive, onPress, index }) => {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    scale.value = withSpring(isActive ? 1.12 : 1, SPRING_CONFIG);
+  }, [isActive]);
+
+  const iconStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPress(tab.name);
+  };
+
+  return (
+    <Pressable style={styles.tab} onPress={handlePress}>
+      <Animated.View style={[styles.iconWrapper, isActive && styles.iconWrapperActive, iconStyle]}>
+        <Ionicons
+          name={isActive ? tab.iconActive : tab.icon}
+          size={20}
+          color={isActive ? COLORS.accent : COLORS.textMuted}
+        />
+      </Animated.View>
+      <Text style={[styles.label, isActive && styles.labelActive]}>{tab.label}</Text>
+    </Pressable>
+  );
+});
+
 const TabBar = ({ activeTab, onTabPress }) => {
-  const indicatorX = useRef(new Animated.Value(0)).current;
-  const scaleAnims = useRef(tabs.map(() => new Animated.Value(1))).current;
+  const indicatorX = useSharedValue(0);
 
   useEffect(() => {
     const idx = tabs.findIndex((t) => t.name === activeTab);
-    Animated.spring(indicatorX, {
-      toValue: idx * TAB_WIDTH + (TAB_WIDTH - 40) / 2,
-      friction: 8, tension: 90, useNativeDriver: true,
-    }).start();
-
-    scaleAnims.forEach((anim, i) => {
-      Animated.spring(anim, {
-        toValue: i === idx ? 1.15 : 1, friction: 6, useNativeDriver: true,
-      }).start();
-    });
+    indicatorX.value = withSpring(idx * TAB_WIDTH + (TAB_WIDTH - 40) / 2, SPRING_CONFIG);
   }, [activeTab]);
+
+  const indicatorStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: indicatorX.value }],
+  }));
 
   return (
     <View style={styles.container}>
-      <Animated.View style={[styles.indicator, { transform: [{ translateX: indicatorX }] }]} />
-      {tabs.map((tab, index) => {
-        const isActive = activeTab === tab.name;
-        return (
-          <TouchableOpacity key={tab.name} style={styles.tab} onPress={() => onTabPress(tab.name)} activeOpacity={0.6}>
-            <Animated.View style={[styles.iconWrapper, isActive && styles.iconWrapperActive, { transform: [{ scale: scaleAnims[index] }] }]}>
-              <Ionicons name={isActive ? tab.iconActive : tab.icon} size={20} color={isActive ? COLORS.accent : COLORS.textMuted} />
-            </Animated.View>
-            <Text style={[styles.label, isActive && styles.labelActive]}>{tab.label}</Text>
-          </TouchableOpacity>
-        );
-      })}
+      <Animated.View style={[styles.indicator, indicatorStyle]} />
+      {tabs.map((tab, index) => (
+        <TabItem
+          key={tab.name}
+          tab={tab}
+          index={index}
+          isActive={activeTab === tab.name}
+          onPress={onTabPress}
+        />
+      ))}
     </View>
   );
 };
@@ -68,4 +98,4 @@ const styles = StyleSheet.create({
   labelActive: { color: COLORS.accent, fontWeight: '700' },
 });
 
-export default TabBar;
+export default memo(TabBar);

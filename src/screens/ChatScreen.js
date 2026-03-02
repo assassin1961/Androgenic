@@ -1,8 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, SafeAreaView, FlatList,
-  TextInput, KeyboardAvoidingView, Platform, Animated, Dimensions,
+  TextInput, KeyboardAvoidingView, Platform, Dimensions,
 } from 'react-native';
+import Animated, {
+  useSharedValue, useAnimatedStyle, withRepeat, withSequence,
+  withTiming, withDelay, FadeInLeft, FadeInRight,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, GRADIENTS } from '../utils/theme';
@@ -150,60 +154,46 @@ const getAIResponse = (userMessage) => {
 
 // ─── Components ─────────────────────────────────────────────────────
 
-const TypingIndicator = () => {
-  const dot1 = useRef(new Animated.Value(0)).current;
-  const dot2 = useRef(new Animated.Value(0)).current;
-  const dot3 = useRef(new Animated.Value(0)).current;
+const TypingDot = ({ delay }) => {
+  const progress = useSharedValue(0);
 
   useEffect(() => {
-    const animate = (dot, delay) =>
-      Animated.loop(
-        Animated.sequence([
-          Animated.delay(delay),
-          Animated.timing(dot, { toValue: 1, duration: 300, useNativeDriver: true }),
-          Animated.timing(dot, { toValue: 0, duration: 300, useNativeDriver: true }),
-          Animated.delay(600 - delay),
-        ])
-      );
-    const a1 = animate(dot1, 0);
-    const a2 = animate(dot2, 200);
-    const a3 = animate(dot3, 400);
-    a1.start();
-    a2.start();
-    a3.start();
-    return () => { a1.stop(); a2.stop(); a3.stop(); };
+    progress.value = withDelay(
+      delay,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: 300 }),
+          withTiming(0, { duration: 300 }),
+          withDelay(300, withTiming(0, { duration: 0 })),
+        ),
+        -1,
+        false,
+      ),
+    );
   }, []);
 
-  const dotStyle = (dot) => ({
-    opacity: dot.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }),
-    transform: [{ translateY: dot.interpolate({ inputRange: [0, 1], outputRange: [0, -4] }) }],
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: 0.3 + progress.value * 0.7,
+    transform: [{ translateY: progress.value * -4 }],
+  }));
 
-  return (
-    <View style={styles.typingRow}>
-      <View style={styles.aiAvatarSmall}>
-        <Ionicons name="sparkles" size={10} color="#fff" />
-      </View>
-      <View style={styles.typingBubble}>
-        <Animated.View style={[styles.typingDot, dotStyle(dot1)]} />
-        <Animated.View style={[styles.typingDot, dotStyle(dot2)]} />
-        <Animated.View style={[styles.typingDot, dotStyle(dot3)]} />
-      </View>
-    </View>
-  );
+  return <Animated.View style={[styles.typingDot, animatedStyle]} />;
 };
 
+const TypingIndicator = () => (
+  <View style={styles.typingRow}>
+    <View style={styles.aiAvatarSmall}>
+      <Ionicons name="sparkles" size={10} color="#fff" />
+    </View>
+    <View style={styles.typingBubble}>
+      <TypingDot delay={0} />
+      <TypingDot delay={200} />
+      <TypingDot delay={400} />
+    </View>
+  </View>
+);
+
 const ChatBubble = ({ item, index }) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(item.sender === 'ai' ? -20 : 20)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 350, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 350, useNativeDriver: true }),
-    ]).start();
-  }, []);
-
   const isAI = item.sender === 'ai';
   const time = item.timestamp
     ? new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -211,10 +201,10 @@ const ChatBubble = ({ item, index }) => {
 
   return (
     <Animated.View
+      entering={isAI ? FadeInLeft.duration(350) : FadeInRight.duration(350)}
       style={[
         styles.messageRow,
         isAI ? styles.messageRowAI : styles.messageRowUser,
-        { opacity: fadeAnim, transform: [{ translateX: slideAnim }] },
       ]}
     >
       {isAI && (

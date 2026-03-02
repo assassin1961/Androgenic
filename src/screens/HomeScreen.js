@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar,
-  Animated, Dimensions, ScrollView, Linking,
+  Dimensions, ScrollView, Linking, RefreshControl,
 } from 'react-native';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
@@ -32,43 +34,32 @@ const STORE_URL = 'https://androgenicpeptides.lovable.app';
 
 const HomeScreen = ({ navigation }) => {
   const [ready, setReady] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [streakData, setStreakData] = useState(null);
   const [lastScore, setLastScore] = useState(null);
 
-  const sectionFades = useRef(Array.from({ length: 8 }, () => new Animated.Value(0))).current;
-
-  useEffect(() => {
-    Promise.all([loadProState(), loadStreakState()]).then(() => {
-      setStreakData(getStreakState());
-      markDayActive().then(() => setStreakData(getStreakState()));
-      setReady(true);
-    });
-    getHistory().then((h) => {
-      if (h && h.length > 0) setLastScore(h[0]);
-    });
+  const loadData = useCallback(async () => {
+    await Promise.all([loadProState(), loadStreakState()]);
+    setStreakData(getStreakState());
+    markDayActive().then(() => setStreakData(getStreakState()));
+    const h = await getHistory();
+    if (h && h.length > 0) setLastScore(h[0]);
+    setReady(true);
   }, []);
 
-  useEffect(() => {
-    const unsub = navigation.addListener('focus', () => {
-      Promise.all([loadProState(), loadStreakState()]).then(() => {
-        setStreakData(getStreakState());
-        setReady(true);
-      });
-      getHistory().then((h) => {
-        if (h && h.length > 0) setLastScore(h[0]);
-      });
-    });
-    return unsub;
-  }, [navigation]);
+  useEffect(() => { loadData(); }, []);
 
   useEffect(() => {
-    if (!ready) return;
-    sectionFades.forEach((anim, i) => {
-      Animated.timing(anim, {
-        toValue: 1, duration: 350, delay: i * 80, useNativeDriver: true,
-      }).start();
-    });
-  }, [ready]);
+    const unsub = navigation.addListener('focus', loadData);
+    return unsub;
+  }, [navigation, loadData]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await loadData();
+    setRefreshing(false);
+  }, [loadData]);
 
   const level = streakData ? getCurrentLevel() : null;
   const levelProgress = streakData ? getLevelProgress() : 0;
@@ -172,9 +163,14 @@ const HomeScreen = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         bounces={true}
         removeClippedSubviews={true}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh}
+            tintColor={COLORS.accent} colors={[COLORS.accent]}
+            progressBackgroundColor="#000" />
+        }
       >
         {/* Section 0: Level + Scan CTA */}
-        <Animated.View style={{ opacity: sectionFades[0] }}>
+        <Animated.View entering={FadeInDown.duration(400).delay(0)}>
           {streakData && (
             <TouchableOpacity style={styles.levelBar} onPress={() => navigation.navigate('Achievements')} activeOpacity={0.7}>
               <Text style={styles.levelLabel}>Lv.{level?.level || 1}</Text>
@@ -215,7 +211,7 @@ const HomeScreen = ({ navigation }) => {
         </Animated.View>
 
         {/* Section 1: Last Score + Quick Nav */}
-        <Animated.View style={{ opacity: sectionFades[1] }}>
+        <Animated.View entering={FadeInDown.duration(400).delay(80)}>
           {lastScore && (
             <TouchableOpacity style={styles.lastScoreCard} onPress={() => navigation.navigate('History')} activeOpacity={0.7}>
               <View style={styles.lastScoreLeft}>
@@ -256,7 +252,7 @@ const HomeScreen = ({ navigation }) => {
         </Animated.View>
 
         {/* Section 2: Featured Cards (2x2 grid) */}
-        <Animated.View style={{ opacity: sectionFades[2] }}>
+        <Animated.View entering={FadeInDown.duration(400).delay(160)}>
           <View style={styles.featuredGrid}>
             {FEATURED.map((f, i) => (
               <TouchableOpacity key={i} activeOpacity={0.85} onPress={() => navigation.navigate(f.screen)}>
@@ -273,7 +269,7 @@ const HomeScreen = ({ navigation }) => {
         </Animated.View>
 
         {/* Section 3: PRO Banner */}
-        <Animated.View style={{ opacity: sectionFades[3] }}>
+        <Animated.View entering={FadeInDown.duration(400).delay(240)}>
           {!pro && (
             <TouchableOpacity onPress={() => navigation.navigate('Paywall')} activeOpacity={0.8}>
               <LinearGradient colors={GRADIENTS.gold} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.proBanner}>
@@ -286,7 +282,7 @@ const HomeScreen = ({ navigation }) => {
         </Animated.View>
 
         {/* Section 4: Daily Tip */}
-        <Animated.View style={{ opacity: sectionFades[4] }}>
+        <Animated.View entering={FadeInDown.duration(400).delay(320)}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Today's Tip</Text>
             <TouchableOpacity onPress={() => navigation.navigate('DailyTips')} activeOpacity={0.7}>
@@ -302,7 +298,7 @@ const HomeScreen = ({ navigation }) => {
         </Animated.View>
 
         {/* Section 5: Peptides Store Banner */}
-        <Animated.View style={{ opacity: sectionFades[5] }}>
+        <Animated.View entering={FadeInDown.duration(400).delay(400)}>
           <TouchableOpacity onPress={() => Linking.openURL(STORE_URL)} activeOpacity={0.85}>
             <LinearGradient colors={['#0044cc', '#0066ff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.storeBanner}>
               <View style={styles.storeIconWrap}>
@@ -318,7 +314,7 @@ const HomeScreen = ({ navigation }) => {
         </Animated.View>
 
         {/* Section 6: Tools Grid */}
-        <Animated.View style={{ opacity: sectionFades[6] }}>
+        <Animated.View entering={FadeInDown.duration(400).delay(480)}>
           <Text style={styles.sectionTitle}>Tools</Text>
           <View style={styles.grid}>
             {TOOLS.map((f, i) => (
@@ -333,7 +329,7 @@ const HomeScreen = ({ navigation }) => {
         </Animated.View>
 
         {/* Section 7: PRO Features + Social Proof */}
-        <Animated.View style={{ opacity: sectionFades[7] }}>
+        <Animated.View entering={FadeInDown.duration(400).delay(560)}>
           {!pro && (
             <>
               {[

@@ -1,7 +1,8 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, SafeAreaView, Animated,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, SafeAreaView,
 } from 'react-native';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -35,21 +36,7 @@ const ResultsScreen = ({ route, navigation }) => {
 
   const categories = ['masculinity', 'jawline', 'eyes', 'cheekbones', 'hair', 'skin', 'symmetry'];
 
-  // Animations
-  const heroFade = useRef(new Animated.Value(0)).current;
-  const sectionAnims = useRef(Array.from({ length: 6 }, () => new Animated.Value(0))).current;
-
   useEffect(() => {
-    // Hero entrance
-    Animated.timing(heroFade, { toValue: 1, duration: 500, useNativeDriver: true }).start();
-
-    // Staggered section fades (opacity only - no transforms for smooth scroll)
-    sectionAnims.forEach((anim, i) => {
-      Animated.timing(anim, {
-        toValue: 1, duration: 350, delay: 300 + i * 120, useNativeDriver: true,
-      }).start();
-    });
-
     // Haptic feedback on score reveal
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
@@ -91,7 +78,7 @@ const ResultsScreen = ({ route, navigation }) => {
         </View>
 
         {/* Overall Score Hero */}
-        <Animated.View style={[styles.overallSection, { opacity: heroFade }]}>
+        <Animated.View entering={FadeIn.duration(500)} style={styles.overallSection}>
           <LinearGradient colors={GRADIENTS.hero} style={styles.heroBg}>
             <View style={styles.overallRingRow}>
               <View style={styles.photoWrapper}>
@@ -120,7 +107,7 @@ const ResultsScreen = ({ route, navigation }) => {
         </Animated.View>
 
         {/* Celebrity Match (PRO) */}
-        <Animated.View style={{ opacity: sectionAnims[0] }}>
+        <Animated.View entering={FadeInDown.duration(350).delay(300)}>
           {pro && celebrity && (
             <View style={styles.celebrityCard}>
               <LinearGradient colors={GRADIENTS.gold} style={styles.celebrityGradient}>
@@ -153,7 +140,7 @@ const ResultsScreen = ({ route, navigation }) => {
         </Animated.View>
 
         {/* Score Cards Grid */}
-        <Animated.View style={{ opacity: sectionAnims[1] }}>
+        <Animated.View entering={FadeInDown.duration(350).delay(420)}>
           <Text style={styles.sectionTitle}>Category Scores</Text>
           <View style={styles.scoreGrid}>
             {categories.map((cat, index) => {
@@ -183,7 +170,7 @@ const ResultsScreen = ({ route, navigation }) => {
 
         {/* Facial Ratios (PRO) */}
         {pro && ratios && (
-          <Animated.View style={[styles.ratiosSection, { opacity: sectionAnims[2] }]}>
+          <Animated.View entering={FadeInDown.duration(350).delay(540)} style={styles.ratiosSection}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Facial Ratios</Text>
               <View style={styles.proBadgeSm}>
@@ -209,7 +196,7 @@ const ResultsScreen = ({ route, navigation }) => {
         )}
 
         {/* Quick Tips */}
-        <Animated.View style={[styles.tipsPreview, { opacity: sectionAnims[3] }]}>
+        <Animated.View entering={FadeInDown.duration(350).delay(660)} style={styles.tipsPreview}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Top Recommendations</Text>
             <TouchableOpacity onPress={() => navigation.navigate('Tips', { scores })}>
@@ -231,7 +218,7 @@ const ResultsScreen = ({ route, navigation }) => {
         </Animated.View>
 
         {/* Feature Cards */}
-        <Animated.View style={[styles.featureCards, { opacity: sectionAnims[4] }]}>
+        <Animated.View entering={FadeInDown.duration(350).delay(780)} style={styles.featureCards}>
           <Text style={styles.sectionTitle}>Explore</Text>
           {featureItems.map((item, i) => (
             <TouchableOpacity
@@ -261,7 +248,7 @@ const ResultsScreen = ({ route, navigation }) => {
         </Animated.View>
 
         {/* Action Buttons */}
-        <Animated.View style={[styles.actionButtons, { opacity: sectionAnims[5] }]}>
+        <Animated.View entering={FadeInDown.duration(350).delay(900)} style={styles.actionButtons}>
           {pro && (
             <>
               <TouchableOpacity
