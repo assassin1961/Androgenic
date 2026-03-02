@@ -11,10 +11,11 @@
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "scheme": "androgenic",
+    "backgroundColor": "#000000",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0a0a0a"
+      "backgroundColor": "#000000"
     },
     "ios": {
       "supportsTablet": true,
@@ -23,31 +24,50 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Androgenic uses the camera to scan and analyze your facial features for personalized improvement recommendations.",
         "NSPhotoLibraryUsageDescription": "Androgenic accesses your photo library so you can select photos for facial analysis.",
-        "ITSAppUsesNonExemptEncryption": false
+        "NSFaceIDUsageDescription": "Androgenic uses Face ID to secure access to the app and protect your data.",
+        "ITSAppUsesNonExemptEncryption": false,
+        "LSApplicationQueriesSchemes": ["itms-apps"],
+        "UIBackgroundModes": ["fetch", "remote-notification"]
       },
       "config": {
         "usesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "com.apple.developer.in-app-payments": ["merchant.com.androgenic.faceanalysis"]
       },
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
             "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": ["C617.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
+            "NSPrivacyAccessedAPITypeReasons": ["E174.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+            "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
           }
         ]
-      }
+      },
+      "associatedDomains": ["applinks:androgenic.app"]
     },
     "android": {
       "package": "com.androgenic.faceanalysis",
       "versionCode": 5,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0a0a0a"
+        "backgroundColor": "#000000"
       },
       "splash": {
         "image": "./assets/splash-icon.png",
         "resizeMode": "contain",
-        "backgroundColor": "#0a0a0a"
+        "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
@@ -77,6 +97,23 @@
         {
           "photosPermission": "Allow Androgenic to access your photos for face analysis",
           "cameraPermission": "Allow Androgenic to access your camera for face analysis"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#0066ff"
+        }
+      ],
+      [
+        "expo-secure-store",
+        {}
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow Androgenic to use Face ID for app lock"
         }
       ],
       "react-native-iap"

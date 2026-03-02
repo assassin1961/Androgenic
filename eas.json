@@ -34,7 +34,8 @@
     "production": {
       "ios": {
         "autoIncrement": true,
-        "image": "latest"
+        "image": "latest",
+        "resourceClass": "m-medium"
       },
       "android": {
         "autoIncrement": true,

@@ -26,15 +26,15 @@ export default function App() {
 
   if (checkingLock) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#0a0a0a' }}>
-        <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
+      <View style={{ flex: 1, backgroundColor: '#000000' }}>
+        <StatusBar barStyle="light-content" backgroundColor="#000000" />
       </View>
     );
   }
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
       <AppNavigator />
       {locked && (
         <AppLockScreen onUnlock={() => setLocked(false)} />
