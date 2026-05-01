@@ -1,12 +1,19 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView,
-  Modal, TextInput, FlatList, KeyboardAvoidingView, Platform, Animated,
+  Modal, TextInput, FlatList, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import Animated, {
+  FadeInDown, FadeIn, FadeOut, LinearTransition, SlideInRight,
+  useSharedValue, useAnimatedStyle, withSpring, withTiming,
+} from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { COLORS, GRADIENTS } from '../utils/theme';
+import { COLORS } from '../utils/theme';
+import AnimatedPressable from '../components/AnimatedPressable';
+import { PostSkeleton } from '../components/SkeletonLoader';
 
 const STORAGE_KEY_POSTS = '@forum_user_posts';
 const STORAGE_KEY_UPVOTES = '@forum_upvotes';
@@ -98,6 +105,46 @@ const getTimeAgo = (timestamp) => {
   return `${Math.floor(days / 7)}w ago`;
 };
 
+const PostCard = memo(({ item, isUpvoted, onUpvote, onPress }) => {
+  const avatarColor = getAvatarColor(item.username);
+  const catColor = CATEGORY_COLORS[item.category] || COLORS.accent;
+
+  return (
+    <AnimatedPressable onPress={onPress} style={styles.postCard} scaleDown={0.98}>
+      <View style={styles.postHeader}>
+        <View style={[styles.avatar, { backgroundColor: avatarColor + '30', borderColor: avatarColor }]}>
+          <Text style={[styles.avatarText, { color: avatarColor }]}>{getInitials(item.username)}</Text>
+        </View>
+        <View style={styles.postMeta}>
+          <Text style={styles.username}>{item.username}</Text>
+          <Text style={styles.timeAgo}>{getTimeAgo(item.createdAt)}</Text>
+        </View>
+        <View style={[styles.categoryTag, { backgroundColor: catColor + '20', borderColor: catColor + '40' }]}>
+          <Text style={[styles.categoryTagText, { color: catColor }]}>{item.category}</Text>
+        </View>
+      </View>
+      <Text style={styles.postTitle}>{item.title}</Text>
+      <Text style={styles.postBody} numberOfLines={2}>{item.body}</Text>
+      <View style={styles.postActions}>
+        <TouchableOpacity style={styles.actionBtn} onPress={onUpvote} activeOpacity={0.7}>
+          <Ionicons
+            name={isUpvoted ? 'arrow-up-circle' : 'arrow-up-circle-outline'}
+            size={20} color={isUpvoted ? '#0066ff' : COLORS.textMuted}
+          />
+          <Text style={[styles.actionText, isUpvoted && styles.actionTextActive]}>{item.upvotes}</Text>
+        </TouchableOpacity>
+        <View style={styles.actionBtn}>
+          <Ionicons name="chatbubble-outline" size={18} color={COLORS.textMuted} />
+          <Text style={styles.actionText}>{item.comments}</Text>
+        </View>
+        <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7}>
+          <Ionicons name="share-outline" size={18} color={COLORS.textMuted} />
+        </TouchableOpacity>
+      </View>
+    </AnimatedPressable>
+  );
+});
+
 const ForumScreen = ({ navigation }) => {
   const [posts, setPosts] = useState(SEED_POSTS);
   const [activeCategory, setActiveCategory] = useState('All');
@@ -107,12 +154,10 @@ const ForumScreen = ({ navigation }) => {
   const [newTitle, setNewTitle] = useState('');
   const [newBody, setNewBody] = useState('');
   const [newCategory, setNewCategory] = useState('Mewing');
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const modalFade = useRef(new Animated.Value(0)).current;
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadPersistedData();
-    Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
   }, []);
 
   const loadPersistedData = async () => {
@@ -127,6 +172,7 @@ const ForumScreen = ({ navigation }) => {
       }
       if (storedUpvotes) setUpvotedIds(JSON.parse(storedUpvotes));
     } catch (e) { /* silent */ }
+    setLoading(false);
   };
 
   const persistUpvotes = async (data) => {
@@ -138,6 +184,7 @@ const ForumScreen = ({ navigation }) => {
   };
 
   const handleUpvote = useCallback((postId) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setUpvotedIds((prev) => {
       const updated = { ...prev };
       if (updated[postId]) delete updated[postId];
@@ -155,21 +202,20 @@ const ForumScreen = ({ navigation }) => {
   }, [upvotedIds]);
 
   const openModal = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setModalVisible(true);
-    Animated.timing(modalFade, { toValue: 1, duration: 250, useNativeDriver: true }).start();
   };
 
   const closeModal = () => {
-    Animated.timing(modalFade, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
-      setModalVisible(false);
-      setNewTitle('');
-      setNewBody('');
-      setNewCategory('Mewing');
-    });
+    setModalVisible(false);
+    setNewTitle('');
+    setNewBody('');
+    setNewCategory('Mewing');
   };
 
   const handlePost = async () => {
     if (!newTitle.trim() || !newBody.trim()) return;
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     const newPost = {
       id: `user_${Date.now()}`, username: 'You', category: newCategory,
       title: newTitle.trim(), body: newBody.trim(),
@@ -181,152 +227,150 @@ const ForumScreen = ({ navigation }) => {
     closeModal();
   };
 
-  const getFilteredPosts = () => {
+  const getFilteredPosts = useCallback(() => {
     let filtered = activeCategory === 'All' ? posts : posts.filter((p) => p.category === activeCategory);
     return sortBy === 'hot'
       ? [...filtered].sort((a, b) => b.upvotes - a.upvotes)
       : [...filtered].sort((a, b) => b.createdAt - a.createdAt);
-  };
+  }, [posts, activeCategory, sortBy]);
 
-  const renderPost = ({ item }) => {
-    const isUpvoted = !!upvotedIds[item.id];
-    const avatarColor = getAvatarColor(item.username);
-    const catColor = CATEGORY_COLORS[item.category] || COLORS.accent;
-    return (
-      <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('PostDetail', { post: item })}>
-      <Animated.View style={[styles.postCard, { opacity: fadeAnim }]}>
-        <View style={styles.postHeader}>
-          <View style={[styles.avatar, { backgroundColor: avatarColor + '30', borderColor: avatarColor }]}>
-            <Text style={[styles.avatarText, { color: avatarColor }]}>{getInitials(item.username)}</Text>
-          </View>
-          <View style={styles.postMeta}>
-            <Text style={styles.username}>{item.username}</Text>
-            <Text style={styles.timeAgo}>{getTimeAgo(item.createdAt)}</Text>
-          </View>
-          <View style={[styles.categoryTag, { backgroundColor: catColor + '20', borderColor: catColor + '40' }]}>
-            <Text style={[styles.categoryTagText, { color: catColor }]}>{item.category}</Text>
-          </View>
-        </View>
-        <Text style={styles.postTitle}>{item.title}</Text>
-        <Text style={styles.postBody} numberOfLines={2}>{item.body}</Text>
-        <View style={styles.postActions}>
-          <TouchableOpacity style={styles.actionBtn} onPress={() => handleUpvote(item.id)} activeOpacity={0.7}>
-            <Ionicons
-              name={isUpvoted ? 'arrow-up-circle' : 'arrow-up-circle-outline'}
-              size={20} color={isUpvoted ? '#0066ff' : COLORS.textMuted}
-            />
-            <Text style={[styles.actionText, isUpvoted && styles.actionTextActive]}>{item.upvotes}</Text>
-          </TouchableOpacity>
-          <View style={styles.actionBtn}>
-            <Ionicons name="chatbubble-outline" size={18} color={COLORS.textMuted} />
-            <Text style={styles.actionText}>{item.comments}</Text>
-          </View>
-          <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7}>
-            <Ionicons name="share-outline" size={18} color={COLORS.textMuted} />
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-      </TouchableOpacity>
-    );
-  };
+  const renderPost = useCallback(({ item, index }) => (
+    <Animated.View
+      entering={FadeInDown.duration(300).delay(Math.min(index * 50, 300))}
+      layout={LinearTransition.springify().damping(14).stiffness(100)}
+    >
+      <PostCard
+        item={item}
+        isUpvoted={!!upvotedIds[item.id]}
+        onUpvote={() => handleUpvote(item.id)}
+        onPress={() => navigation.navigate('PostDetail', { post: item })}
+      />
+    </Animated.View>
+  ), [upvotedIds, handleUpvote, navigation]);
 
   const filteredPosts = getFilteredPosts();
+
+  const handleCategoryChange = (cat) => {
+    Haptics.selectionAsync();
+    setActiveCategory(cat);
+  };
+
+  const handleSortChange = (sort) => {
+    Haptics.selectionAsync();
+    setSortBy(sort);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+      <Animated.View entering={FadeIn.duration(300)} style={styles.header}>
+        <AnimatedPressable onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
-        </TouchableOpacity>
+        </AnimatedPressable>
         <Text style={styles.headerTitle}>Community</Text>
-        <TouchableOpacity onPress={openModal} style={styles.newPostBtn}>
+        <AnimatedPressable onPress={openModal} style={styles.newPostBtn}>
           <Ionicons name="add" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
+        </AnimatedPressable>
+      </Animated.View>
 
       {/* Sort Toggle */}
-      <View style={styles.sortRow}>
-        <TouchableOpacity
+      <Animated.View entering={FadeInDown.duration(300).delay(80)} style={styles.sortRow}>
+        <AnimatedPressable
           style={[styles.sortBtn, sortBy === 'hot' && styles.sortBtnActive]}
-          onPress={() => setSortBy('hot')}
+          onPress={() => handleSortChange('hot')}
+          scaleDown={0.94}
         >
           <Ionicons name="flame" size={16} color={sortBy === 'hot' ? '#fff' : COLORS.textMuted} />
           <Text style={[styles.sortText, sortBy === 'hot' && styles.sortTextActive]}>Hot</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </AnimatedPressable>
+        <AnimatedPressable
           style={[styles.sortBtn, sortBy === 'new' && styles.sortBtnActive]}
-          onPress={() => setSortBy('new')}
+          onPress={() => handleSortChange('new')}
+          scaleDown={0.94}
         >
           <Ionicons name="time" size={16} color={sortBy === 'new' ? '#fff' : COLORS.textMuted} />
           <Text style={[styles.sortText, sortBy === 'new' && styles.sortTextActive]}>New</Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
         <View style={{ flex: 1 }} />
         <Text style={styles.postCount}>{filteredPosts.length} posts</Text>
-      </View>
+      </Animated.View>
 
       {/* Category Filter */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>
-        {CATEGORIES.map((cat) => (
-          <TouchableOpacity
-            key={cat}
-            style={[styles.categoryPill, activeCategory === cat && styles.categoryPillActive]}
-            onPress={() => setActiveCategory(cat)}
-          >
-            <Text style={[styles.pillText, activeCategory === cat && styles.pillTextActive]}>{cat}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <Animated.View entering={FadeInDown.duration(300).delay(160)}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>
+          {CATEGORIES.map((cat) => (
+            <AnimatedPressable
+              key={cat}
+              style={[styles.categoryPill, activeCategory === cat && styles.categoryPillActive]}
+              onPress={() => handleCategoryChange(cat)}
+              scaleDown={0.92}
+              haptic={false}
+            >
+              <Text style={[styles.pillText, activeCategory === cat && styles.pillTextActive]}>{cat}</Text>
+            </AnimatedPressable>
+          ))}
+        </ScrollView>
+      </Animated.View>
 
       {/* Post List */}
-      <FlatList
-        data={filteredPosts}
-        renderItem={renderPost}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="chatbubbles-outline" size={48} color={COLORS.textMuted} />
-            <Text style={styles.emptyTitle}>No posts yet</Text>
-            <Text style={styles.emptySubtitle}>Be the first to start a conversation</Text>
-          </View>
-        }
-      />
+      {loading ? (
+        <View style={styles.listContent}>
+          <PostSkeleton />
+          <PostSkeleton />
+          <PostSkeleton />
+        </View>
+      ) : (
+        <FlatList
+          data={filteredPosts}
+          renderItem={renderPost}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          itemLayoutAnimation={LinearTransition.springify().damping(14)}
+          ListEmptyComponent={
+            <Animated.View entering={FadeIn.duration(400)} style={styles.emptyState}>
+              <Ionicons name="chatbubbles-outline" size={48} color={COLORS.textMuted} />
+              <Text style={styles.emptyTitle}>No posts yet</Text>
+              <Text style={styles.emptySubtitle}>Be the first to start a conversation</Text>
+            </Animated.View>
+          }
+        />
+      )}
 
       {/* New Post Modal */}
-      <Modal visible={modalVisible} transparent animationType="none">
-        <Animated.View style={[styles.modalOverlay, { opacity: modalFade }]}>
-          <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+      <Modal visible={modalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.modalKeyboard}
           >
-            <View style={styles.modalContent}>
+            <Animated.View entering={SlideInRight.duration(300).springify()} style={styles.modalContent}>
               <View style={styles.modalHeader}>
-                <TouchableOpacity onPress={closeModal}>
+                <AnimatedPressable onPress={closeModal}>
                   <Ionicons name="close" size={26} color={COLORS.textPrimary} />
-                </TouchableOpacity>
+                </AnimatedPressable>
                 <Text style={styles.modalTitle}>New Post</Text>
-                <TouchableOpacity
+                <AnimatedPressable
                   onPress={handlePost}
                   style={[styles.postButton, (!newTitle.trim() || !newBody.trim()) && styles.postButtonDisabled]}
                   disabled={!newTitle.trim() || !newBody.trim()}
                 >
                   <Text style={styles.postButtonText}>Post</Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
               </View>
 
               <Text style={styles.modalLabel}>Category</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.modalCatRow}>
                 {CATEGORIES.filter((c) => c !== 'All').map((cat) => (
-                  <TouchableOpacity
+                  <AnimatedPressable
                     key={cat}
                     style={[styles.modalCatPill, newCategory === cat && styles.modalCatPillActive]}
                     onPress={() => setNewCategory(cat)}
+                    scaleDown={0.92}
                   >
                     <Text style={[styles.modalCatText, newCategory === cat && styles.modalCatTextActive]}>{cat}</Text>
-                  </TouchableOpacity>
+                  </AnimatedPressable>
                 ))}
               </ScrollView>
 
@@ -349,9 +393,9 @@ const ForumScreen = ({ navigation }) => {
                 maxLength={2000}
               />
               <Text style={styles.charCount}>{newBody.length}/2000</Text>
-            </View>
+            </Animated.View>
           </KeyboardAvoidingView>
-        </Animated.View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -417,7 +461,7 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', paddingTop: 80, gap: 10 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary },
   emptySubtitle: { fontSize: 14, color: COLORS.textMuted },
-  modalOverlay: { flex: 1, backgroundColor: COLORS.overlay, justifyContent: 'flex-end' },
+  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
   modalKeyboard: { flex: 1, justifyContent: 'flex-end' },
   modalContent: {
     backgroundColor: COLORS.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24,

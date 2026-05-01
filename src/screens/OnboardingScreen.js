@@ -1,5 +1,9 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Easing, Dimensions } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import Animated, {
+  useSharedValue, useAnimatedStyle, withTiming, withSpring, withDelay,
+  withSequence, withRepeat, Easing, runOnJS,
+} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, GRADIENTS, SHADOWS } from '../utils/theme';
 
@@ -13,118 +17,153 @@ const PARTICLES = Array.from({ length: 12 }, (_, i) => ({
   delay: Math.random() * 2000,
 }));
 
-const OnboardingScreen = ({ onFinish }) => {
-  const logoScale = useRef(new Animated.Value(0.2)).current;
-  const logoOpacity = useRef(new Animated.Value(0)).current;
-  const taglineOpacity = useRef(new Animated.Value(0)).current;
-  const taglineTranslate = useRef(new Animated.Value(30)).current;
-  const ringScale = useRef(new Animated.Value(0)).current;
-  const ringOpacity = useRef(new Animated.Value(0.9)).current;
-  const ring2Scale = useRef(new Animated.Value(0)).current;
-  const ring2Opacity = useRef(new Animated.Value(0.7)).current;
-  const ring3Scale = useRef(new Animated.Value(0)).current;
-  const ring3Opacity = useRef(new Animated.Value(0.5)).current;
-  const scanLineY = useRef(new Animated.Value(-50)).current;
-  const scanLineOpacity = useRef(new Animated.Value(0)).current;
-  const featuresOpacity = useRef(new Animated.Value(0)).current;
-  const featuresTranslate = useRef(new Animated.Value(40)).current;
-  const wholeOpacity = useRef(new Animated.Value(1)).current;
-  const glowPulse = useRef(new Animated.Value(0.5)).current;
-  const particleAnims = useRef(PARTICLES.map(() => new Animated.Value(0))).current;
+const Particle = ({ config }) => {
+  const progress = useSharedValue(0);
 
   useEffect(() => {
-    particleAnims.forEach((anim, i) => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.delay(PARTICLES[i].delay),
-          Animated.timing(anim, { toValue: 1, duration: PARTICLES[i].speed, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-          Animated.timing(anim, { toValue: 0, duration: PARTICLES[i].speed, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        ])
-      ).start();
-    });
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(glowPulse, { toValue: 0.8, duration: 1500, useNativeDriver: true }),
-        Animated.timing(glowPulse, { toValue: 0.4, duration: 1500, useNativeDriver: true }),
-      ])
-    ).start();
-
-    Animated.sequence([
-      Animated.parallel([
-        Animated.spring(logoScale, { toValue: 1, friction: 5, tension: 80, useNativeDriver: true }),
-        Animated.timing(logoOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
-      ]),
-      Animated.parallel([
-        Animated.timing(ringScale, { toValue: 4, duration: 900, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-        Animated.timing(ringOpacity, { toValue: 0, duration: 900, useNativeDriver: true }),
-        Animated.sequence([
-          Animated.delay(150),
-          Animated.parallel([
-            Animated.timing(ring2Scale, { toValue: 4, duration: 900, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-            Animated.timing(ring2Opacity, { toValue: 0, duration: 900, useNativeDriver: true }),
-          ]),
-        ]),
-        Animated.sequence([
-          Animated.delay(300),
-          Animated.parallel([
-            Animated.timing(ring3Scale, { toValue: 4, duration: 900, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-            Animated.timing(ring3Opacity, { toValue: 0, duration: 900, useNativeDriver: true }),
-          ]),
-        ]),
-      ]),
-      Animated.parallel([
-        Animated.timing(taglineOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
-        Animated.spring(taglineTranslate, { toValue: 0, friction: 8, useNativeDriver: true }),
-      ]),
-      Animated.parallel([
-        Animated.timing(scanLineOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
-        Animated.timing(scanLineY, { toValue: 60, duration: 700, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-      ]),
-      Animated.timing(scanLineOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
-      Animated.parallel([
-        Animated.timing(featuresOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
-        Animated.spring(featuresTranslate, { toValue: 0, friction: 7, useNativeDriver: true }),
-      ]),
-      Animated.delay(700),
-      Animated.timing(wholeOpacity, { toValue: 0, duration: 500, useNativeDriver: true }),
-    ]).start(() => onFinish());
+    progress.value = withDelay(
+      config.delay,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: config.speed, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0, { duration: config.speed, easing: Easing.inOut(Easing.ease) }),
+        ),
+        -1,
+        false,
+      ),
+    );
   }, []);
 
+  const style = useAnimatedStyle(() => ({
+    opacity: 0.1 + progress.value * 0.4,
+    transform: [{ translateY: progress.value * -40 }],
+  }));
+
   return (
-    <Animated.View style={[styles.container, { opacity: wholeOpacity }]}>
+    <Animated.View
+      style={[styles.particle, style, {
+        left: config.x, top: config.y, width: config.size, height: config.size, borderRadius: config.size / 2,
+      }]}
+    />
+  );
+};
+
+const ExpandingRing = ({ delay, borderColor, initialOpacity }) => {
+  const scale = useSharedValue(0);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    scale.value = withDelay(delay, withTiming(4, { duration: 900, easing: Easing.out(Easing.cubic) }));
+    opacity.value = withDelay(delay, withSequence(
+      withTiming(initialOpacity, { duration: 50 }),
+      withTiming(0, { duration: 850 }),
+    ));
+  }, []);
+
+  const style = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  return <Animated.View style={[styles.ring, { borderColor }, style]} />;
+};
+
+const OnboardingScreen = ({ onFinish }) => {
+  const logoScale = useSharedValue(0.2);
+  const logoOpacity = useSharedValue(0);
+  const taglineOpacity = useSharedValue(0);
+  const taglineY = useSharedValue(30);
+  const scanLineOpacity = useSharedValue(0);
+  const scanLineY = useSharedValue(-50);
+  const featuresOpacity = useSharedValue(0);
+  const featuresY = useSharedValue(40);
+  const wholeOpacity = useSharedValue(1);
+  const glowPulse = useSharedValue(0.5);
+
+  useEffect(() => {
+    glowPulse.value = withRepeat(
+      withSequence(
+        withTiming(0.8, { duration: 1500 }),
+        withTiming(0.4, { duration: 1500 }),
+      ),
+      -1,
+      false,
+    );
+
+    // Logo entrance
+    logoScale.value = withSpring(1, { damping: 5, stiffness: 80 });
+    logoOpacity.value = withTiming(1, { duration: 500 });
+
+    // Tagline after logo (1000ms)
+    taglineOpacity.value = withDelay(1000, withTiming(1, { duration: 500 }));
+    taglineY.value = withDelay(1000, withSpring(0, { damping: 8, stiffness: 100 }));
+
+    // Scan line (1500ms)
+    scanLineOpacity.value = withDelay(1500, withSequence(
+      withTiming(1, { duration: 200 }),
+      withTiming(1, { duration: 500 }),
+      withTiming(0, { duration: 200 }),
+    ));
+    scanLineY.value = withDelay(1500, withTiming(60, { duration: 700, easing: Easing.inOut(Easing.ease) }));
+
+    // Features (2200ms)
+    featuresOpacity.value = withDelay(2200, withTiming(1, { duration: 500 }));
+    featuresY.value = withDelay(2200, withSpring(0, { damping: 7, stiffness: 100 }));
+
+    // Fade out and finish (3400ms)
+    wholeOpacity.value = withDelay(3400, withTiming(0, { duration: 500 }));
+
+    const timer = setTimeout(() => onFinish(), 3900);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const containerStyle = useAnimatedStyle(() => ({ opacity: wholeOpacity.value }));
+  const glowStyle = useAnimatedStyle(() => ({ opacity: glowPulse.value }));
+  const logoContainerStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: logoScale.value }],
+    opacity: logoOpacity.value,
+  }));
+  const logoTextStyle = useAnimatedStyle(() => ({ opacity: logoOpacity.value }));
+  const scanStyle = useAnimatedStyle(() => ({
+    opacity: scanLineOpacity.value,
+    transform: [{ translateY: scanLineY.value }],
+  }));
+  const taglineStyle = useAnimatedStyle(() => ({
+    opacity: taglineOpacity.value,
+    transform: [{ translateY: taglineY.value }],
+  }));
+  const featuresStyle = useAnimatedStyle(() => ({
+    opacity: featuresOpacity.value,
+    transform: [{ translateY: featuresY.value }],
+  }));
+
+  return (
+    <Animated.View style={[styles.container, containerStyle]}>
       <LinearGradient colors={['#000000', '#060612', '#000000']} style={styles.bg}>
         {PARTICLES.map((p, i) => (
-          <Animated.View
-            key={i}
-            style={[styles.particle, {
-              left: p.x, top: p.y, width: p.size, height: p.size, borderRadius: p.size / 2,
-              opacity: particleAnims[i].interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.1, 0.5, 0.1] }),
-              transform: [{ translateY: particleAnims[i].interpolate({ inputRange: [0, 1], outputRange: [0, -40] }) }],
-            }]}
-          />
+          <Particle key={i} config={p} />
         ))}
-        <Animated.View style={[styles.bgGlow, { opacity: glowPulse }]} />
-        <Animated.View style={[styles.ring, { transform: [{ scale: ringScale }], opacity: ringOpacity }]} />
-        <Animated.View style={[styles.ring, styles.ring2, { transform: [{ scale: ring2Scale }], opacity: ring2Opacity }]} />
-        <Animated.View style={[styles.ring, styles.ring3, { transform: [{ scale: ring3Scale }], opacity: ring3Opacity }]} />
-        <Animated.View style={[styles.logoContainer, { transform: [{ scale: logoScale }], opacity: logoOpacity }]}>
+        <Animated.View style={[styles.bgGlow, glowStyle]} />
+        <ExpandingRing delay={500} borderColor={COLORS.accent} initialOpacity={0.9} />
+        <ExpandingRing delay={650} borderColor={COLORS.accentLight} initialOpacity={0.7} />
+        <ExpandingRing delay={800} borderColor="rgba(0,102,255,0.4)" initialOpacity={0.5} />
+        <Animated.View style={[styles.logoContainer, logoContainerStyle]}>
           <LinearGradient colors={GRADIENTS.accent} style={[styles.logoCircle, SHADOWS.accentGlow]}>
             <Text style={styles.logoIcon}>A</Text>
           </LinearGradient>
         </Animated.View>
-        <Animated.Text style={[styles.logoText, { opacity: logoOpacity }]}>ANDROGENIC</Animated.Text>
-        <Animated.View style={[styles.scanLine, { opacity: scanLineOpacity, transform: [{ translateY: scanLineY }] }]}>
+        <Animated.Text style={[styles.logoText, logoTextStyle]}>ANDROGENIC</Animated.Text>
+        <Animated.View style={[styles.scanLine, scanStyle]}>
           <LinearGradient
             colors={['rgba(0,102,255,0)', COLORS.accent, 'rgba(0,102,255,0)']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             style={styles.scanLineGradient}
           />
         </Animated.View>
-        <Animated.Text style={[styles.tagline, { opacity: taglineOpacity, transform: [{ translateY: taglineTranslate }] }]}>
+        <Animated.Text style={[styles.tagline, taglineStyle]}>
           AI Face Analysis & Looksmaxxing
         </Animated.Text>
-        <Animated.View style={[styles.features, { opacity: featuresOpacity, transform: [{ translateY: featuresTranslate }] }]}>
+        <Animated.View style={[styles.features, featuresStyle]}>
           {['Face Analysis', 'Score Tracking', 'Looksmax Tips', 'AI Powered'].map((feat, i) => (
             <View key={i} style={styles.featurePill}>
               <Text style={styles.featurePillText}>{feat}</Text>
@@ -141,9 +180,7 @@ const styles = StyleSheet.create({
   bg: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   particle: { position: 'absolute', backgroundColor: COLORS.accentLight },
   bgGlow: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: COLORS.accentGlow },
-  ring: { position: 'absolute', width: 70, height: 70, borderRadius: 35, borderWidth: 2, borderColor: COLORS.accent },
-  ring2: { borderColor: COLORS.accentLight },
-  ring3: { borderColor: 'rgba(0,102,255,0.4)' },
+  ring: { position: 'absolute', width: 70, height: 70, borderRadius: 35, borderWidth: 2 },
   logoContainer: { marginBottom: 14 },
   logoCircle: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center' },
   logoIcon: { fontSize: 44, fontWeight: '900', color: '#fff' },

@@ -1,13 +1,18 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Alert, Animated, Dimensions, Platform, Linking,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Alert, Dimensions, Platform, Linking,
 } from 'react-native';
+import Animated, {
+  FadeInDown, FadeIn, ZoomIn,
+  useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing,
+} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { COLORS, GRADIENTS, SHADOWS, GLASS } from '../utils/theme';
 import { PRO_CONFIG, startFreeTrial, purchasePlan, hasUsedTrial, isPro, restorePurchases } from '../utils/pro';
 import { getManageSubscriptionUrl } from '../config/iap';
+import AnimatedPressable from '../components/AnimatedPressable';
 
 const { width } = Dimensions.get('window');
 
@@ -33,31 +38,26 @@ const PaywallScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const trialUsed = hasUsedTrial();
   const alreadyPro = isPro();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const shimmer = useRef(new Animated.Value(0)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const urgencyAnim = useRef(new Animated.Value(0.8)).current;
+
+  const shimmerX = useSharedValue(-width);
+  const pulseScale = useSharedValue(1);
+  const urgencyOpacity = useSharedValue(0.8);
 
   useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
-    Animated.loop(
-      Animated.timing(shimmer, { toValue: 1, duration: 2500, useNativeDriver: true })
-    ).start();
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.03, duration: 1200, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
-      ])
-    ).start();
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(urgencyAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
-        Animated.timing(urgencyAnim, { toValue: 0.8, duration: 800, useNativeDriver: true }),
-      ])
-    ).start();
+    shimmerX.value = withRepeat(withTiming(width, { duration: 2500, easing: Easing.linear }), -1, false);
+    pulseScale.value = withRepeat(
+      withSequence(withTiming(1.03, { duration: 1200 }), withTiming(1, { duration: 1200 })),
+      -1, false,
+    );
+    urgencyOpacity.value = withRepeat(
+      withSequence(withTiming(1, { duration: 800 }), withTiming(0.8, { duration: 800 })),
+      -1, false,
+    );
   }, []);
 
-  const shimmerTranslate = shimmer.interpolate({ inputRange: [0, 1], outputRange: [-width, width] });
+  const shimmerStyle = useAnimatedStyle(() => ({ transform: [{ translateX: shimmerX.value }] }));
+  const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulseScale.value }] }));
+  const urgencyStyle = useAnimatedStyle(() => ({ opacity: urgencyOpacity.value }));
 
   const handleSubscribe = async () => {
     try {
@@ -117,19 +117,21 @@ const PaywallScreen = ({ navigation }) => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
+          <AnimatedPressable onPress={() => navigation.goBack()} style={styles.closeBtn}>
             <Ionicons name="close" size={24} color={COLORS.textPrimary} />
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
         <View style={styles.alreadyPro}>
-          <LinearGradient colors={GRADIENTS.gold} style={styles.proBadgeSuccess}>
-            <Ionicons name="checkmark" size={36} color="#000" />
-          </LinearGradient>
+          <Animated.View entering={ZoomIn.duration(400)}>
+            <LinearGradient colors={GRADIENTS.gold} style={styles.proBadgeSuccess}>
+              <Ionicons name="checkmark" size={36} color="#000" />
+            </LinearGradient>
+          </Animated.View>
           <Text style={styles.alreadyProTitle}>You're PRO!</Text>
           <Text style={styles.alreadyProText}>All premium features are unlocked.</Text>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.doneBtn}>
+          <AnimatedPressable onPress={() => navigation.goBack()} style={styles.doneBtn}>
             <Text style={styles.doneBtnText}>Done</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       </SafeAreaView>
     );
@@ -138,25 +140,25 @@ const PaywallScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Animated.View style={{ opacity: fadeAnim }}>
+        <Animated.View entering={FadeIn.duration(500)}>
           {/* Close */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.closeBtn, GLASS.card]}>
+            <AnimatedPressable onPress={() => navigation.goBack()} style={[styles.closeBtn, GLASS.card]}>
               <Ionicons name="close" size={22} color={COLORS.textPrimary} />
-            </TouchableOpacity>
+            </AnimatedPressable>
           </View>
 
           {/* Hero */}
-          <View style={styles.hero}>
+          <Animated.View entering={FadeInDown.duration(400).delay(100)} style={styles.hero}>
             <LinearGradient colors={GRADIENTS.gold} style={styles.proBadgeLg}>
               <Ionicons name="diamond" size={32} color="#000" />
             </LinearGradient>
             <Text style={styles.heroTitle}>Androgenic PRO</Text>
             <Text style={styles.heroSubtitle}>Join 12,000+ members transforming their looks</Text>
-          </View>
+          </Animated.View>
 
           {/* Urgency Banner */}
-          <Animated.View style={{ opacity: urgencyAnim }}>
+          <Animated.View style={urgencyStyle}>
             <View style={styles.urgencyBanner}>
               <Ionicons name="flash" size={16} color="#FFD700" />
               <Text style={styles.urgencyText}>Limited offer: 50% off first month</Text>
@@ -202,36 +204,38 @@ const PaywallScreen = ({ navigation }) => {
 
           {/* Plans */}
           <Text style={styles.plansTitle}>Choose Your Plan</Text>
-          {PRO_CONFIG.plans.map((plan) => {
+          {PRO_CONFIG.plans.map((plan, idx) => {
             const isSelected = selectedPlan === plan.id;
             return (
-              <TouchableOpacity key={plan.id} onPress={() => { Haptics.selectionAsync(); setSelectedPlan(plan.id); }} activeOpacity={0.7}>
-                <View style={[styles.planCard, isSelected && styles.planCardSelected]}>
-                  <View style={styles.planLeft}>
-                    <View style={[styles.planRadio, isSelected && styles.planRadioSelected]}>
-                      {isSelected && <View style={styles.planRadioDot} />}
-                    </View>
-                    <View>
-                      <View style={styles.planLabelRow}>
-                        <Text style={[styles.planLabel, isSelected && styles.planLabelSelected]}>{plan.label}</Text>
-                        {plan.popular && <View style={styles.popularBadge}><Text style={styles.popularText}>BEST VALUE</Text></View>}
-                        {plan.savings && !plan.popular && <View style={styles.savingsBadge}><Text style={styles.savingsText}>{plan.savings}</Text></View>}
+              <Animated.View key={plan.id} entering={FadeInDown.duration(300).delay(300 + idx * 80)}>
+                <AnimatedPressable onPress={() => { Haptics.selectionAsync(); setSelectedPlan(plan.id); }} scaleDown={0.97}>
+                  <View style={[styles.planCard, isSelected && styles.planCardSelected]}>
+                    <View style={styles.planLeft}>
+                      <View style={[styles.planRadio, isSelected && styles.planRadioSelected]}>
+                        {isSelected && <View style={styles.planRadioDot} />}
                       </View>
-                      <Text style={styles.planPeriod}>{plan.period}</Text>
+                      <View>
+                        <View style={styles.planLabelRow}>
+                          <Text style={[styles.planLabel, isSelected && styles.planLabelSelected]}>{plan.label}</Text>
+                          {plan.popular && <View style={styles.popularBadge}><Text style={styles.popularText}>BEST VALUE</Text></View>}
+                          {plan.savings && !plan.popular && <View style={styles.savingsBadge}><Text style={styles.savingsText}>{plan.savings}</Text></View>}
+                        </View>
+                        <Text style={styles.planPeriod}>{plan.period}</Text>
+                      </View>
                     </View>
+                    <Text style={[styles.planPrice, isSelected && { color: COLORS.accent }]}>{plan.price}</Text>
                   </View>
-                  <Text style={[styles.planPrice, isSelected && { color: COLORS.accent }]}>{plan.price}</Text>
-                </View>
-              </TouchableOpacity>
+                </AnimatedPressable>
+              </Animated.View>
             );
           })}
 
           {/* Trial CTA */}
           {!trialUsed && (
-            <TouchableOpacity onPress={handleStartTrial} activeOpacity={0.8}>
-              <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+            <AnimatedPressable onPress={handleStartTrial} scaleDown={0.97}>
+              <Animated.View style={pulseStyle}>
                 <LinearGradient colors={GRADIENTS.gold} style={styles.trialBtn}>
-                  <Animated.View style={[styles.shimmerBar, { transform: [{ translateX: shimmerTranslate }] }]} />
+                  <Animated.View style={[styles.shimmerBar, shimmerStyle]} />
                   <Ionicons name="gift-outline" size={20} color="#000" />
                   <View style={styles.trialBtnContent}>
                     <Text style={styles.trialBtnText}>Start {PRO_CONFIG.trialDays}-Day Free Trial</Text>
@@ -239,17 +243,17 @@ const PaywallScreen = ({ navigation }) => {
                   </View>
                 </LinearGradient>
               </Animated.View>
-            </TouchableOpacity>
+            </AnimatedPressable>
           )}
 
           {/* Subscribe CTA */}
-          <TouchableOpacity onPress={handleSubscribe} activeOpacity={0.8}>
+          <AnimatedPressable onPress={handleSubscribe} scaleDown={0.97}>
             <LinearGradient colors={GRADIENTS.accent} style={styles.ctaBtn}>
               <Text style={styles.ctaBtnText}>
                 {trialUsed ? 'Subscribe Now' : 'Or Subscribe Now'}
               </Text>
             </LinearGradient>
-          </TouchableOpacity>
+          </AnimatedPressable>
 
           {/* Guarantee */}
           <View style={styles.guaranteeRow}>

@@ -1,14 +1,20 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Animated, Dimensions,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Dimensions,
 } from 'react-native';
+import Animated, {
+  FadeInDown, FadeIn, ZoomIn,
+  useSharedValue, useAnimatedStyle, withSpring, withTiming, withDelay,
+} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, GRADIENTS, SHADOWS } from '../utils/theme';
 import { isPro } from '../utils/pro';
 import { getStreakState } from '../utils/streaks';
 import { getHistory } from '../utils/history';
+import AnimatedPressable from '../components/AnimatedPressable';
 
 const { width } = Dimensions.get('window');
 const IQ_STORAGE_KEY = 'androgenic_iq_data';
@@ -66,6 +72,25 @@ const computePercentile = (iq) => {
   return 5;
 };
 
+const AnimatedBar = ({ value, maxValue, color, delay }) => {
+  const barWidth = useSharedValue(0);
+
+  useEffect(() => {
+    barWidth.value = withDelay(delay, withSpring((value / maxValue) * 100, { damping: 14, stiffness: 80 }));
+  }, [value]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    width: `${barWidth.value}%`,
+    backgroundColor: color,
+  }));
+
+  return (
+    <View style={styles.subBar}>
+      <Animated.View style={[styles.subBarFill, animatedStyle]} />
+    </View>
+  );
+};
+
 const AndrogenicIQScreen = ({ navigation }) => {
   const [iqData, setIqData] = useState(null);
   const [quizAnswers, setQuizAnswers] = useState({});
@@ -74,7 +99,8 @@ const AndrogenicIQScreen = ({ navigation }) => {
   const [streakData, setStreakData] = useState(null);
   const pro = isPro();
 
-  const sectionAnims = useRef([...Array(6)].map(() => new Animated.Value(0))).current;
+  const iqScale = useSharedValue(0);
+  const iqOpacity = useSharedValue(0);
 
   useEffect(() => {
     loadAllData();
@@ -99,15 +125,14 @@ const AndrogenicIQScreen = ({ navigation }) => {
       }
     }
 
-    sectionAnims.forEach((anim, i) => {
-      Animated.timing(anim, {
-        toValue: 1,
-        duration: 500,
-        delay: i * 120,
-        useNativeDriver: true,
-      }).start();
-    });
+    iqScale.value = withDelay(200, withSpring(1, { damping: 10, stiffness: 90 }));
+    iqOpacity.value = withDelay(200, withTiming(1, { duration: 500 }));
   };
+
+  const iqCircleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: iqScale.value }],
+    opacity: iqOpacity.value,
+  }));
 
   const computeSubScores = useCallback((quizCorrect) => {
     const streak = streakData || getStreakState();
@@ -140,11 +165,13 @@ const AndrogenicIQScreen = ({ navigation }) => {
 
   const handleAnswer = (qIdx, optIdx) => {
     if (quizSubmitted) return;
+    Haptics.selectionAsync();
     setQuizAnswers((prev) => ({ ...prev, [qIdx]: optIdx }));
   };
 
   const submitQuiz = async () => {
     if (Object.keys(quizAnswers).length < 3) return;
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setQuizSubmitted(true);
 
     const dailyQs = getDailyQuestions();
@@ -180,21 +207,6 @@ const AndrogenicIQScreen = ({ navigation }) => {
   const percentile = computePercentile(overallIQ);
   const iqColor = getIQColor(overallIQ);
 
-  const renderIQCircle = () => (
-      <Animated.View style={[styles.iqCircleWrap, { opacity: sectionAnims[0] }]}>
-        <View style={styles.iqCircleContainer}>
-          <View style={[styles.iqCircleOuter, { borderColor: iqColor + '30' }]}>
-            <View style={[styles.iqCircleInner, { borderColor: iqColor }]}>
-              <Text style={[styles.iqScoreText, { color: iqColor }]}>{overallIQ}</Text>
-              <Text style={styles.iqScoreLabel}>{getIQLabel(overallIQ)}</Text>
-            </View>
-          </View>
-          <Text style={styles.iqScaleLabel}>Androgenic IQ</Text>
-          <Text style={styles.iqScaleRange}>0 — 200 Scale</Text>
-        </View>
-      </Animated.View>
-  );
-
   const SUB_SCORE_META = [
     { key: 'knowledgeIQ', label: 'Knowledge IQ', icon: 'school-outline', desc: 'Quiz performance' },
     { key: 'consistencyIQ', label: 'Consistency IQ', icon: 'flame-outline', desc: 'Streak & adherence' },
@@ -203,238 +215,226 @@ const AndrogenicIQScreen = ({ navigation }) => {
     { key: 'awarenessIQ', label: 'Awareness IQ', icon: 'eye-outline', desc: 'Guides & tips viewed' },
   ];
 
-  const renderSubScores = () => (
-    <Animated.View style={[styles.sectionCard, { opacity: sectionAnims[1] }]}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>IQ Breakdown</Text>
-        {!pro && <Ionicons name="lock-closed" size={16} color={COLORS.gold} />}
-      </View>
-      {pro ? (
-        SUB_SCORE_META.map((item) => {
-          const val = subScores[item.key] || 0;
-          const barColor = getIQColor(val);
-          return (
-            <View key={item.key} style={styles.subRow}>
-              <Ionicons name={item.icon} size={18} color={barColor} style={styles.subIcon} />
-              <View style={styles.subInfo}>
-                <View style={styles.subLabelRow}>
-                  <Text style={styles.subLabel}>{item.label}</Text>
-                  <Text style={[styles.subValue, { color: barColor }]}>{val}</Text>
-                </View>
-                <View style={styles.subBar}>
-                  <View style={[styles.subBarFill, { width: `${(val / 200) * 100}%`, backgroundColor: barColor }]} />
-                </View>
-                <Text style={styles.subDesc}>{item.desc}</Text>
+  return (
+    <SafeAreaView style={styles.container}>
+      <Animated.View entering={FadeIn.duration(300)} style={styles.header}>
+        <AnimatedPressable onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
+        </AnimatedPressable>
+        <Text style={styles.headerTitle}>Androgenic IQ</Text>
+        <View style={{ width: 40 }} />
+      </Animated.View>
+
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {/* IQ Circle - animated spring entrance */}
+        <Animated.View style={[styles.iqCircleWrap, iqCircleStyle]}>
+          <View style={styles.iqCircleContainer}>
+            <View style={[styles.iqCircleOuter, { borderColor: iqColor + '30' }]}>
+              <View style={[styles.iqCircleInner, { borderColor: iqColor }]}>
+                <Text style={[styles.iqScoreText, { color: iqColor }]}>{overallIQ}</Text>
+                <Text style={styles.iqScoreLabel}>{getIQLabel(overallIQ)}</Text>
               </View>
             </View>
-          );
-        })
-      ) : (
-        <View style={styles.lockedOverlay}>
-          <Ionicons name="lock-closed" size={28} color={COLORS.gold} />
-          <Text style={styles.lockedText}>Unlock detailed IQ breakdown</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Paywall')} activeOpacity={0.8}>
-            <LinearGradient colors={GRADIENTS.gold} style={styles.lockedBtn}>
-              <Text style={styles.lockedBtnText}>Get PRO</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      )}
-    </Animated.View>
-  );
-
-  const renderQuiz = () => {
-    const quizCorrect = iqData?.lastQuizCorrect ?? null;
-    return (
-      <Animated.View style={[styles.sectionCard, { opacity: sectionAnims[2] }]}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Daily Quiz</Text>
-          <View style={styles.quizBadge}>
-            <Ionicons name="help-circle" size={14} color={COLORS.accent} />
-            <Text style={styles.quizBadgeText}>3 Questions</Text>
+            <Text style={styles.iqScaleLabel}>Androgenic IQ</Text>
+            <Text style={styles.iqScaleRange}>0 — 200 Scale</Text>
           </View>
-        </View>
-        {dailyQuestions.map((q, qIdx) => {
-          const userAnswer = quizAnswers[qIdx];
-          const isCorrect = userAnswer === q.answer;
-          return (
-            <View key={qIdx} style={styles.questionBlock}>
-              <Text style={styles.questionText}>{qIdx + 1}. {q.q}</Text>
-              {q.opts.map((opt, oIdx) => {
-                let optStyle = styles.optionBtn;
-                let optTextStyle = styles.optionText;
-                if (quizSubmitted) {
-                  if (oIdx === q.answer) {
-                    optStyle = [styles.optionBtn, styles.optionCorrect];
-                    optTextStyle = [styles.optionText, { color: '#00e676' }];
-                  } else if (oIdx === userAnswer && !isCorrect) {
-                    optStyle = [styles.optionBtn, styles.optionWrong];
-                    optTextStyle = [styles.optionText, { color: '#ff5252' }];
+        </Animated.View>
+
+        {/* Sub Scores */}
+        <Animated.View entering={FadeInDown.duration(400).delay(200)} style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>IQ Breakdown</Text>
+            {!pro && <Ionicons name="lock-closed" size={16} color={COLORS.gold} />}
+          </View>
+          {pro ? (
+            SUB_SCORE_META.map((item, idx) => {
+              const val = subScores[item.key] || 0;
+              const barColor = getIQColor(val);
+              return (
+                <Animated.View key={item.key} entering={FadeInDown.duration(300).delay(300 + idx * 80)} style={styles.subRow}>
+                  <Ionicons name={item.icon} size={18} color={barColor} style={styles.subIcon} />
+                  <View style={styles.subInfo}>
+                    <View style={styles.subLabelRow}>
+                      <Text style={styles.subLabel}>{item.label}</Text>
+                      <Text style={[styles.subValue, { color: barColor }]}>{val}</Text>
+                    </View>
+                    <AnimatedBar value={val} maxValue={200} color={barColor} delay={400 + idx * 100} />
+                    <Text style={styles.subDesc}>{item.desc}</Text>
+                  </View>
+                </Animated.View>
+              );
+            })
+          ) : (
+            <View style={styles.lockedOverlay}>
+              <Ionicons name="lock-closed" size={28} color={COLORS.gold} />
+              <Text style={styles.lockedText}>Unlock detailed IQ breakdown</Text>
+              <AnimatedPressable onPress={() => navigation.navigate('Paywall')}>
+                <LinearGradient colors={GRADIENTS.gold} style={styles.lockedBtn}>
+                  <Text style={styles.lockedBtnText}>Get PRO</Text>
+                </LinearGradient>
+              </AnimatedPressable>
+            </View>
+          )}
+        </Animated.View>
+
+        {/* Daily Quiz */}
+        <Animated.View entering={FadeInDown.duration(400).delay(400)} style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Daily Quiz</Text>
+            <View style={styles.quizBadge}>
+              <Ionicons name="help-circle" size={14} color={COLORS.accent} />
+              <Text style={styles.quizBadgeText}>3 Questions</Text>
+            </View>
+          </View>
+          {dailyQuestions.map((q, qIdx) => {
+            const userAnswer = quizAnswers[qIdx];
+            const isCorrect = userAnswer === q.answer;
+            return (
+              <Animated.View key={qIdx} entering={FadeInDown.duration(300).delay(500 + qIdx * 100)} style={styles.questionBlock}>
+                <Text style={styles.questionText}>{qIdx + 1}. {q.q}</Text>
+                {q.opts.map((opt, oIdx) => {
+                  let optStyle = styles.optionBtn;
+                  let optTextStyle = styles.optionText;
+                  if (quizSubmitted) {
+                    if (oIdx === q.answer) {
+                      optStyle = [styles.optionBtn, styles.optionCorrect];
+                      optTextStyle = [styles.optionText, { color: '#00e676' }];
+                    } else if (oIdx === userAnswer && !isCorrect) {
+                      optStyle = [styles.optionBtn, styles.optionWrong];
+                      optTextStyle = [styles.optionText, { color: '#ff5252' }];
+                    }
+                  } else if (oIdx === userAnswer) {
+                    optStyle = [styles.optionBtn, styles.optionSelected];
+                    optTextStyle = [styles.optionText, { color: COLORS.accent }];
                   }
-                } else if (oIdx === userAnswer) {
-                  optStyle = [styles.optionBtn, styles.optionSelected];
-                  optTextStyle = [styles.optionText, { color: COLORS.accent }];
-                }
+                  return (
+                    <AnimatedPressable
+                      key={oIdx}
+                      style={optStyle}
+                      onPress={() => handleAnswer(qIdx, oIdx)}
+                      disabled={quizSubmitted}
+                      scaleDown={0.97}
+                    >
+                      <Text style={optTextStyle}>{opt}</Text>
+                    </AnimatedPressable>
+                  );
+                })}
+              </Animated.View>
+            );
+          })}
+          {!quizSubmitted ? (
+            <AnimatedPressable
+              onPress={submitQuiz}
+              disabled={Object.keys(quizAnswers).length < 3}
+              style={{ opacity: Object.keys(quizAnswers).length < 3 ? 0.4 : 1 }}
+            >
+              <LinearGradient colors={GRADIENTS.accent} style={styles.submitBtn}>
+                <Text style={styles.submitBtnText}>Submit Answers</Text>
+              </LinearGradient>
+            </AnimatedPressable>
+          ) : (
+            <Animated.View entering={ZoomIn.duration(300)} style={styles.quizResult}>
+              <Text style={styles.quizResultText}>
+                You got {iqData?.lastQuizCorrect ?? 0}/3 correct today!
+              </Text>
+            </Animated.View>
+          )}
+        </Animated.View>
+
+        {/* Percentile */}
+        <Animated.View entering={FadeInDown.duration(400).delay(600)} style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Percentile Ranking</Text>
+          <Text style={styles.percentileText}>
+            You're smarter than <Text style={{ color: iqColor, fontWeight: '800' }}>{percentile}%</Text> of users
+          </Text>
+          {pro ? (
+            <View style={styles.curveContainer}>
+              {[5, 12, 22, 35, 50, 65, 78, 88, 95, 100, 95, 88, 78, 65, 50, 35, 22, 12, 5].map((h, i) => {
+                const userBarIdx = Math.round((percentile / 100) * 18);
                 return (
-                  <TouchableOpacity
-                    key={oIdx}
-                    style={optStyle}
-                    onPress={() => handleAnswer(qIdx, oIdx)}
-                    activeOpacity={0.7}
-                    disabled={quizSubmitted}
-                  >
-                    <Text style={optTextStyle}>{opt}</Text>
-                  </TouchableOpacity>
+                  <Animated.View
+                    key={i}
+                    entering={FadeInDown.duration(200).delay(700 + i * 30)}
+                    style={[
+                      styles.curveBar,
+                      {
+                        height: h * 0.6,
+                        backgroundColor: i === userBarIdx ? iqColor : COLORS.border,
+                        opacity: i === userBarIdx ? 1 : 0.5,
+                      },
+                    ]}
+                  />
                 );
               })}
             </View>
-          );
-        })}
-        {!quizSubmitted ? (
-          <TouchableOpacity
-            onPress={submitQuiz}
-            activeOpacity={0.8}
-            disabled={Object.keys(quizAnswers).length < 3}
-            style={{ opacity: Object.keys(quizAnswers).length < 3 ? 0.4 : 1 }}
-          >
-            <LinearGradient colors={GRADIENTS.accent} style={styles.submitBtn}>
-              <Text style={styles.submitBtnText}>Submit Answers</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.quizResult}>
-            <Text style={styles.quizResultText}>
-              You got {quizCorrect}/3 correct today!
-            </Text>
-          </View>
-        )}
-      </Animated.View>
-    );
-  };
-
-  const renderPercentile = () => {
-    const bars = [5, 12, 22, 35, 50, 65, 78, 88, 95, 100, 95, 88, 78, 65, 50, 35, 22, 12, 5];
-    const userBarIdx = Math.round((percentile / 100) * (bars.length - 1));
-    return (
-      <Animated.View style={[styles.sectionCard, { opacity: sectionAnims[3] }]}>
-        <Text style={styles.sectionTitle}>Percentile Ranking</Text>
-        <Text style={styles.percentileText}>
-          You're smarter than <Text style={{ color: iqColor, fontWeight: '800' }}>{percentile}%</Text> of users
-        </Text>
-        {pro ? (
-          <View style={styles.curveContainer}>
-            {bars.map((h, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.curveBar,
-                  {
-                    height: h * 0.6,
-                    backgroundColor: i === userBarIdx ? iqColor : COLORS.border,
-                    opacity: i === userBarIdx ? 1 : 0.5,
-                  },
-                ]}
-              />
-            ))}
-          </View>
-        ) : (
-          <View style={styles.miniLocked}>
-            <Ionicons name="lock-closed" size={14} color={COLORS.gold} />
-            <Text style={styles.miniLockedText}>Detailed curve available with PRO</Text>
-          </View>
-        )}
-      </Animated.View>
-    );
-  };
-
-  const renderHistory = () => {
-    if (!pro) {
-      return (
-        <Animated.View style={[styles.sectionCard, { opacity: sectionAnims[4] }]}>
-          <Text style={styles.sectionTitle}>IQ History</Text>
-          <View style={styles.miniLocked}>
-            <Ionicons name="lock-closed" size={14} color={COLORS.gold} />
-            <Text style={styles.miniLockedText}>Track your IQ trend with PRO</Text>
-          </View>
+          ) : (
+            <View style={styles.miniLocked}>
+              <Ionicons name="lock-closed" size={14} color={COLORS.gold} />
+              <Text style={styles.miniLockedText}>Detailed curve available with PRO</Text>
+            </View>
+          )}
         </Animated.View>
-      );
-    }
 
-    const displayHistory = iqHistory.length > 0 ? iqHistory : [{ date: 'Today', score: overallIQ }];
-    const maxH = 60;
-    const maxScore = Math.max(...displayHistory.map((d) => d.score), 1);
-
-    return (
-      <Animated.View style={[styles.sectionCard, { opacity: sectionAnims[4] }]}>
-        <Text style={styles.sectionTitle}>IQ History</Text>
-        <View style={styles.historyRow}>
-          {displayHistory.map((entry, i) => {
-            const barH = (entry.score / maxScore) * maxH;
-            const color = getIQColor(entry.score);
-            const label = typeof entry.date === 'string' && entry.date.length > 5
-              ? new Date(entry.date).toLocaleDateString('en', { month: 'short', day: 'numeric' })
-              : entry.date;
-            return (
-              <View key={i} style={styles.historyCol}>
-                <Text style={[styles.historyScore, { color }]}>{entry.score}</Text>
-                <View style={[styles.historyBar, { height: barH, backgroundColor: color }]} />
-                <Text style={styles.historyLabel}>{label}</Text>
+        {/* IQ History */}
+        <Animated.View entering={FadeInDown.duration(400).delay(800)} style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>IQ History</Text>
+          {!pro ? (
+            <View style={styles.miniLocked}>
+              <Ionicons name="lock-closed" size={14} color={COLORS.gold} />
+              <Text style={styles.miniLockedText}>Track your IQ trend with PRO</Text>
+            </View>
+          ) : (
+            <>
+              <View style={styles.historyRow}>
+                {(iqHistory.length > 0 ? iqHistory : [{ date: 'Today', score: overallIQ }]).map((entry, i) => {
+                  const maxScore = Math.max(...(iqHistory.length > 0 ? iqHistory : [{ score: overallIQ }]).map((d) => d.score), 1);
+                  const barH = (entry.score / maxScore) * 60;
+                  const color = getIQColor(entry.score);
+                  const label = typeof entry.date === 'string' && entry.date.length > 5
+                    ? new Date(entry.date).toLocaleDateString('en', { month: 'short', day: 'numeric' })
+                    : entry.date;
+                  return (
+                    <Animated.View key={i} entering={FadeInDown.duration(250).delay(900 + i * 60)} style={styles.historyCol}>
+                      <Text style={[styles.historyScore, { color }]}>{entry.score}</Text>
+                      <View style={[styles.historyBar, { height: barH, backgroundColor: color }]} />
+                      <Text style={styles.historyLabel}>{label}</Text>
+                    </Animated.View>
+                  );
+                })}
               </View>
-            );
-          })}
-        </View>
-        {iqHistory.length >= 2 && (
-          <Text style={styles.historyTrend}>
-            {iqHistory[0].score >= iqHistory[iqHistory.length - 1].score ? 'Trending up' : 'Trending down'}
-            {' '}over the last {iqHistory.length} sessions
-          </Text>
-        )}
-      </Animated.View>
-    );
-  };
-
-  const renderProUpsell = () => {
-    if (pro) return null;
-    return (
-      <Animated.View style={[{ opacity: sectionAnims[5] }]}>
-        <TouchableOpacity onPress={() => navigation.navigate('Paywall')} activeOpacity={0.85}>
-          <LinearGradient colors={GRADIENTS.gold} style={styles.upsellCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-            <View style={styles.upsellContent}>
-              <Ionicons name="diamond" size={28} color="#000" />
-              <View style={styles.upsellTextWrap}>
-                <Text style={styles.upsellTitle}>Unlock Full Androgenic IQ</Text>
-                <Text style={styles.upsellDesc}>
-                  Get detailed breakdowns, history tracking, and percentile curves with PRO.
+              {iqHistory.length >= 2 && (
+                <Text style={styles.historyTrend}>
+                  {iqHistory[0].score >= iqHistory[iqHistory.length - 1].score ? 'Trending up' : 'Trending down'}
+                  {' '}over the last {iqHistory.length} sessions
                 </Text>
-              </View>
-            </View>
-            <View style={styles.upsellBtnRow}>
-              <Text style={styles.upsellBtnText}>Upgrade Now</Text>
-              <Ionicons name="arrow-forward" size={16} color="#000" />
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
-      </Animated.View>
-    );
-  };
+              )}
+            </>
+          )}
+        </Animated.View>
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Androgenic IQ</Text>
-        <View style={{ width: 40 }} />
-      </View>
+        {/* Pro Upsell */}
+        {!pro && (
+          <Animated.View entering={FadeInDown.duration(400).delay(1000)}>
+            <AnimatedPressable onPress={() => navigation.navigate('Paywall')} scaleDown={0.97}>
+              <LinearGradient colors={GRADIENTS.gold} style={styles.upsellCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                <View style={styles.upsellContent}>
+                  <Ionicons name="diamond" size={28} color="#000" />
+                  <View style={styles.upsellTextWrap}>
+                    <Text style={styles.upsellTitle}>Unlock Full Androgenic IQ</Text>
+                    <Text style={styles.upsellDesc}>
+                      Get detailed breakdowns, history tracking, and percentile curves with PRO.
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.upsellBtnRow}>
+                  <Text style={styles.upsellBtnText}>Upgrade Now</Text>
+                  <Ionicons name="arrow-forward" size={16} color="#000" />
+                </View>
+              </LinearGradient>
+            </AnimatedPressable>
+          </Animated.View>
+        )}
 
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {renderIQCircle()}
-        {renderSubScores()}
-        {renderQuiz()}
-        {renderPercentile()}
-        {renderHistory()}
-        {renderProUpsell()}
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
