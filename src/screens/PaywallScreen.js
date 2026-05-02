@@ -13,6 +13,7 @@ import { COLORS, GRADIENTS, SHADOWS, GLASS } from '../utils/theme';
 import { PRO_CONFIG, startFreeTrial, purchasePlan, hasUsedTrial, isPro, restorePurchases } from '../utils/pro';
 import { getManageSubscriptionUrl } from '../config/iap';
 import AnimatedPressable from '../components/AnimatedPressable';
+import GlassBackground from '../components/GlassBackground';
 
 const { width } = Dimensions.get('window');
 
@@ -115,6 +116,7 @@ const PaywallScreen = ({ navigation }) => {
 
   if (alreadyPro) {
     return (
+      <GlassBackground variant="gold">
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <AnimatedPressable onPress={() => navigation.goBack()} style={styles.closeBtn}>
@@ -134,10 +136,12 @@ const PaywallScreen = ({ navigation }) => {
           </AnimatedPressable>
         </View>
       </SafeAreaView>
+      </GlassBackground>
     );
   }
 
   return (
+    <GlassBackground variant="purple">
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Animated.View entering={FadeIn.duration(500)}>
@@ -291,11 +295,12 @@ const PaywallScreen = ({ navigation }) => {
         </Animated.View>
       </ScrollView>
     </SafeAreaView>
+    </GlassBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bgPrimary },
+  container: { flex: 1, backgroundColor: 'transparent' },
   scroll: { paddingHorizontal: 20 },
   header: { alignItems: 'flex-end', paddingVertical: 8 },
   closeBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
@@ -306,7 +311,7 @@ const styles = StyleSheet.create({
   urgencyBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,215,0,0.08)', borderRadius: 12, paddingVertical: 10, gap: 8, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,215,0,0.2)' },
   urgencyText: { fontSize: 13, fontWeight: '700', color: COLORS.gold },
   socialScroll: { marginBottom: 20 },
-  socialCard: { backgroundColor: COLORS.bgCard, borderRadius: 14, padding: 14, marginRight: 10, width: 240, borderWidth: 1, borderColor: COLORS.border },
+  socialCard: { backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 14, marginRight: 10, width: 240, borderWidth: 1, borderColor: COLORS.border },
   socialHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   socialAvatar: { width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
   socialInitial: { fontSize: 12, fontWeight: '800', color: '#fff' },
@@ -321,7 +326,7 @@ const styles = StyleSheet.create({
   featureIconBg: { width: 28, height: 28, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   featureText: { fontSize: 12, color: COLORS.textSecondary, fontWeight: '500', flex: 1 },
   plansTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 10 },
-  planCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: COLORS.bgCard, borderRadius: 14, padding: 16, marginBottom: 6, borderWidth: 2, borderColor: COLORS.border },
+  planCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 16, marginBottom: 6, borderWidth: 2, borderColor: COLORS.border },
   planCardSelected: { borderColor: COLORS.accent, backgroundColor: 'rgba(0,102,255,0.06)' },
   planLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   planRadio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: COLORS.border, justifyContent: 'center', alignItems: 'center' },

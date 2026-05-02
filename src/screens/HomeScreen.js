@@ -9,7 +9,8 @@ import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
-import { COLORS, GRADIENTS, SHADOWS } from '../utils/theme';
+import { COLORS, GRADIENTS, SHADOWS, BLUR } from '../utils/theme';
+import GlassBackground from '../components/GlassBackground';
 import { loadProState, getScansRemaining, isPro } from '../utils/pro';
 import { loadStreakState, getStreakState, markDayActive, getCurrentLevel, getLevelProgress } from '../utils/streaks';
 import { getHistory } from '../utils/history';
@@ -133,6 +134,7 @@ const HomeScreen = ({ navigation }) => {
   ];
 
   return (
+    <GlassBackground variant="blue">
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
 
@@ -362,13 +364,14 @@ const HomeScreen = ({ navigation }) => {
         <View style={{ height: 20 }} />
       </ScrollView>
     </SafeAreaView>
+    </GlassBackground>
   );
 };
 
 const COL3 = (width - 56) / 3;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   scrollContent: { paddingHorizontal: 20, paddingBottom: 24 },
 
   // Header
@@ -384,15 +387,15 @@ const styles = StyleSheet.create({
   },
   streakNum: { color: '#ff6b35', fontSize: 13, fontWeight: '800' },
   iconBtn: {
-    width: 32, height: 32, borderRadius: 16, backgroundColor: COLORS.bgCard,
-    justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border,
+    width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.05)',
+    justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.borderLight,
   },
 
   // Level Bar
   levelBar: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: COLORS.bgCard, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10,
-    marginBottom: 12, borderWidth: 1, borderColor: COLORS.border,
+    backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10,
+    marginBottom: 12, borderWidth: 1, borderColor: COLORS.borderLight,
   },
   levelLabel: { color: COLORS.textMuted, fontSize: 11, fontWeight: '700' },
   levelName: { color: COLORS.textPrimary, fontSize: 11, fontWeight: '800' },
@@ -412,8 +415,8 @@ const styles = StyleSheet.create({
   scanBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 13, borderRadius: 12, gap: 8 },
   scanBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   uploadBtn: {
-    width: 48, height: 48, borderRadius: 12, backgroundColor: COLORS.bgCard,
-    borderWidth: 1, borderColor: COLORS.border, justifyContent: 'center', alignItems: 'center',
+    width: 48, height: 48, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1, borderColor: COLORS.borderLight, justifyContent: 'center', alignItems: 'center',
   },
   scansRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 10 },
   scanDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: COLORS.border },
@@ -422,8 +425,8 @@ const styles = StyleSheet.create({
 
   // Last Score
   lastScoreCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.bgCard,
-    borderRadius: 12, padding: 12, marginBottom: 10, gap: 10, borderWidth: 1, borderColor: COLORS.border,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 14, padding: 12, marginBottom: 10, gap: 10, borderWidth: 1, borderColor: COLORS.borderLight,
   },
   lastScoreLeft: { flex: 1 },
   lastScoreLabel: { color: COLORS.textSecondary, fontSize: 11, fontWeight: '600' },
@@ -436,8 +439,8 @@ const styles = StyleSheet.create({
   // Quick Actions
   quickRow: { flexDirection: 'row', gap: 6, marginBottom: 14 },
   quickItem: {
-    flex: 1, alignItems: 'center', backgroundColor: COLORS.bgCard,
-    borderRadius: 10, paddingVertical: 10, borderWidth: 1, borderColor: COLORS.border,
+    flex: 1, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 12, paddingVertical: 10, borderWidth: 1, borderColor: COLORS.borderLight,
   },
   quickIcon: { width: 30, height: 30, borderRadius: 9, justifyContent: 'center', alignItems: 'center', marginBottom: 3 },
   quickText: { color: COLORS.textSecondary, fontSize: 10, fontWeight: '600' },
@@ -469,8 +472,8 @@ const styles = StyleSheet.create({
 
   // Tip
   tipCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.bgCard,
-    borderRadius: 10, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: COLORS.border,
+    flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 12, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: COLORS.borderLight,
   },
   tipIcon: { width: 30, height: 30, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   tipText: { flex: 1, color: COLORS.textSecondary, fontSize: 12, lineHeight: 17 },
@@ -490,16 +493,16 @@ const styles = StyleSheet.create({
   // Tools Grid
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 },
   gridItem: {
-    width: COL3, alignItems: 'center', backgroundColor: COLORS.bgCard,
-    borderRadius: 10, paddingVertical: 12, paddingHorizontal: 4, borderWidth: 1, borderColor: COLORS.border,
+    width: COL3, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 12, paddingVertical: 12, paddingHorizontal: 4, borderWidth: 1, borderColor: COLORS.borderLight,
   },
   gridIcon: { width: 32, height: 32, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginBottom: 4 },
   gridText: { color: COLORS.textSecondary, fontSize: 10, fontWeight: '600', textAlign: 'center' },
 
   // PRO Cards
   proCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.bgCard,
-    borderRadius: 10, padding: 12, marginBottom: 6, gap: 10, borderWidth: 1, borderColor: COLORS.border,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 12, padding: 12, marginBottom: 6, gap: 10, borderWidth: 1, borderColor: COLORS.borderLight,
   },
   proCardIcon: { width: 34, height: 34, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   proCardTitle: { color: '#fff', fontSize: 13, fontWeight: '700' },

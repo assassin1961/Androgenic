@@ -7,9 +7,7 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "ios": {
-        "simulator": true
-      },
+      "ios": { "simulator": true },
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug"
@@ -17,31 +15,34 @@
     },
     "preview": {
       "distribution": "internal",
-      "ios": {
-        "simulator": false
-      },
-      "android": {
-        "buildType": "apk"
-      }
+      "ios": { "simulator": false },
+      "android": { "buildType": "apk" }
     },
     "preview:internal-testing": {
       "distribution": "internal",
-      "android": {
-        "buildType": "app-bundle"
-      },
+      "android": { "buildType": "app-bundle" },
       "channel": "internal-testing"
     },
     "production": {
+      "autoIncrement": true,
       "ios": {
-        "autoIncrement": true,
         "image": "latest",
         "resourceClass": "m-medium"
       },
       "android": {
-        "autoIncrement": true,
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "image": "latest",
+        "resourceClass": "medium"
       },
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_ENV": "production"
+      }
+    },
+    "production:android": {
+      "extends": "production",
+      "platform": "android",
+      "android": { "buildType": "app-bundle" }
     }
   },
   "submit": {
@@ -54,7 +55,8 @@
       "android": {
         "serviceAccountKeyPath": "./google-services.json",
         "track": "production",
-        "releaseStatus": "completed"
+        "releaseStatus": "completed",
+        "changesNotSentForReview": false
       }
     },
     "internal-testing": {

@@ -15,6 +15,7 @@ import { isPro } from '../utils/pro';
 import { getStreakState } from '../utils/streaks';
 import { getHistory } from '../utils/history';
 import AnimatedPressable from '../components/AnimatedPressable';
+import GlassBackground from '../components/GlassBackground';
 
 const { width } = Dimensions.get('window');
 const IQ_STORAGE_KEY = 'androgenic_iq_data';
@@ -216,6 +217,7 @@ const AndrogenicIQScreen = ({ navigation }) => {
   ];
 
   return (
+    <GlassBackground variant="gold">
     <SafeAreaView style={styles.container}>
       <Animated.View entering={FadeIn.duration(300)} style={styles.header}>
         <AnimatedPressable onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -438,18 +440,19 @@ const AndrogenicIQScreen = ({ navigation }) => {
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
+    </GlassBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingVertical: 12,
   },
   backBtn: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.bgCard,
-    justifyContent: 'center', alignItems: 'center',
+    width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.06)',
+    justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.borderLight,
   },
   headerTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary },
   scroll: { paddingHorizontal: 20 },
@@ -457,12 +460,12 @@ const styles = StyleSheet.create({
   iqCircleWrap: { alignItems: 'center', marginBottom: 20, marginTop: 8 },
   iqCircleContainer: { alignItems: 'center' },
   iqCircleOuter: { width: 180, height: 180, borderRadius: 90, borderWidth: 6, justifyContent: 'center', alignItems: 'center', ...SHADOWS.glow },
-  iqCircleInner: { width: 150, height: 150, borderRadius: 75, borderWidth: 3, backgroundColor: COLORS.bgCard, justifyContent: 'center', alignItems: 'center' },
+  iqCircleInner: { width: 150, height: 150, borderRadius: 75, borderWidth: 3, backgroundColor: 'rgba(20,20,40,0.85)', justifyContent: 'center', alignItems: 'center' },
   iqScoreText: { fontSize: 52, fontWeight: '900' },
   iqScoreLabel: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary, marginTop: -2 },
   iqScaleLabel: { fontSize: 16, fontWeight: '700', color: COLORS.textPrimary, marginTop: 14 },
   iqScaleRange: { fontSize: 12, color: COLORS.textMuted, marginTop: 2 },
-  sectionCard: { backgroundColor: COLORS.bgCard, borderRadius: 16, padding: 18, marginBottom: 16, borderWidth: 1, borderColor: COLORS.border },
+  sectionCard: { backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 18, padding: 18, marginBottom: 16, borderWidth: 1, borderColor: COLORS.borderLight },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: COLORS.textPrimary },
   subRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
@@ -471,20 +474,20 @@ const styles = StyleSheet.create({
   subLabelRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
   subLabel: { fontSize: 13, fontWeight: '600', color: COLORS.textPrimary },
   subValue: { fontSize: 13, fontWeight: '800' },
-  subBar: { height: 5, backgroundColor: COLORS.bgSecondary, borderRadius: 3, overflow: 'hidden', marginBottom: 3 },
+  subBar: { height: 5, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 3, overflow: 'hidden', marginBottom: 3 },
   subBarFill: { height: '100%', borderRadius: 3 },
   subDesc: { fontSize: 10, color: COLORS.textMuted },
   lockedOverlay: { alignItems: 'center', paddingVertical: 20 },
   lockedText: { color: COLORS.textSecondary, fontSize: 13, marginTop: 8, marginBottom: 14 },
   lockedBtn: { paddingVertical: 10, paddingHorizontal: 28, borderRadius: 12 },
   lockedBtnText: { color: '#000', fontSize: 14, fontWeight: '700' },
-  miniLocked: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: COLORS.bgSecondary, padding: 10, borderRadius: 10 },
+  miniLocked: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: 'rgba(255,255,255,0.04)', padding: 10, borderRadius: 10 },
   miniLockedText: { color: COLORS.textMuted, fontSize: 12 },
   quizBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   quizBadgeText: { color: COLORS.accent, fontSize: 11, fontWeight: '600' },
   questionBlock: { marginBottom: 16 },
   questionText: { color: COLORS.textPrimary, fontSize: 13, fontWeight: '600', marginBottom: 8, lineHeight: 18 },
-  optionBtn: { backgroundColor: COLORS.bgSecondary, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 14, marginBottom: 6, borderWidth: 1, borderColor: COLORS.border },
+  optionBtn: { backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 14, marginBottom: 6, borderWidth: 1, borderColor: COLORS.border },
   optionSelected: { borderColor: COLORS.accent, backgroundColor: COLORS.accent + '12' },
   optionCorrect: { borderColor: '#00e676', backgroundColor: 'rgba(0,230,118,0.1)' },
   optionWrong: { borderColor: '#ff5252', backgroundColor: 'rgba(255,82,82,0.1)' },

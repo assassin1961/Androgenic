@@ -11,9 +11,10 @@ import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { COLORS } from '../utils/theme';
+import { COLORS, BLUR } from '../utils/theme';
 import AnimatedPressable from '../components/AnimatedPressable';
 import { PostSkeleton } from '../components/SkeletonLoader';
+import GlassBackground from '../components/GlassBackground';
 
 const STORAGE_KEY_POSTS = '@forum_user_posts';
 const STORAGE_KEY_UPVOTES = '@forum_upvotes';
@@ -261,6 +262,7 @@ const ForumScreen = ({ navigation }) => {
   };
 
   return (
+    <GlassBackground variant="blue">
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <Animated.View entering={FadeIn.duration(300)} style={styles.header}>
@@ -398,28 +400,31 @@ const ForumScreen = ({ navigation }) => {
         </View>
       </Modal>
     </SafeAreaView>
+    </GlassBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingVertical: 12,
   },
   backBtn: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.bgCard,
-    justifyContent: 'center', alignItems: 'center',
+    width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.06)',
+    justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.borderLight,
   },
   headerTitle: { fontSize: 20, fontWeight: '800', color: COLORS.textPrimary },
   newPostBtn: {
     width: 40, height: 40, borderRadius: 20, backgroundColor: '#0066ff',
     justifyContent: 'center', alignItems: 'center',
+    shadowColor: '#0066ff', shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6, shadowRadius: 12, elevation: 8,
   },
   sortRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginBottom: 10, gap: 8 },
   sortBtn: {
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 7,
-    borderRadius: 20, backgroundColor: COLORS.bgCard, borderWidth: 1, borderColor: COLORS.border, gap: 5,
+    borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: COLORS.borderLight, gap: 5,
   },
   sortBtnActive: { backgroundColor: '#0066ff', borderColor: '#0066ff' },
   sortText: { fontSize: 13, fontWeight: '600', color: COLORS.textMuted },
@@ -428,15 +433,15 @@ const styles = StyleSheet.create({
   categoryRow: { paddingHorizontal: 20, paddingBottom: 12, gap: 8 },
   categoryPill: {
     paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
-    backgroundColor: COLORS.bgCard, borderWidth: 1, borderColor: COLORS.border,
+    backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: COLORS.borderLight,
   },
   categoryPillActive: { backgroundColor: '#0066ff', borderColor: '#0066ff' },
   pillText: { fontSize: 13, fontWeight: '600', color: COLORS.textMuted },
   pillTextActive: { color: '#fff' },
   listContent: { paddingHorizontal: 20, paddingBottom: 100 },
   postCard: {
-    backgroundColor: COLORS.bgCard, borderRadius: 16, padding: 16,
-    marginBottom: 10, borderWidth: 1, borderColor: COLORS.border,
+    backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: 16,
+    marginBottom: 10, borderWidth: 1, borderColor: COLORS.borderLight,
   },
   postHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   avatar: {
@@ -464,7 +469,7 @@ const styles = StyleSheet.create({
   modalOverlay: { flex: 1, justifyContent: 'flex-end' },
   modalKeyboard: { flex: 1, justifyContent: 'flex-end' },
   modalContent: {
-    backgroundColor: COLORS.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    backgroundColor: 'rgba(20,20,40,0.85)', borderTopLeftRadius: 24, borderTopRightRadius: 24,
     paddingHorizontal: 20, paddingBottom: Platform.OS === 'ios' ? 40 : 24,
     paddingTop: 16, maxHeight: '85%', borderWidth: 1, borderBottomWidth: 0, borderColor: COLORS.borderLight,
   },

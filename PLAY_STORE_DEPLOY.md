@@ -1,300 +1,224 @@
-# Androgenic - Google Play Store Deployment Guide
+# Androgenic — Google Play Store Deployment Guide
 
-## Prerequisites
-
-1. **Google Play Developer Account** ($25 one-time) - https://play.google.com/console
-2. **EAS CLI** installed: `npm install -g eas-cli`
-3. **Expo account** - https://expo.dev
-4. **Google Cloud Service Account** for automated uploads
+Production-ready deployment checklist for **dominating** Play Store search and trending.
 
 ---
 
-## Step 1: EAS Project Setup
+## Status: READY TO DEPLOY
+
+| Item | Status |
+|------|--------|
+| Android package id | `com.androgenic.faceanalysis` |
+| Version | `1.1.0` (versionCode `6`) |
+| Target SDK | 35 (Android 15) |
+| Min SDK | 24 (Android 7.0+) |
+| App Bundle | Configured for AAB |
+| ProGuard / R8 | Enabled in release |
+| Permissions | Camera, photos, biometric, billing — all justified |
+| Blocked permissions | Location, audio, contacts, calendar, SMS — explicitly denied |
+| Deep links | `androgenic://` + `https://androgenic.app/` (verified) |
+| In-app purchases | `com.android.vending.BILLING` enabled |
+| Notifications | `POST_NOTIFICATIONS` for Android 13+ |
+| Edge-to-edge | Enabled |
+| Adaptive icon | Configured (foreground + background + monochrome) |
+| Privacy manifest | Complete |
+| Encryption declaration | Not exempt (no encryption used) |
+
+---
+
+## Step 1: Pre-flight Checks
 
 ```bash
-# Login to Expo
-eas login
-
-# Initialize project (if not done already)
-eas init
-# This gives you a project ID → update app.json extra.eas.projectId
+cd Androgenic
+npm install
+npx expo-doctor
 ```
 
-## Step 2: Google Play Console Setup
+If `expo-build-properties` is missing:
+```bash
+npx expo install expo-build-properties
+```
 
-### 2a. Create App
-1. Go to https://play.google.com/console
-2. Click "Create app"
-3. Fill in:
-   - **App name:** Androgenic - Face Analysis AI
+---
+
+## Step 2: EAS Setup (one-time)
+
+```bash
+npm install -g eas-cli
+eas login
+eas init   # if projectId in app.json doesn't already exist
+```
+
+The `eas.json` is pre-configured with these profiles:
+- `development` — debug APK with dev client
+- `preview` — release APK for direct install/testing
+- `preview:internal-testing` — AAB for Play Console internal track
+- `production` — production AAB for Play Store
+- `production:android` — Android-only production AAB
+
+---
+
+## Step 3: Google Play Console Setup
+
+### 3a. Create the app
+
+1. https://play.google.com/console → **Create app**
+2. Fill in:
+   - **App name:** Androgenic — AI Face Analysis & Looksmax
    - **Default language:** English (United States)
    - **App or game:** App
    - **Free or paid:** Free
-4. Accept declarations and create
+3. Accept declarations and create.
 
-### 2b. Store Listing
-1. Go to **Main store listing**
-2. Use content from `store-config/android/listing.json`:
-   - **Short description** (80 chars max): AI looksmax face score, jawline analysis, glow-up guides & improvement tips
-   - **Full description** (4000 chars max): Copy from listing.json
-3. Upload graphics:
-   - **App icon:** 512x512 PNG (auto-generated from `assets/icon.png` or upload manually)
-   - **Feature graphic:** 1024x500 (see `store-config/android/SCREENSHOTS.md`)
-   - **Phone screenshots:** At least 2, up to 8 (1080x1920 or 1080x2400)
+### 3b. Service account for automated submits
 
-### 2c. Content Rating
-1. Go to **Content rating**
-2. Start questionnaire
-3. Answer:
-   - Violence: No
-   - Sexual content: No
-   - Language: No
-   - Controlled substance: No
-   - Miscellaneous: No
-4. Result should be: **Everyone** or **PEGI 3**
+1. https://console.cloud.google.com → create or select project
+2. Enable **Google Play Android Developer API**
+3. **IAM & Admin → Service Accounts** → create service account, role **Service Account User**
+4. Create JSON key, save as `google-services.json` in project root
+5. In Play Console: **Setup → API access** → link service account, grant permissions
 
-### 2d. Data Safety
-1. Go to **Data safety**
-2. Follow answers from `store-config/android/DATA_SAFETY.md`
-3. Key answers:
-   - App does NOT collect user data (except photos processed on-device)
-   - No data shared with third parties
-   - Users can request deletion
-   - Link privacy policy: https://androgenic.app/privacy
+### 3c. Subscriptions (PRO IAP)
 
-### 2e. Target Audience
-1. Go to **Target audience**
-2. Select: **13 and above** (NOT targeting children)
-3. Confirm you don't target children under 13
+In Play Console → **Monetize → Subscriptions**, create:
 
----
+| Product ID | Base plan | Price | Free trial |
+|------------|-----------|-------|------------|
+| `androgenic_pro_monthly` | monthly | $9.99 | 7 days |
+| `androgenic_pro_yearly` | yearly | $59.99 | 7 days |
+| `androgenic_pro_lifetime` | one-time | $149.99 | — |
 
-## Step 3: Set Up Google Play Service Account
+Activate each. Product IDs **must exactly match** `src/config/iap.js`.
 
-This is needed for automated AAB uploads via `eas submit`.
+### 3d. Store listing
 
-### 3a. Create Service Account
-1. Go to **Google Cloud Console** → https://console.cloud.google.com
-2. Create or select a project
-3. Go to **IAM & Admin** → **Service Accounts**
-4. Click **Create Service Account**
-   - Name: `play-store-publisher`
-   - Description: "Automated Play Store uploads via EAS"
-5. Click **Create and Continue**
-6. Skip role assignment for now
-7. Click **Done**
+Use content from `STORE_LISTING.md`:
 
-### 3b. Create Key
-1. Click on the service account you created
-2. Go to **Keys** tab
-3. **Add Key** → **Create new key** → **JSON**
-4. Download the JSON file
-5. **IMPORTANT:** Save as `google-services.json` in your project root
-6. This file is already in `.gitignore` — never commit it
+- **Short description (80 chars):** AI looksmax face score, jawline analysis, glow-up guides & improvement tips
+- **Full description (4000 chars):** copy from STORE_LISTING.md
+- **App icon:** 512×512 PNG (auto from `assets/icon.png`)
+- **Feature graphic:** 1024×500 — see `store-config/android/SCREENSHOTS.md`
+- **Phone screenshots:** 4–8 at 1080×2400 (or 1080×1920)
+- **Promo video** (optional but boosts CVR)
 
-### 3c. Grant Access in Play Console
-1. Go to **Google Play Console** → **Users and permissions**
-2. Click **Invite new users**
-3. Enter the service account email (from the JSON file: `client_email`)
-4. Grant permissions:
-   - **App access:** Select your app
-   - **Permissions:** Release to production, Manage store listing
-5. Click **Invite user**
-6. **Wait 24-48 hours** for permissions to propagate
+### 3e. Content rating
+
+Category: **Health & Fitness**. Answer questionnaire:
+Violence: No · Sexual content: No · Profanity: No · Controlled substances: No · Gambling: No · UGC: Yes (forum, declare moderation policy)
+
+### 3f. Data safety
+
+- Photos / videos — used on-device only (face analysis), not uploaded
+- App activity — usage analytics
+- Device ID — for IAP
+- Email (optional, for accounts)
+
+All data: **encrypted in transit**, **users can request deletion**.
+
+### 3g. Target audience
+
+Target age: **17+** (looksmaxxing content, peptide info)
 
 ---
 
-## Step 4: Configure In-App Purchases
+## Step 4: Build & Submit
 
-### 4a. Create Subscription Group
-1. Go to **Monetize** → **Subscriptions**
-2. Create subscription group: **Androgenic PRO**
-
-### 4b. Add Subscription Products
-| Product ID | Name | Billing Period | Price | Free Trial |
-|---|---|---|---|---|
-| `com.androgenic.faceanalysis.pro.weekly` | PRO Weekly | 1 week | $4.99 | 3 days |
-| `com.androgenic.faceanalysis.pro.monthly` | PRO Monthly | 1 month | $9.99 | 3 days |
-| `com.androgenic.faceanalysis.pro.yearly` | PRO Yearly | 1 year | $39.99 | 3 days |
-
-### 4c. Add One-Time Product (Lifetime)
-1. Go to **Monetize** → **In-app products**
-2. Create product:
-   - **Product ID:** `com.androgenic.faceanalysis.pro.lifetime`
-   - **Name:** PRO Lifetime
-   - **Price:** $79.99
-
-### 4d. Activate Products
-- Set each product status to **Active**
-- Products won't work until the app is published (at least to internal testing)
-
----
-
-## Step 5: Build for Play Store
+### Internal testing (recommended first)
 
 ```bash
-# Build production Android App Bundle (.aab)
-npm run build:android
-# or
-eas build --platform android --profile production
-
-# This will:
-# 1. Generate a signing keystore (first time) or use existing
-# 2. Build the .aab in the cloud
-# 3. Return a download link
-
-# IMPORTANT: EAS manages your signing keystore automatically
-# The keystore is stored securely on Expo's servers
+npm run build:android-internal
+npm run submit:android-internal
 ```
 
-### First Build Notes
-- EAS will ask to generate a new Android keystore on first build
-- Choose **Yes** — EAS securely stores and manages the keystore
-- You can download your keystore later: `eas credentials`
+Add yourself + ~10 testers via Play Console **Internal testing** track.
 
----
+### Open beta (optional)
 
-## Step 6: Upload App Signing Key
-
-Google Play requires you to enroll in **Play App Signing**:
-
-1. Build your first AAB: `eas build --platform android --profile production`
-2. Download the keystore: `eas credentials --platform android`
-3. In Play Console → **App signing**, upload the upload key certificate
-4. Or: Use EAS Submit which handles this automatically
-
----
-
-## Step 7: Submit to Play Store
-
-### Option A: Automated via EAS Submit
 ```bash
-# Submit to internal testing first (recommended)
-eas submit --platform android --profile internal-testing
-
-# After testing, submit to production
-npm run submit:android
-# or
-eas submit --platform android --profile production
-```
-
-### Option B: Manual Upload
-1. Build: `eas build --platform android --profile production`
-2. Download the `.aab` file from the build URL
-3. Go to Play Console → **Production** → **Create new release**
-4. Upload the `.aab` file
-5. Add release notes
-6. Review and start rollout
-
----
-
-## Step 8: Testing Tracks (Recommended Flow)
-
-### Internal Testing (Up to 100 testers)
-```bash
-eas build --platform android --profile preview:internal-testing
-eas submit --platform android --profile internal-testing
-```
-- Instant approval (no review)
-- Share opt-in link with testers
-
-### Closed Testing (Alpha)
-```bash
-eas submit --platform android --profile closed-testing
-```
-- Requires review (~hours to days)
-- Invite specific testers via email
-
-### Open Testing (Beta)
-```bash
+eas build --platform android --profile production:android
 eas submit --platform android --profile open-testing
 ```
-- Anyone can join via Play Store link
-- Good for final validation
 
-### Production
+### Production release
+
 ```bash
+npm run build:android
 npm run submit:android
 ```
-- Full Play Store review
-- Usually 1-3 days for first submission
+
+The submit job:
+1. Uploads AAB to Play Console
+2. Sets release status to `completed`
+3. Rolls out to 100% (change to staged rollout in `eas.json` if preferred)
 
 ---
 
-## Step 9: Release Notes (v1.0.0)
+## Step 5: Domination Strategy
 
-```
-Introducing Androgenic — AI-Powered Face Analysis!
+### ASO (App Store Optimization)
+- **Title:** "Androgenic — AI Face Analysis" packs core keywords without spam
+- **Short desc:** front-loads "AI looksmax face score, jawline analysis"
+- **Full desc:** mentions mewing, jawline, looksmax, glow-up, AI, face shape, face score, masculinity, attractiveness — all high-volume search terms
+- **Tags:** Health & Fitness primary, Lifestyle secondary
 
-What's new:
-• AI face analysis with 7 scoring categories
-• Personalized improvement recommendations
-• 8 comprehensive self-improvement guides (Mewing, Skincare, Jawline, Hair, and more)
-• Celebrity look-alike matching
-• Progress tracking & transformation tools
-• Beautiful dark mode UI with smooth animations
-• PRO subscription with unlimited features
+### Reviews & ratings
+- In-app review prompt at high-engagement moments (after first scan + 3-day streak)
+- Aim for **4.5+ stars** before scaling ads
+- Respond to every 1–3★ review within 24h
 
-Start your glow-up journey today!
-```
+### Featured placement
+Submit at https://play.google.com/console/u/0/about/programs. Best chance: announce a major update with accessibility/inclusive design improvements.
 
----
-
-## Common Issues & Solutions
-
-### "You need to upload an AAB signed with the correct key"
-- EAS manages your keystore. Run `eas credentials --platform android` to verify
-- If migrating from a different build system, you may need to reset the upload key
-
-### "Subscription products not found"
-- Products must be Active in Play Console
-- App must be published to at least Internal Testing track first
-- Wait a few hours after creating products before testing
-
-### "App not reviewed yet"
-- First submission takes 1-7 days for review
-- Subsequent updates are usually faster (hours to 1 day)
-- Ensure all policy declarations are complete
-
-### Build fails
-```bash
-# Clear EAS cache and rebuild
-eas build --platform android --profile production --clear-cache
-```
+### Conversion levers (already in-app)
+- 7-day free trial → drives subscription start rate
+- Social proof carousel on PaywallScreen (3 testimonials with score deltas)
+- Limited-offer urgency banner (animated)
+- Featured glass cards on Home drive deep engagement
 
 ---
 
-## Post-Launch
+## Step 6: Post-Launch
 
-### OTA Updates (No Play Store Review)
-```bash
-# Push JS-only updates directly to users
-eas update --branch production --message "Bug fixes"
-```
+### Monitor
+- **Crashes:** Play Console → Quality → Android vitals
+- **ANRs:** target < 0.47%
+- **Crash-free users:** target > 99.9%
+- **Subscription conversion:** Play Console → Monetization → Subscriptions
 
-### Monitor Performance
-- **Play Console** → **Statistics** for installs, ratings, revenue
-- **Android Vitals** for crash rates and ANR
-- **Revenue** → **Financial reports** for subscription metrics
-
-### Staged Rollout
-- Production releases can be rolled out to a percentage of users
-- Start at 10%, monitor crashes, then increase to 100%
+### Update cadence
+- OTA JS updates via EAS Update: `npm run update -- "fix: typo on paywall"`
+- Major updates: bump version + versionCode, build, submit
 
 ---
 
-## Checklist Before Submission
+## Troubleshooting
 
-- [ ] Store listing complete (title, descriptions, screenshots, feature graphic)
-- [ ] Content rating questionnaire completed
-- [ ] Data safety form filled out
-- [ ] Privacy policy URL accessible: https://androgenic.app/privacy
-- [ ] Target audience configured (13+)
-- [ ] App pricing set to Free with In-App Purchases
-- [ ] In-app products created and activated
-- [ ] Service account key downloaded as `google-services.json`
-- [ ] Service account granted Play Console access
-- [ ] App signing enrolled
-- [ ] AAB built and uploaded
-- [ ] Release notes written
-- [ ] Tested on physical Android device
+### "Version code already exists"
+Bump `android.versionCode` in `app.json` (currently 6).
+
+### "App rejected for permissions"
+We block all sensitive permissions Google flags. If rejection still occurs, check for transitive deps adding them: `npx expo prebuild` then inspect `android/app/src/main/AndroidManifest.xml`.
+
+### "googleServicesFile not found"
+Optional — only needed for Firebase. Remove `googleServicesFile` from `app.json` android section if unused.
+
+### Build fails with "newArchEnabled" error
+Reanimated v4 requires the new arch. We have `newArchEnabled: true`. If a third-party lib breaks, set `newArchEnabled: false` (loses some performance).
+
+---
+
+## Quick Reference
+
+| Command | Purpose |
+|---------|---------|
+| `npm run build:android` | Production AAB |
+| `npm run build:android-preview` | Preview APK |
+| `npm run build:android-internal` | Internal testing AAB |
+| `npm run submit:android` | Submit to production |
+| `npm run submit:android-internal` | Submit to internal track |
+| `npm run submit:android-beta` | Submit to open beta |
+| `npm run update -- "msg"` | OTA JS update |
+
+---
+
+**Built for domination. Ship it.**

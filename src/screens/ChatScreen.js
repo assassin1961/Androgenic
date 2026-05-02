@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, GRADIENTS } from '../utils/theme';
 import { isPro } from '../utils/pro';
+import GlassBackground from '../components/GlassBackground';
 
 const { width } = Dimensions.get('window');
 const CHAT_STORAGE_KEY = 'androgenic_chat_history';
@@ -345,6 +346,7 @@ export default function ChatScreen({ navigation }) {
   const keyExtractor = useCallback((item) => item.id, []);
 
   return (
+    <GlassBackground variant="blue">
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -438,6 +440,7 @@ export default function ChatScreen({ navigation }) {
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </GlassBackground>
   );
 }
 
@@ -446,7 +449,7 @@ export default function ChatScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: 'transparent',
   },
   flex: {
     flex: 1,
@@ -457,8 +460,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-    backgroundColor: '#000',
+    borderBottomColor: COLORS.borderLight,
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   backButton: {
     padding: 4,
@@ -537,7 +540,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   bubbleAI: {
-    backgroundColor: COLORS.bgCard,
+    backgroundColor: 'rgba(255,255,255,0.04)',
     borderBottomLeftRadius: 4,
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -571,7 +574,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   suggestionChip: {
-    backgroundColor: COLORS.bgCard,
+    backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
     borderColor: COLORS.accent,
     borderRadius: 20,
@@ -591,7 +594,7 @@ const styles = StyleSheet.create({
   typingBubble: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.bgCard,
+    backgroundColor: 'rgba(255,255,255,0.04)',
     borderRadius: 18,
     borderBottomLeftRadius: 4,
     borderWidth: 1,
@@ -617,7 +620,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    backgroundColor: COLORS.bgCard,
+    backgroundColor: 'rgba(255,255,255,0.04)',
     borderRadius: 22,
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'ios' ? 10 : 8,
@@ -638,12 +641,12 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   sendButtonDisabled: {
-    backgroundColor: COLORS.bgCard,
+    backgroundColor: 'rgba(255,255,255,0.04)',
   },
   upsellCard: {
     marginHorizontal: 12,
     marginBottom: 8,
-    backgroundColor: COLORS.bgCard,
+    backgroundColor: 'rgba(255,255,255,0.04)',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,

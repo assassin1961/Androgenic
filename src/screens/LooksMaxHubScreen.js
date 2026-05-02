@@ -9,6 +9,7 @@ import { COLORS } from '../utils/theme';
 import { getHistory } from '../utils/history';
 import { getStreakState } from '../utils/streaks';
 import AnimatedPressable from '../components/AnimatedPressable';
+import GlassBackground from '../components/GlassBackground';
 
 const { width } = Dimensions.get('window');
 const STORE_URL = 'https://androgenicpeptides.lovable.app';
@@ -41,6 +42,7 @@ const LooksMaxHubScreen = ({ navigation }) => {
   }, []);
 
   return (
+    <GlassBackground variant="purple">
     <SafeAreaView style={styles.container}>
       <Animated.View entering={FadeIn.duration(300)} style={styles.header}>
         <AnimatedPressable onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -217,18 +219,19 @@ const LooksMaxHubScreen = ({ navigation }) => {
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
+    </GlassBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12 },
-  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.bgCard, justifyContent: 'center', alignItems: 'center' },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.04)', justifyContent: 'center', alignItems: 'center' },
   headerTitle: { fontSize: 20, fontWeight: '800', color: COLORS.textPrimary },
   forumBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#0066ff', justifyContent: 'center', alignItems: 'center' },
   scroll: { paddingHorizontal: 20 },
 
-  statsBar: { flexDirection: 'row', backgroundColor: COLORS.bgCard, borderRadius: 14, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: COLORS.border },
+  statsBar: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: COLORS.borderLight },
   statItem: { flex: 1, alignItems: 'center' },
   statNum: { color: COLORS.textPrimary, fontSize: 16, fontWeight: '800' },
   statLabel: { color: COLORS.textMuted, fontSize: 10, marginTop: 2 },
@@ -242,12 +245,12 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   seeAll: { color: '#0066ff', fontSize: 12, fontWeight: '600' },
   trendingRow: { gap: 10, paddingBottom: 4, marginBottom: 16 },
-  trendingCard: { width: 130, backgroundColor: COLORS.bgCard, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: COLORS.border },
+  trendingCard: { width: 130, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: COLORS.borderLight },
   trendingIcon: { width: 34, height: 34, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
   trendingTitle: { color: COLORS.textPrimary, fontSize: 13, fontWeight: '700', marginBottom: 3 },
   trendingPosts: { color: COLORS.textMuted, fontSize: 11 },
 
-  storyCard: { backgroundColor: COLORS.bgCard, borderRadius: 14, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: COLORS.border },
+  storyCard: { backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: COLORS.borderLight },
   storyHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   storyAvatar: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center', marginRight: 10 },
   storyAvatarText: { fontSize: 13, fontWeight: '800' },
@@ -264,13 +267,13 @@ const styles = StyleSheet.create({
   storyImpText: { color: '#00e676', fontSize: 16, fontWeight: '800' },
   storyImpLabel: { color: COLORS.textMuted, fontSize: 10 },
 
-  shareCard: { backgroundColor: COLORS.bgCard, borderRadius: 14, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: COLORS.border },
+  shareCard: { backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: COLORS.borderLight },
   shareTitle: { color: COLORS.textPrimary, fontSize: 15, fontWeight: '700', marginBottom: 4 },
   shareSub: { color: COLORS.textMuted, fontSize: 12, marginBottom: 12 },
   shareActions: { flexDirection: 'row', gap: 10 },
   shareBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#0066ff', paddingVertical: 10, borderRadius: 10 },
   shareBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  shareBtn2: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.bgSecondary, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: COLORS.border },
+  shareBtn2: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.bgSecondary, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: COLORS.borderLight },
   shareBtn2Text: { color: COLORS.accent, fontSize: 13, fontWeight: '700' },
 
   storeBanner: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 16, marginBottom: 16, gap: 12 },
@@ -278,7 +281,7 @@ const styles = StyleSheet.create({
   storeBannerTitle: { color: '#fff', fontSize: 15, fontWeight: '700' },
   storeBannerSub: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 },
 
-  guideRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.bgCard, borderRadius: 12, padding: 12, marginBottom: 6, gap: 10, borderWidth: 1, borderColor: COLORS.border },
+  guideRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 12, marginBottom: 6, gap: 10, borderWidth: 1, borderColor: COLORS.borderLight },
   guideIcon: { width: 34, height: 34, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   guideTitle: { flex: 1, color: COLORS.textPrimary, fontSize: 13, fontWeight: '600' },
 });

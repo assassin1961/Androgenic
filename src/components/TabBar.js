@@ -1,5 +1,7 @@
 import React, { useEffect, memo } from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Dimensions, Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -7,7 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../utils/theme';
+import { COLORS, BLUR } from '../utils/theme';
 
 const { width } = Dimensions.get('window');
 const TAB_WIDTH = width / 5;
@@ -65,37 +67,61 @@ const TabBar = ({ activeTab, onTabPress }) => {
   }));
 
   return (
-    <View style={styles.container}>
-      <Animated.View style={[styles.indicator, indicatorStyle]} />
-      {tabs.map((tab, index) => (
-        <TabItem
-          key={tab.name}
-          tab={tab}
-          index={index}
-          isActive={activeTab === tab.name}
-          onPress={onTabPress}
-        />
-      ))}
+    <View style={styles.wrapper}>
+      {Platform.OS !== 'web' && (
+        <BlurView intensity={BLUR.heavy} tint="dark" style={StyleSheet.absoluteFill} />
+      )}
+      <LinearGradient
+        colors={['rgba(0,102,255,0.04)', 'rgba(0,0,0,0.6)']}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={styles.container}>
+        <Animated.View style={[styles.indicator, indicatorStyle]} />
+        {tabs.map((tab, index) => (
+          <TabItem
+            key={tab.name}
+            tab={tab}
+            index={index}
+            isActive={activeTab === tab.name}
+            onPress={onTabPress}
+          />
+        ))}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  wrapper: {
+    overflow: 'hidden',
+    borderTopWidth: 1,
+    borderTopColor: COLORS.borderLight,
+  },
   container: {
-    flexDirection: 'row', backgroundColor: '#050508',
-    borderTopWidth: 1, borderTopColor: COLORS.border,
-    paddingBottom: 22, paddingTop: 6, position: 'relative',
+    flexDirection: 'row',
+    paddingBottom: 22,
+    paddingTop: 8,
+    position: 'relative',
   },
   indicator: {
     position: 'absolute', top: 0, width: 40, height: 2.5,
-    backgroundColor: COLORS.accent, borderBottomLeftRadius: 2,
+    backgroundColor: COLORS.accentNeon, borderBottomLeftRadius: 2,
     borderBottomRightRadius: 2,
+    shadowColor: COLORS.accentNeon,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 8,
   },
   tab: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
-  iconWrapper: { width: 36, height: 36, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  iconWrapperActive: { backgroundColor: 'rgba(0,102,255,0.12)' },
+  iconWrapper: { width: 38, height: 38, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  iconWrapperActive: {
+    backgroundColor: 'rgba(0,102,255,0.18)',
+    borderWidth: 1,
+    borderColor: COLORS.borderAccent,
+  },
   label: { fontSize: 10, fontWeight: '600', color: COLORS.textMuted, marginTop: 2 },
-  labelActive: { color: COLORS.accent, fontWeight: '700' },
+  labelActive: { color: COLORS.accentNeon, fontWeight: '800' },
 });
 
 export default memo(TabBar);
