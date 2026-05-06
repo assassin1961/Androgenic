@@ -57,6 +57,14 @@ import ForumScreen from '../screens/ForumScreen';
 import ChatScreen from '../screens/ChatScreen';
 import PostDetailScreen from '../screens/PostDetailScreen';
 import LooksMaxHubScreen from '../screens/LooksMaxHubScreen';
+import ProgressTimelineScreen from '../screens/ProgressTimelineScreen';
+import SkincareAnalyzerScreen from '../screens/SkincareAnalyzerScreen';
+import FaceSymmetryScreen from '../screens/FaceSymmetryScreen';
+import MealPlanScreen from '../screens/MealPlanScreen';
+import SleepTrackerScreen from '../screens/SleepTrackerScreen';
+import ReferralScreen from '../screens/ReferralScreen';
+import ShareTemplatesScreen from '../screens/ShareTemplatesScreen';
+import StreakCalendarScreen from '../screens/StreakCalendarScreen';
 import TabBar from '../components/TabBar';
 
 const Stack = createNativeStackNavigator();
@@ -142,6 +150,14 @@ const AppNavigator = () => {
           <Stack.Screen name="Chat" component={ChatScreen} />
           <Stack.Screen name="PostDetail" component={PostDetailScreen} />
           <Stack.Screen name="LooksMaxHub" component={LooksMaxHubScreen} />
+          <Stack.Screen name="ProgressTimeline" component={ProgressTimelineScreen} />
+          <Stack.Screen name="SkincareAnalyzer" component={SkincareAnalyzerScreen} />
+          <Stack.Screen name="FaceSymmetry" component={FaceSymmetryScreen} />
+          <Stack.Screen name="MealPlan" component={MealPlanScreen} />
+          <Stack.Screen name="SleepTracker" component={SleepTrackerScreen} />
+          <Stack.Screen name="Referral" component={ReferralScreen} />
+          <Stack.Screen name="ShareTemplates" component={ShareTemplatesScreen} />
+          <Stack.Screen name="StreakCalendar" component={StreakCalendarScreen} />
           <Stack.Screen
             name="ShareCard"
             component={ShareCardScreen}

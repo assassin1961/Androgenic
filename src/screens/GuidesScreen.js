@@ -1,11 +1,17 @@
-import React from 'react';
+import React, { memo } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView,
+  View, Text, StyleSheet, ScrollView, SafeAreaView, StatusBar,
 } from 'react-native';
+import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { COLORS, GRADIENTS } from '../utils/theme';
 import { isPro } from '../utils/pro';
+import GlassBackground from '../components/GlassBackground';
+import GlassCard from '../components/GlassCard';
+import GlassButton from '../components/GlassButton';
+import AnimatedPressable from '../components/AnimatedPressable';
 
 const GUIDE_CATEGORIES = [
   {
@@ -39,10 +45,41 @@ const GUIDE_CATEGORIES = [
 
 const allGuides = GUIDE_CATEGORIES.flatMap(c => c.guides);
 
+const GuideRow = memo(({ guide, locked, onPress, index }) => (
+  <Animated.View entering={FadeInRight.duration(300).delay(index * 50)}>
+    <AnimatedPressable onPress={onPress}>
+      <GlassCard variant={locked ? 'default' : 'default'} style={styles.guideCard}>
+        <View style={[styles.guideIcon, { backgroundColor: guide.color + '15' }]}>
+          <Ionicons name={guide.icon} size={18} color={guide.color} />
+        </View>
+        <View style={styles.guideContent}>
+          <View style={styles.guideTopRow}>
+            <Text style={styles.guideTitle} numberOfLines={1}>{guide.title}</Text>
+            {locked && (
+              <View style={styles.proPill}>
+                <Text style={styles.proPillText}>PRO</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.guideDesc} numberOfLines={1}>{guide.desc}</Text>
+          <View style={styles.guideMeta}>
+            <Ionicons name="time-outline" size={10} color={COLORS.textMuted} />
+            <Text style={styles.guideMetaText}>{guide.duration}</Text>
+            <View style={[styles.levelDot, { backgroundColor: guide.color }]} />
+            <Text style={styles.guideMetaText}>{guide.level}</Text>
+          </View>
+        </View>
+        <Ionicons name={locked ? 'lock-closed' : 'chevron-forward'} size={14} color={locked ? COLORS.gold : COLORS.textMuted} />
+      </GlassCard>
+    </AnimatedPressable>
+  </Animated.View>
+));
+
 const GuidesScreen = ({ navigation }) => {
   const pro = isPro();
 
   const handlePress = (guide) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (guide.pro && !pro) {
       navigation.navigate('Paywall');
     } else {
@@ -50,143 +87,121 @@ const GuidesScreen = ({ navigation }) => {
     }
   };
 
+  let globalIndex = 0;
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Header */}
+    <GlassBackground variant="purple">
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" />
+
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <AnimatedPressable onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
-          </TouchableOpacity>
+          </AnimatedPressable>
           <Text style={styles.headerTitle}>Guides</Text>
           <View style={{ width: 40 }} />
         </View>
 
-        {/* Stats Row */}
-        <View style={styles.statsRow}>
-          <View style={styles.stat}>
-            <Text style={styles.statNum}>{allGuides.length}</Text>
-            <Text style={styles.statLabel}>Guides</Text>
-          </View>
-          <View style={styles.statDiv} />
-          <View style={styles.stat}>
-            <Text style={styles.statNum}>120+</Text>
-            <Text style={styles.statLabel}>Min Read</Text>
-          </View>
-          <View style={styles.statDiv} />
-          <View style={styles.stat}>
-            <Text style={styles.statNum}>3</Text>
-            <Text style={styles.statLabel}>Levels</Text>
-          </View>
-        </View>
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          {/* Stats */}
+          <Animated.View entering={FadeInDown.duration(400)}>
+            <View style={styles.statsRow}>
+              <GlassCard variant="default" style={styles.statCard}>
+                <Text style={[styles.statNum, { color: COLORS.accent }]}>{allGuides.length}</Text>
+                <Text style={styles.statLabel}>Guides</Text>
+              </GlassCard>
+              <GlassCard variant="default" style={styles.statCard}>
+                <Text style={[styles.statNum, { color: COLORS.purple }]}>120+</Text>
+                <Text style={styles.statLabel}>Minutes</Text>
+              </GlassCard>
+              <GlassCard variant="default" style={styles.statCard}>
+                <Text style={[styles.statNum, { color: COLORS.scoreHigh }]}>3</Text>
+                <Text style={styles.statLabel}>Levels</Text>
+              </GlassCard>
+            </View>
+          </Animated.View>
 
-        {/* Guide Categories */}
-        {GUIDE_CATEGORIES.map((category, ci) => (
-          <View key={ci} style={styles.catSection}>
-            <Text style={styles.catTitle}>{category.title}</Text>
-            {category.guides.map((guide) => {
-              const locked = guide.pro && !pro;
-              return (
-                <TouchableOpacity
-                  key={guide.id}
-                  style={styles.guideCard}
-                  onPress={() => handlePress(guide)}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.guideIcon, { backgroundColor: guide.color + '15' }]}>
-                    <Ionicons name={guide.icon} size={20} color={guide.color} />
+          {/* Categories */}
+          {GUIDE_CATEGORIES.map((category, ci) => (
+            <View key={ci}>
+              <Animated.View entering={FadeInDown.duration(300).delay(80 + ci * 60)}>
+                <Text style={styles.catTitle}>{category.title}</Text>
+              </Animated.View>
+              {category.guides.map((guide) => {
+                const locked = guide.pro && !pro;
+                const idx = globalIndex++;
+                return (
+                  <GuideRow
+                    key={guide.id}
+                    guide={guide}
+                    locked={locked}
+                    onPress={() => handlePress(guide)}
+                    index={idx}
+                  />
+                );
+              })}
+            </View>
+          ))}
+
+          {/* PRO Upsell */}
+          {!pro && (
+            <Animated.View entering={FadeInDown.duration(400).delay(500)}>
+              <AnimatedPressable onPress={() => navigation.navigate('Paywall')}>
+                <LinearGradient colors={GRADIENTS.accent} style={styles.upsell}>
+                  <Ionicons name="lock-open" size={16} color="#fff" />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.upsellTitle}>Unlock All Guides</Text>
+                    <Text style={styles.upsellSub}>Eye Area, Symmetry & Supplements guides</Text>
                   </View>
-                  <View style={styles.guideContent}>
-                    <View style={styles.guideTopRow}>
-                      <Text style={styles.guideTitle} numberOfLines={1}>{guide.title}</Text>
-                      {locked && (
-                        <View style={styles.proPill}>
-                          <Text style={styles.proPillText}>PRO</Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text style={styles.guideDesc} numberOfLines={1}>{guide.desc}</Text>
-                    <View style={styles.guideMeta}>
-                      <Ionicons name="time-outline" size={11} color={COLORS.textMuted} />
-                      <Text style={styles.guideMetaText}>{guide.duration}</Text>
-                      <View style={[styles.levelDot, { backgroundColor: guide.color }]} />
-                      <Text style={styles.guideMetaText}>{guide.level}</Text>
-                    </View>
-                  </View>
-                  <Ionicons name={locked ? 'lock-closed' : 'chevron-forward'} size={14} color={locked ? COLORS.gold : COLORS.textMuted} />
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        ))}
+                  <Ionicons name="arrow-forward" size={14} color="#fff" />
+                </LinearGradient>
+              </AnimatedPressable>
+            </Animated.View>
+          )}
 
-        {/* PRO Upsell */}
-        {!pro && (
-          <TouchableOpacity onPress={() => navigation.navigate('Paywall')} activeOpacity={0.8}>
-            <LinearGradient colors={GRADIENTS.accent} style={styles.upsell}>
-              <Ionicons name="lock-open" size={18} color="#fff" />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.upsellTitle}>Unlock All Guides</Text>
-                <Text style={styles.upsellSub}>Get access to Eye Area, Symmetry & Supplements guides</Text>
-              </View>
-              <Ionicons name="arrow-forward" size={16} color="#fff" />
-            </LinearGradient>
-          </TouchableOpacity>
-        )}
-
-        <View style={{ height: 40 }} />
-      </ScrollView>
-    </SafeAreaView>
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </SafeAreaView>
+    </GlassBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  scroll: { paddingHorizontal: 20 },
-
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingVertical: 10,
   },
   backBtn: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.bgCard,
-    justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border,
+    width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.06)',
+    justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.borderLight,
   },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#fff', letterSpacing: 0.3 },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary },
+  scroll: { paddingHorizontal: 20, paddingBottom: 40 },
 
-  statsRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: COLORS.bgCard, borderRadius: 10, padding: 14, marginBottom: 20,
-    borderWidth: 1, borderColor: COLORS.border, gap: 16,
-  },
-  stat: { alignItems: 'center' },
-  statNum: { fontSize: 18, fontWeight: '800', color: '#0066ff' },
-  statLabel: { fontSize: 10, color: COLORS.textMuted, fontWeight: '500', marginTop: 2 },
-  statDiv: { width: 1, height: 20, backgroundColor: COLORS.border },
+  statsRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  statCard: { flex: 1, alignItems: 'center', padding: 14 },
+  statNum: { fontSize: 20, fontWeight: '900' },
+  statLabel: { fontSize: 10, color: COLORS.textMuted, fontWeight: '600', marginTop: 2 },
 
-  catSection: { marginBottom: 16 },
-  catTitle: { fontSize: 14, fontWeight: '700', color: COLORS.textSecondary, marginBottom: 8, letterSpacing: 0.3 },
+  catTitle: { fontSize: 13, fontWeight: '700', color: COLORS.textSecondary, marginBottom: 8, marginTop: 12, letterSpacing: 0.3 },
 
-  guideCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.bgCard,
-    borderRadius: 12, padding: 12, marginBottom: 6, gap: 10, borderWidth: 1, borderColor: COLORS.border,
-  },
-  guideIcon: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  guideCard: { padding: 12, marginBottom: 6, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  guideIcon: { width: 38, height: 38, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   guideContent: { flex: 1 },
   guideTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
-  guideTitle: { fontSize: 14, fontWeight: '700', color: '#fff', flex: 1 },
+  guideTitle: { fontSize: 13, fontWeight: '700', color: '#fff', flex: 1 },
   guideDesc: { fontSize: 11, color: COLORS.textSecondary, marginBottom: 4 },
   guideMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  guideMetaText: { fontSize: 10, color: COLORS.textMuted },
+  guideMetaText: { fontSize: 9, color: COLORS.textMuted },
   levelDot: { width: 4, height: 4, borderRadius: 2, marginLeft: 4 },
 
   proPill: { backgroundColor: COLORS.gold, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4, marginLeft: 6 },
   proPillText: { fontSize: 8, fontWeight: '800', color: '#000', letterSpacing: 0.5 },
 
-  upsell: {
-    flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 12, gap: 10, marginTop: 4,
-  },
-  upsellTitle: { color: '#fff', fontSize: 14, fontWeight: '700' },
-  upsellSub: { color: 'rgba(255,255,255,0.7)', fontSize: 11, marginTop: 1 },
+  upsell: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 12, gap: 10, marginTop: 12 },
+  upsellTitle: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  upsellSub: { color: 'rgba(255,255,255,0.7)', fontSize: 10, marginTop: 1 },
 });
 
 export default GuidesScreen;

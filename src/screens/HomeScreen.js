@@ -117,19 +117,19 @@ const HomeScreen = ({ navigation }) => {
     { icon: 'globe', title: 'LooksMax Hub', sub: 'Trending & success stories', screen: 'LooksMaxHub', colors: ['#8b1a4a', '#ff6090'] },
   ];
 
-  // Tools grid: compact, no duplicates
+  // Tools grid: compact, no duplicates — includes new features
   const TOOLS = [
     { icon: 'flame', text: 'Challenge', screen: 'Challenge', color: '#ff6b35' },
     { icon: 'today', text: 'Routine', screen: 'RoutineTab', color: '#00e676' },
-    { icon: 'trophy', text: 'Achieve', screen: 'Achievements', color: '#FFD700' },
+    { icon: 'trophy', text: 'Streaks', screen: 'StreakCalendar', color: '#FFD700' },
     { icon: 'analytics', text: 'Insights', screen: 'WeeklyInsights', color: '#0066ff' },
+    { icon: 'flask', text: 'Skincare', screen: 'SkincareAnalyzer', color: '#a855f7' },
+    { icon: 'scan', text: 'Symmetry', screen: 'FaceSymmetry', color: '#00e5ff' },
+    { icon: 'nutrition', text: 'Meals', screen: 'MealPlan', color: '#ffab40' },
+    { icon: 'moon', text: 'Sleep', screen: 'SleepTracker', color: '#4d94ff' },
     { icon: 'barbell', text: 'Workouts', screen: 'Workout', color: '#ff5252' },
     { icon: 'water', text: 'Water', screen: 'WaterTracker', color: '#00b4d8' },
-    { icon: 'body', text: 'Body Fat', screen: 'BodyFat', color: '#4d94ff' },
-    { icon: 'color-palette', text: 'Skin Tone', screen: 'SkinTone', color: '#ff6090' },
-    { icon: 'sparkles', text: 'Glow-Up', screen: 'GlowUpSimulator', color: '#00e5ff' },
-    { icon: 'nutrition', text: 'Nutrition', screen: 'NutritionGuide', color: '#ffab40' },
-    { icon: 'podium', text: 'Ranks', screen: 'LeaderboardTab', color: '#FFD700' },
+    { icon: 'gift', text: 'Refer', screen: 'Referral', color: '#FFD700' },
     { icon: 'book', text: 'Guides', screen: 'Guides', color: '#1de9b6' },
   ];
 
@@ -239,8 +239,8 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.quickRow}>
             {[
               { icon: 'time', text: 'History', screen: 'History', color: '#4d94ff' },
-              { icon: 'trending-up', text: 'Progress', screen: 'Progress', color: '#00e676' },
-              { icon: 'flask', text: 'Peptides', screen: 'Products', color: '#4d94ff' },
+              { icon: 'git-branch', text: 'Timeline', screen: 'ProgressTimeline', color: '#00e676' },
+              { icon: 'share-social', text: 'Share', screen: 'ShareTemplates', color: '#0066ff' },
               { icon: 'bulb', text: 'Tips', screen: 'DailyTips', color: '#ffab40' },
             ].map((a, i) => (
               <TouchableOpacity key={i} style={styles.quickItem} onPress={() => navigation.navigate(a.screen)} activeOpacity={0.7}>
