@@ -1,11 +1,16 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, memo } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Animated,
+  View, Text, StyleSheet, ScrollView, SafeAreaView, StatusBar,
 } from 'react-native';
+import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
 import { COLORS, GRADIENTS } from '../utils/theme';
+import GlassBackground from '../components/GlassBackground';
+import GlassCard from '../components/GlassCard';
+import AnimatedPressable from '../components/AnimatedPressable';
 
 const STORAGE_KEY_READ = '@daily_tips_read';
 const STORAGE_KEY_STREAK = '@daily_tips_streak';
@@ -48,21 +53,14 @@ const TIPS = [
 ];
 
 const CATEGORY_COLORS = {
-  Skin: '#00e676',
-  Jawline: '#ff6b35',
-  Eyes: '#4d94ff',
-  Hair: '#ffab40',
-  Nutrition: '#1de9b6',
-  Posture: '#00e5ff',
-  Sleep: '#ff6090',
-  Grooming: '#ffab40',
+  Skin: '#00e676', Jawline: '#ff6b35', Eyes: '#4d94ff', Hair: '#ffab40',
+  Nutrition: '#1de9b6', Posture: '#00e5ff', Sleep: '#ff6090', Grooming: '#ffab40',
 };
 
 const getDayOfYear = () => {
   const now = new Date();
   const start = new Date(now.getFullYear(), 0, 0);
-  const diff = now - start;
-  return Math.floor(diff / (1000 * 60 * 60 * 24));
+  return Math.floor((now - start) / (1000 * 60 * 60 * 24));
 };
 
 const getTodayKey = () => {
@@ -79,8 +77,46 @@ const getTodaysTips = () => {
   return indices.map((idx) => TIPS[idx]);
 };
 
+const TipCard = memo(({ tip, expanded, read, onToggle, onMarkRead, index }) => (
+  <Animated.View entering={FadeInRight.duration(300).delay(200 + index * 80)}>
+    <AnimatedPressable onPress={onToggle}>
+      <GlassCard style={[styles.tipCard, read && styles.tipCardRead]}>
+        <View style={styles.tipHeader}>
+          <View style={[styles.tipIcon, { backgroundColor: tip.color + '15' }]}>
+            <Ionicons name={tip.icon} size={18} color={tip.color} />
+          </View>
+          <View style={styles.tipMeta}>
+            <Text style={styles.tipTitle}>{tip.title}</Text>
+            <View style={[styles.categoryPill, { backgroundColor: CATEGORY_COLORS[tip.category] + '15' }]}>
+              <Text style={[styles.categoryText, { color: CATEGORY_COLORS[tip.category] }]}>{tip.category}</Text>
+            </View>
+          </View>
+          <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={16} color={COLORS.textMuted} />
+        </View>
+        {expanded && (
+          <View style={styles.tipBody}>
+            <Text style={styles.tipContent}>{tip.content}</Text>
+            {!read ? (
+              <AnimatedPressable onPress={onMarkRead}>
+                <LinearGradient colors={GRADIENTS.accent} style={styles.markReadGradient}>
+                  <Ionicons name="checkmark-circle-outline" size={14} color="#fff" />
+                  <Text style={styles.markReadText}>Mark as Read</Text>
+                </LinearGradient>
+              </AnimatedPressable>
+            ) : (
+              <View style={styles.readBadge}>
+                <Ionicons name="checkmark-circle" size={14} color="#00e676" />
+                <Text style={styles.readBadgeText}>Read</Text>
+              </View>
+            )}
+          </View>
+        )}
+      </GlassCard>
+    </AnimatedPressable>
+  </Animated.View>
+));
+
 const DailyTipsScreen = ({ navigation }) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
   const [expandedTip, setExpandedTip] = useState(-1);
   const [readTips, setReadTips] = useState([]);
   const [streak, setStreak] = useState(0);
@@ -93,17 +129,13 @@ const DailyTipsScreen = ({ navigation }) => {
         AsyncStorage.getItem(STORAGE_KEY_STREAK),
         AsyncStorage.getItem(STORAGE_KEY_LAST_VISIT),
       ]);
-
       if (readData) setReadTips(JSON.parse(readData));
-
       const todayKey = getTodayKey();
       const currentStreak = streakData ? parseInt(streakData, 10) : 0;
-
       if (lastVisit) {
         const lastDate = new Date(lastVisit);
         const today = new Date();
         const diffDays = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
-
         if (diffDays === 1) {
           const newStreak = currentStreak + 1;
           setStreak(newStreak);
@@ -118,206 +150,174 @@ const DailyTipsScreen = ({ navigation }) => {
         setStreak(1);
         await AsyncStorage.setItem(STORAGE_KEY_STREAK, '1');
       }
-
       await AsyncStorage.setItem(STORAGE_KEY_LAST_VISIT, todayKey);
-    } catch (e) {
-      // Silently handle storage errors
-    }
+    } catch {}
   }, []);
 
-  useEffect(() => {
-    loadData();
-    Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const markAsRead = async (tipId) => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     try {
       const updated = readTips.includes(tipId) ? readTips : [...readTips, tipId];
       setReadTips(updated);
       await AsyncStorage.setItem(STORAGE_KEY_READ, JSON.stringify(updated));
-    } catch (e) {
-      // Silently handle storage errors
-    }
+    } catch {}
   };
 
-  const isRead = (tipId) => readTips.includes(tipId);
-
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Daily Tips</Text>
-          <View style={{ width: 40 }} />
-        </View>
+    <GlassBackground variant="blue">
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" />
 
-        {/* Streak Banner */}
-        <Animated.View style={{ opacity: fadeAnim }}>
-          <LinearGradient colors={['rgba(255,171,64,0.15)', 'rgba(255,171,64,0.03)']} style={styles.streakBanner}>
-            <View style={styles.streakRow}>
-              <View style={[styles.streakIconBg, { backgroundColor: 'rgba(255,171,64,0.2)' }]}>
-                <Ionicons name="flame-outline" size={26} color="#ffab40" />
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <AnimatedPressable onPress={() => navigation.goBack()} style={styles.backBtn}>
+              <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
+            </AnimatedPressable>
+            <Text style={styles.headerTitle}>Daily Tips</Text>
+            <View style={{ width: 40 }} />
+          </View>
+
+          {/* Streak Banner */}
+          <Animated.View entering={FadeInDown.duration(400)}>
+            <GlassCard variant="gold" style={styles.streakBanner}>
+              <View style={styles.streakRow}>
+                <View style={styles.streakIconBg}>
+                  <Ionicons name="flame-outline" size={24} color="#ffab40" />
+                </View>
+                <View style={styles.streakInfo}>
+                  <Text style={styles.streakCount}>{streak} Day{streak !== 1 ? 's' : ''}</Text>
+                  <Text style={styles.streakLabel}>Tip Streak</Text>
+                </View>
               </View>
-              <View style={styles.streakInfo}>
-                <Text style={styles.streakCount}>{streak} Day{streak !== 1 ? 's' : ''}</Text>
-                <Text style={styles.streakLabel}>Tip Streak</Text>
+              <Text style={styles.streakSubtext}>
+                {streak >= 7 ? 'Incredible consistency! Keep the streak alive.' : 'Check tips daily to build your streak!'}
+              </Text>
+            </GlassCard>
+          </Animated.View>
+
+          {/* Hero */}
+          <Animated.View entering={FadeInDown.duration(400).delay(80)}>
+            <GlassCard variant="accent" style={styles.hero}>
+              <View style={styles.heroIconBg}>
+                <Ionicons name="bulb-outline" size={28} color={COLORS.accent} />
               </View>
-            </View>
-            <Text style={styles.streakSubtext}>
-              {streak >= 7 ? 'Incredible consistency! Keep the streak alive.' : 'Check tips daily to build your streak!'}
-            </Text>
-          </LinearGradient>
-        </Animated.View>
+              <Text style={styles.heroTitle}>Today's Tips</Text>
+              <Text style={styles.heroSubtitle}>
+                3 curated tips refreshed daily covering skin, jawline, eyes, hair, nutrition, posture, sleep, and grooming
+              </Text>
+            </GlassCard>
+          </Animated.View>
 
-        {/* Hero */}
-        <Animated.View style={{ opacity: fadeAnim }}>
-          <LinearGradient colors={['rgba(0,102,255,0.15)', 'rgba(0,102,255,0.03)']} style={styles.hero}>
-            <View style={[styles.heroIconBg, { backgroundColor: 'rgba(0,102,255,0.2)' }]}>
-              <Ionicons name="bulb-outline" size={32} color={COLORS.accent} />
-            </View>
-            <Text style={styles.heroTitle}>Today's Tips</Text>
-            <Text style={styles.heroSubtitle}>
-              3 curated tips refreshed daily covering skin, jawline, eyes, hair, nutrition, posture, sleep, and grooming
-            </Text>
-          </LinearGradient>
-        </Animated.View>
-
-        {/* Today's Tips */}
-        {todaysTips.map((tip, idx) => {
-          const expanded = expandedTip === idx;
-          const read = isRead(tip.id);
-
-          return (
-            <TouchableOpacity
+          {/* Today's Tips */}
+          {todaysTips.map((tip, idx) => (
+            <TipCard
               key={tip.id}
-              style={[styles.tipCard, read && styles.tipCardRead]}
-              onPress={() => setExpandedTip(expanded ? -1 : idx)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.tipHeader}>
-                <View style={[styles.tipIcon, { backgroundColor: tip.color + '18' }]}>
-                  <Ionicons name={tip.icon} size={18} color={tip.color} />
-                </View>
-                <View style={styles.tipMeta}>
-                  <Text style={styles.tipTitle}>{tip.title}</Text>
-                  <View style={[styles.categoryPill, { backgroundColor: CATEGORY_COLORS[tip.category] + '18' }]}>
-                    <Text style={[styles.categoryText, { color: CATEGORY_COLORS[tip.category] }]}>{tip.category}</Text>
-                  </View>
-                </View>
-                <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={18} color={COLORS.textMuted} />
-              </View>
+              tip={tip}
+              expanded={expandedTip === idx}
+              read={readTips.includes(tip.id)}
+              onToggle={() => { Haptics.selectionAsync(); setExpandedTip(expandedTip === idx ? -1 : idx); }}
+              onMarkRead={() => markAsRead(tip.id)}
+              index={idx}
+            />
+          ))}
 
-              {expanded && (
-                <View style={styles.tipBody}>
-                  <Text style={styles.tipContent}>{tip.content}</Text>
-                  {!read && (
-                    <TouchableOpacity
-                      style={styles.markReadBtn}
-                      onPress={(e) => { e.stopPropagation(); markAsRead(tip.id); }}
-                    >
-                      <LinearGradient colors={GRADIENTS.accent} style={styles.markReadGradient}>
-                        <Ionicons name="checkmark-circle-outline" size={16} color="#fff" />
-                        <Text style={styles.markReadText}>Mark as Read</Text>
-                      </LinearGradient>
-                    </TouchableOpacity>
-                  )}
-                  {read && (
-                    <View style={styles.readBadge}>
-                      <Ionicons name="checkmark-circle" size={14} color="#00e676" />
-                      <Text style={styles.readBadgeText}>Read</Text>
-                    </View>
-                  )}
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        })}
+          {/* All Categories */}
+          <Animated.View entering={FadeInDown.duration(300).delay(500)}>
+            <Text style={styles.allCategoriesTitle}>All Categories</Text>
+            <View style={styles.categoriesGrid}>
+              {Object.entries(CATEGORY_COLORS).map(([cat, color]) => {
+                const count = TIPS.filter((t) => t.category === cat).length;
+                return (
+                  <GlassCard key={cat} style={styles.categoryCard}>
+                    <View style={[styles.catDot, { backgroundColor: color }]} />
+                    <Text style={styles.catName}>{cat}</Text>
+                    <Text style={styles.catCount}>{count}</Text>
+                  </GlassCard>
+                );
+              })}
+            </View>
+          </Animated.View>
 
-        {/* All Categories */}
-        <Text style={styles.allCategoriesTitle}>All Categories</Text>
-        <View style={styles.categoriesGrid}>
-          {Object.entries(CATEGORY_COLORS).map(([cat, color]) => {
-            const count = TIPS.filter((t) => t.category === cat).length;
-            return (
-              <View key={cat} style={styles.categoryCard}>
-                <View style={[styles.catDot, { backgroundColor: color }]} />
-                <Text style={styles.catName}>{cat}</Text>
-                <Text style={styles.catCount}>{count}</Text>
-              </View>
-            );
-          })}
-        </View>
+          {/* Stats */}
+          <Animated.View entering={FadeInDown.duration(300).delay(600)}>
+            <View style={styles.statsRow}>
+              <GlassCard style={styles.statCard}>
+                <Text style={[styles.statValue, { color: COLORS.accent }]}>{readTips.length}</Text>
+                <Text style={styles.statLabel}>Tips Read</Text>
+              </GlassCard>
+              <GlassCard style={styles.statCard}>
+                <Text style={[styles.statValue, { color: COLORS.purple }]}>{TIPS.length}</Text>
+                <Text style={styles.statLabel}>Total Tips</Text>
+              </GlassCard>
+              <GlassCard style={styles.statCard}>
+                <Text style={[styles.statValue, { color: COLORS.scoreHigh }]}>{TIPS.length - readTips.length}</Text>
+                <Text style={styles.statLabel}>Remaining</Text>
+              </GlassCard>
+            </View>
+          </Animated.View>
 
-        {/* Stats */}
-        <View style={styles.statsCard}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{readTips.length}</Text>
-            <Text style={styles.statLabel}>Tips Read</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{TIPS.length}</Text>
-            <Text style={styles.statLabel}>Total Tips</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{TIPS.length - readTips.length}</Text>
-            <Text style={styles.statLabel}>Remaining</Text>
-          </View>
-        </View>
-
-        <View style={{ height: 40 }} />
-      </ScrollView>
-    </SafeAreaView>
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </SafeAreaView>
+    </GlassBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bgPrimary },
+  container: { flex: 1, backgroundColor: 'transparent' },
   scroll: { paddingHorizontal: 20 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 },
-  backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.bgGlass, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingVertical: 10,
+  },
+  backBtn: {
+    width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.06)',
+    justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.borderLight,
+  },
   headerTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary },
-  streakBanner: { padding: 18, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,171,64,0.2)', marginBottom: 14 },
+  streakBanner: { padding: 16, marginBottom: 14 },
   streakRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 6 },
-  streakIconBg: { width: 46, height: 46, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  streakIconBg: {
+    width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center',
+    backgroundColor: 'rgba(255,171,64,0.15)',
+  },
   streakInfo: { flex: 1 },
-  streakCount: { fontSize: 24, fontWeight: '800', color: '#ffab40' },
-  streakLabel: { fontSize: 12, color: COLORS.textMuted, fontWeight: '600' },
-  streakSubtext: { fontSize: 13, color: COLORS.textSecondary, lineHeight: 18 },
-  hero: { padding: 22, borderRadius: 22, borderWidth: 1, borderColor: COLORS.border, marginBottom: 20, alignItems: 'center' },
-  heroIconBg: { width: 56, height: 56, borderRadius: 18, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-  heroTitle: { fontSize: 20, fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
-  heroSubtitle: { fontSize: 13, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 19 },
-  tipCard: { backgroundColor: COLORS.bgCard, borderRadius: 14, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: COLORS.border },
-  tipCardRead: { borderColor: 'rgba(0,230,118,0.15)' },
+  streakCount: { fontSize: 22, fontWeight: '800', color: '#ffab40' },
+  streakLabel: { fontSize: 11, color: COLORS.textMuted, fontWeight: '600' },
+  streakSubtext: { fontSize: 12, color: COLORS.textSecondary, lineHeight: 17 },
+  hero: { padding: 20, marginBottom: 16, alignItems: 'center' },
+  heroIconBg: {
+    width: 52, height: 52, borderRadius: 16, justifyContent: 'center', alignItems: 'center',
+    backgroundColor: 'rgba(0,102,255,0.15)', marginBottom: 10,
+  },
+  heroTitle: { fontSize: 18, fontWeight: '800', color: COLORS.textPrimary, marginBottom: 6 },
+  heroSubtitle: { fontSize: 12, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 18 },
+  tipCard: { padding: 14, marginBottom: 8 },
+  tipCardRead: { borderColor: 'rgba(0,230,118,0.12)' },
   tipHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   tipIcon: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   tipMeta: { flex: 1 },
-  tipTitle: { fontSize: 14, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 4 },
+  tipTitle: { fontSize: 13, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 4 },
   categoryPill: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-  categoryText: { fontSize: 10, fontWeight: '700' },
-  tipBody: { marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: COLORS.border },
-  tipContent: { fontSize: 13, color: COLORS.textSecondary, lineHeight: 20, marginBottom: 12 },
-  markReadBtn: { alignSelf: 'flex-start' },
-  markReadGradient: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
-  markReadText: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  categoryText: { fontSize: 9, fontWeight: '700' },
+  tipBody: { marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' },
+  tipContent: { fontSize: 12, color: COLORS.textSecondary, lineHeight: 19, marginBottom: 12 },
+  markReadGradient: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, alignSelf: 'flex-start' },
+  markReadText: { fontSize: 12, fontWeight: '700', color: '#fff' },
   readBadge: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  readBadgeText: { fontSize: 12, color: '#00e676', fontWeight: '600' },
-  allCategoriesTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary, marginTop: 20, marginBottom: 12 },
+  readBadgeText: { fontSize: 11, color: '#00e676', fontWeight: '600' },
+  allCategoriesTitle: { fontSize: 16, fontWeight: '700', color: COLORS.textPrimary, marginTop: 16, marginBottom: 12 },
   categoriesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  categoryCard: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.bgCard, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: COLORS.border },
+  categoryCard: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8 },
   catDot: { width: 8, height: 8, borderRadius: 4 },
-  catName: { fontSize: 12, fontWeight: '600', color: COLORS.textPrimary },
+  catName: { fontSize: 11, fontWeight: '600', color: COLORS.textPrimary },
   catCount: { fontSize: 10, color: COLORS.textMuted, fontWeight: '600' },
-  statsCard: { flexDirection: 'row', backgroundColor: COLORS.bgCard, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: COLORS.border },
-  statItem: { flex: 1, alignItems: 'center' },
-  statValue: { fontSize: 20, fontWeight: '800', color: COLORS.accent, marginBottom: 2 },
-  statLabel: { fontSize: 11, color: COLORS.textMuted, fontWeight: '500' },
-  statDivider: { width: 1, backgroundColor: COLORS.border, marginVertical: 2 },
+  statsRow: { flexDirection: 'row', gap: 8 },
+  statCard: { flex: 1, alignItems: 'center', padding: 14 },
+  statValue: { fontSize: 20, fontWeight: '800', marginBottom: 2 },
+  statLabel: { fontSize: 10, color: COLORS.textMuted, fontWeight: '500' },
 });
 
 export default DailyTipsScreen;

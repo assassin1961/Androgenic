@@ -1,13 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Animated,
+  View, Text, StyleSheet, ScrollView, SafeAreaView, StatusBar,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
-import { COLORS, GRADIENTS } from '../utils/theme';
+import { COLORS } from '../utils/theme';
 import { isLoggedIn, getWorkout as apiGetWorkout, toggleWorkout as apiToggleWorkout } from '../services/api';
+import GlassBackground from '../components/GlassBackground';
+import GlassCard from '../components/GlassCard';
+import AnimatedPressable from '../components/AnimatedPressable';
 
 const WORKOUT_KEY = 'androgenic_workouts';
 
@@ -59,31 +62,59 @@ const PROGRAMS = {
   },
 };
 
+const getDifficultyColor = (d) => {
+  if (d === 'Advanced') return '#ff4757';
+  if (d === 'Intermediate') return '#f5a623';
+  return '#00d26a';
+};
+
+const ExerciseCard = memo(({ exercise, done, onToggle, index }) => (
+  <Animated.View entering={FadeInRight.duration(250).delay(index * 50)}>
+    <AnimatedPressable onPress={onToggle}>
+      <GlassCard style={[styles.exCard, done && styles.exCardDone]}>
+        <View style={styles.exTop}>
+          <Ionicons
+            name={done ? 'checkmark-circle' : 'ellipse-outline'}
+            size={22}
+            color={done ? COLORS.scoreHigh : COLORS.textMuted}
+          />
+          <View style={styles.exInfo}>
+            <Text style={[styles.exName, done && styles.exNameDone]}>{exercise.name}</Text>
+            <Text style={styles.exMuscle}>{exercise.muscle}</Text>
+          </View>
+          <View style={[styles.diffBadge, { backgroundColor: getDifficultyColor(exercise.difficulty) + '18' }]}>
+            <Text style={[styles.diffText, { color: getDifficultyColor(exercise.difficulty) }]}>{exercise.difficulty}</Text>
+          </View>
+        </View>
+        <View style={styles.exStats}>
+          <View style={styles.exStat}>
+            <Text style={styles.exStatLabel}>Sets</Text>
+            <Text style={styles.exStatValue}>{exercise.sets}</Text>
+          </View>
+          <View style={styles.exStat}>
+            <Text style={styles.exStatLabel}>Reps</Text>
+            <Text style={styles.exStatValue}>{exercise.reps}</Text>
+          </View>
+          <View style={styles.exStat}>
+            <Text style={styles.exStatLabel}>Rest</Text>
+            <Text style={styles.exStatValue}>{exercise.rest}</Text>
+          </View>
+        </View>
+        <Text style={styles.exInstructions}>{exercise.instructions}</Text>
+      </GlassCard>
+    </AnimatedPressable>
+  </Animated.View>
+));
+
 const WorkoutScreen = ({ navigation }) => {
   const [activeProgram, setActiveProgram] = useState('facial');
   const [completedExercises, setCompleted] = useState({});
-  const cardAnims = useRef([...Array(15)].map(() => new Animated.Value(0))).current;
 
   useEffect(() => {
     loadState();
   }, []);
 
-  useEffect(() => {
-    animateCards();
-  }, [activeProgram]);
-
-  const animateCards = () => {
-    cardAnims.forEach((a) => a.setValue(0));
-    cardAnims.forEach((anim, i) => {
-      Animated.sequence([
-        Animated.delay(i * 70),
-        Animated.spring(anim, { toValue: 1, friction: 8, useNativeDriver: true }),
-      ]).start();
-    });
-  };
-
   const loadState = async () => {
-    // Try backend first
     if (isLoggedIn()) {
       try {
         const data = await apiGetWorkout();
@@ -124,142 +155,102 @@ const WorkoutScreen = ({ navigation }) => {
   const program = PROGRAMS[activeProgram];
   const completedCount = program.exercises.filter((e) => completedExercises[e.name]).length;
 
-  const getDifficultyColor = (d) => {
-    if (d === 'Advanced') return COLORS.scoreLow;
-    if (d === 'Intermediate') return COLORS.scoreMid;
-    return COLORS.scoreHigh;
-  };
-
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Workouts</Text>
-        <View style={{ width: 40 }} />
-      </View>
+    <GlassBackground variant="purple">
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" />
 
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Program Tabs */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabScroll} contentContainerStyle={styles.tabRow}>
-          {Object.entries(PROGRAMS).map(([key, prog]) => (
-            <TouchableOpacity
-              key={key}
-              onPress={() => setActiveProgram(key)}
-              style={[styles.progTab, activeProgram === key && { borderColor: prog.color, backgroundColor: prog.color + '15' }]}
-            >
-              <Ionicons name={prog.icon} size={18} color={activeProgram === key ? prog.color : COLORS.textMuted} />
-              <Text style={[styles.progTabText, activeProgram === key && { color: prog.color }]}>{prog.title}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {/* Program Header */}
-        <View style={styles.progHeader}>
-          <View>
-            <Text style={styles.progTitle}>{program.title}</Text>
-            <Text style={styles.progDesc}>{program.desc}</Text>
-          </View>
-          <View style={styles.progProgress}>
-            <Text style={[styles.progCount, { color: program.color }]}>{completedCount}/{program.exercises.length}</Text>
-          </View>
+        <View style={styles.header}>
+          <AnimatedPressable onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
+          </AnimatedPressable>
+          <Text style={styles.headerTitle}>Workouts</Text>
+          <View style={{ width: 40 }} />
         </View>
 
-        {/* Exercises */}
-        {program.exercises.map((ex, i) => {
-          const done = completedExercises[ex.name];
-          const animIdx = Math.min(i, cardAnims.length - 1);
-          return (
-            <Animated.View key={ex.name} style={{
-              opacity: cardAnims[animIdx],
-              transform: [{ translateY: cardAnims[animIdx].interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
-            }}>
-              <TouchableOpacity
-                style={[styles.exCard, done && styles.exCardDone]}
-                onPress={() => toggleExercise(ex.name)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.exTop}>
-                  <Ionicons
-                    name={done ? 'checkmark-circle' : 'ellipse-outline'}
-                    size={24}
-                    color={done ? COLORS.scoreHigh : COLORS.textMuted}
-                  />
-                  <View style={styles.exInfo}>
-                    <Text style={[styles.exName, done && styles.exNameDone]}>{ex.name}</Text>
-                    <Text style={styles.exMuscle}>{ex.muscle}</Text>
-                  </View>
-                  <View style={[styles.diffBadge, { backgroundColor: getDifficultyColor(ex.difficulty) + '20' }]}>
-                    <Text style={[styles.diffText, { color: getDifficultyColor(ex.difficulty) }]}>{ex.difficulty}</Text>
-                  </View>
-                </View>
-                <View style={styles.exStats}>
-                  <View style={styles.exStat}>
-                    <Text style={styles.exStatLabel}>Sets</Text>
-                    <Text style={styles.exStatValue}>{ex.sets}</Text>
-                  </View>
-                  <View style={styles.exStat}>
-                    <Text style={styles.exStatLabel}>Reps</Text>
-                    <Text style={styles.exStatValue}>{ex.reps}</Text>
-                  </View>
-                  <View style={styles.exStat}>
-                    <Text style={styles.exStatLabel}>Rest</Text>
-                    <Text style={styles.exStatValue}>{ex.rest}</Text>
-                  </View>
-                </View>
-                <Text style={styles.exInstructions}>{ex.instructions}</Text>
-              </TouchableOpacity>
-            </Animated.View>
-          );
-        })}
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          {/* Program Tabs */}
+          <Animated.View entering={FadeInDown.duration(400)}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabScroll} contentContainerStyle={styles.tabRow}>
+              {Object.entries(PROGRAMS).map(([key, prog]) => (
+                <AnimatedPressable
+                  key={key}
+                  onPress={() => { Haptics.selectionAsync(); setActiveProgram(key); }}
+                  style={[styles.progTab, activeProgram === key && { borderColor: prog.color, backgroundColor: prog.color + '12' }]}
+                >
+                  <Ionicons name={prog.icon} size={16} color={activeProgram === key ? prog.color : COLORS.textMuted} />
+                  <Text style={[styles.progTabText, activeProgram === key && { color: prog.color }]}>{prog.title}</Text>
+                </AnimatedPressable>
+              ))}
+            </ScrollView>
+          </Animated.View>
 
-        <View style={{ height: 40 }} />
-      </ScrollView>
-    </SafeAreaView>
+          {/* Program Header */}
+          <Animated.View entering={FadeInDown.duration(400).delay(80)}>
+            <View style={styles.progHeader}>
+              <View>
+                <Text style={styles.progTitle}>{program.title}</Text>
+                <Text style={styles.progDesc}>{program.desc}</Text>
+              </View>
+              <Text style={[styles.progCount, { color: program.color }]}>{completedCount}/{program.exercises.length}</Text>
+            </View>
+          </Animated.View>
+
+          {/* Exercises */}
+          {program.exercises.map((ex, i) => (
+            <ExerciseCard
+              key={ex.name}
+              exercise={ex}
+              done={completedExercises[ex.name]}
+              onToggle={() => toggleExercise(ex.name)}
+              index={i}
+            />
+          ))}
+
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </SafeAreaView>
+    </GlassBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bgPrimary },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingVertical: 12,
+    paddingHorizontal: 20, paddingVertical: 10,
   },
-  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.bgCard, justifyContent: 'center', alignItems: 'center' },
+  backBtn: {
+    width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.06)',
+    justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.borderLight,
+  },
   headerTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary },
   scroll: { paddingHorizontal: 20 },
   tabScroll: { maxHeight: 48, marginBottom: 16 },
   tabRow: { gap: 8 },
   progTab: {
     flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10,
-    borderRadius: 12, backgroundColor: COLORS.bgCard, borderWidth: 1, borderColor: COLORS.border,
+    borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: COLORS.borderLight,
   },
-  progTabText: { color: COLORS.textMuted, fontSize: 13, fontWeight: '600' },
-  progHeader: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14,
-  },
-  progTitle: { color: COLORS.textPrimary, fontSize: 20, fontWeight: '800' },
-  progDesc: { color: COLORS.textSecondary, fontSize: 13, marginTop: 2 },
-  progProgress: {},
-  progCount: { fontSize: 20, fontWeight: '800' },
-  exCard: {
-    backgroundColor: COLORS.bgCard, borderRadius: 16, padding: 16, marginBottom: 10,
-    borderWidth: 1, borderColor: COLORS.border,
-  },
-  exCardDone: { opacity: 0.6, borderColor: COLORS.scoreHigh + '30' },
+  progTabText: { color: COLORS.textMuted, fontSize: 12, fontWeight: '600' },
+  progHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  progTitle: { color: COLORS.textPrimary, fontSize: 18, fontWeight: '800' },
+  progDesc: { color: COLORS.textSecondary, fontSize: 12, marginTop: 2 },
+  progCount: { fontSize: 18, fontWeight: '800' },
+  exCard: { padding: 16, marginBottom: 8 },
+  exCardDone: { opacity: 0.6 },
   exTop: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
   exInfo: { flex: 1 },
-  exName: { color: COLORS.textPrimary, fontSize: 16, fontWeight: '700' },
+  exName: { color: COLORS.textPrimary, fontSize: 15, fontWeight: '700' },
   exNameDone: { textDecorationLine: 'line-through', color: COLORS.textMuted },
-  exMuscle: { color: COLORS.textMuted, fontSize: 12, marginTop: 1 },
+  exMuscle: { color: COLORS.textMuted, fontSize: 11, marginTop: 1 },
   diffBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  diffText: { fontSize: 10, fontWeight: '700' },
+  diffText: { fontSize: 9, fontWeight: '700' },
   exStats: { flexDirection: 'row', gap: 16, marginBottom: 8 },
   exStat: {},
-  exStatLabel: { color: COLORS.textMuted, fontSize: 10, fontWeight: '600' },
-  exStatValue: { color: COLORS.textPrimary, fontSize: 15, fontWeight: '700' },
-  exInstructions: { color: COLORS.textSecondary, fontSize: 13, lineHeight: 18 },
+  exStatLabel: { color: COLORS.textMuted, fontSize: 9, fontWeight: '600' },
+  exStatValue: { color: COLORS.textPrimary, fontSize: 14, fontWeight: '700' },
+  exInstructions: { color: COLORS.textSecondary, fontSize: 12, lineHeight: 17 },
 });
 
 export default WorkoutScreen;
