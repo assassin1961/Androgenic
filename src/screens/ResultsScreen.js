@@ -56,10 +56,18 @@ const ResultsScreen = ({ route, navigation }) => {
     { screen: 'AIRecommendations', params: undefined, icon: 'sparkles-outline', title: 'AI Recommendations', desc: 'Personalized action plan', color: '#0066ff', pro: true },
     { screen: 'GlowUpReport', params: undefined, icon: 'document-text-outline', title: 'Glow-Up Report', desc: 'Full analysis breakdown', color: '#00e676', pro: true },
     { screen: 'BeforeAfter', params: undefined, icon: 'images-outline', title: 'Transformations', desc: 'Track your journey', color: '#ffab40', pro: true },
-    { screen: 'Guides', params: undefined, icon: 'book-outline', title: 'Expert Guides', desc: '15+ looksmaxxing masterclasses', color: '#7c4dff' },
+    { screen: 'Guides', params: undefined, icon: 'book-outline', title: 'Expert Guides', desc: '23+ looksmaxxing masterclasses', color: '#7c4dff' },
     { screen: 'TestosteroneGuide', params: undefined, icon: 'trending-up-outline', title: 'T Optimization', desc: 'Natural testosterone protocol', color: '#ff3d00', pro: true },
     { screen: 'FaceFatGuide', params: undefined, icon: 'water-outline', title: 'Lean Face Protocol', desc: 'Lose face fat fast', color: '#00b0ff', pro: true },
     { screen: 'SoftMaxxingGuide', params: undefined, icon: 'diamond-outline', title: 'Soft Maxxing', desc: 'Style & fragrance mastery', color: '#ffd740', pro: true },
+    { screen: 'MinoxidilGuide', params: undefined, icon: 'color-wand-outline', title: 'Beard Growth', desc: 'Minoxidil & dermarolling protocol', color: '#e17055', pro: true },
+    { screen: 'CollagenGuide', params: undefined, icon: 'flower-outline', title: 'Anti-Aging', desc: 'Collagen rebuilding protocol', color: '#ff6090', pro: true },
+    { screen: 'FaceExercisesGuide', params: undefined, icon: 'barbell-outline', title: 'Face Exercises', desc: 'Facial yoga & muscle training', color: '#ff6b35', pro: true },
+    { screen: 'NeckTrainingGuide', params: undefined, icon: 'body-outline', title: 'Neck Training', desc: 'Frame your face with mass', color: '#ff4757', pro: true },
+    { screen: 'ColdExposureGuide', params: undefined, icon: 'snow-outline', title: 'Ice Face Method', desc: 'De-puff & tighten skin', color: '#00b0ff', pro: true },
+    { screen: 'MindsetGuide', params: undefined, icon: 'rocket-outline', title: 'Confidence', desc: 'Mindset & body language', color: '#ffd740', pro: true },
+    { screen: 'PhotoGuide', params: undefined, icon: 'camera-outline', title: 'Photo Mastery', desc: 'Best angles & lighting', color: '#ff6090', pro: true },
+    { screen: 'DatingProfileGuide', params: undefined, icon: 'heart-circle-outline', title: 'Dating Profile', desc: 'Optimize your online presence', color: '#ff5252', pro: true },
   ];
 
   return (

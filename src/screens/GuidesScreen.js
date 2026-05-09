@@ -49,6 +49,24 @@ const GUIDE_CATEGORIES = [
       { id: 'softmaxxing', screen: 'SoftMaxxingGuide', icon: 'diamond-outline', title: 'Soft Maxxing', desc: 'Style, fragrance & grooming mastery', color: '#ffd740', duration: '16 min', level: 'All Levels', pro: true },
     ],
   },
+  {
+    title: 'Body & Training',
+    guides: [
+      { id: 'faceexercises', screen: 'FaceExercisesGuide', icon: 'barbell-outline', title: 'Face Exercises', desc: 'Facial yoga & muscle definition training', color: '#ff6b35', duration: '22 min', level: 'All Levels', pro: true },
+      { id: 'necktraining', screen: 'NeckTrainingGuide', icon: 'body-outline', title: 'Neck Training', desc: 'Frame your face with a powerful neck', color: '#ff4757', duration: '15 min', level: 'Beginner', pro: true },
+      { id: 'coldexposure', screen: 'ColdExposureGuide', icon: 'snow-outline', title: 'Cold Exposure', desc: 'Ice face, de-puff & tighten skin', color: '#00b0ff', duration: '14 min', level: 'All Levels', pro: true },
+      { id: 'collagen', screen: 'CollagenGuide', icon: 'flower-outline', title: 'Collagen & Anti-Aging', desc: 'Turn back the clock on facial aging', color: '#ff6090', duration: '16 min', level: 'All Levels', pro: true },
+    ],
+  },
+  {
+    title: 'Social & Image',
+    guides: [
+      { id: 'minoxidil', screen: 'MinoxidilGuide', icon: 'color-wand-outline', title: 'Minoxidil & Beard', desc: 'Complete facial hair growth protocol', color: '#e17055', duration: '18 min', level: 'Intermediate', pro: true },
+      { id: 'photo', screen: 'PhotoGuide', icon: 'camera-outline', title: 'Photo & Angles', desc: 'Never take a bad photo again', color: '#ff6090', duration: '16 min', level: 'All Levels', pro: true },
+      { id: 'mindset', screen: 'MindsetGuide', icon: 'rocket-outline', title: 'Mindset & Confidence', desc: 'The invisible factor that changes everything', color: '#ffd740', duration: '17 min', level: 'All Levels', pro: true },
+      { id: 'datingprofile', screen: 'DatingProfileGuide', icon: 'heart-circle-outline', title: 'Dating & Social Profile', desc: 'Maximize your digital first impression', color: '#ff6090', duration: '15 min', level: 'All Levels', pro: true },
+    ],
+  },
 ];
 
 const allGuides = GUIDE_CATEGORIES.flatMap(c => c.guides);
@@ -119,7 +137,7 @@ const GuidesScreen = ({ navigation }) => {
                 <Text style={styles.statLabel}>Guides</Text>
               </GlassCard>
               <GlassCard variant="default" style={styles.statCard}>
-                <Text style={[styles.statNum, { color: COLORS.purple }]}>120+</Text>
+                <Text style={[styles.statNum, { color: COLORS.purple }]}>200+</Text>
                 <Text style={styles.statLabel}>Minutes</Text>
               </GlassCard>
               <GlassCard variant="default" style={styles.statCard}>
@@ -159,7 +177,7 @@ const GuidesScreen = ({ navigation }) => {
                   <Ionicons name="lock-open" size={16} color="#fff" />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.upsellTitle}>Unlock All Guides</Text>
-                    <Text style={styles.upsellSub}>6 premium guides including Testosterone, Lean Face & Soft Maxxing</Text>
+                    <Text style={styles.upsellSub}>14 premium masterclasses — T optimization, beard growth, photos & more</Text>
                   </View>
                   <Ionicons name="arrow-forward" size={14} color="#fff" />
                 </LinearGradient>

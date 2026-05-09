@@ -34,10 +34,18 @@ const PRO_FEATURES_DISPLAY = [
   { icon: 'document-text-outline', text: 'Detailed glow-up report', color: '#4d94ff' },
   { icon: 'trending-up', text: 'Progress & transformation tracking', color: '#1de9b6' },
   { icon: 'clipboard-outline', text: '12-week improvement plan', color: '#ff6090' },
-  { icon: 'book-outline', text: '15+ expert looksmaxxing guides', color: '#7c4dff' },
+  { icon: 'book-outline', text: '23+ expert looksmaxxing guides', color: '#7c4dff' },
   { icon: 'flask-outline', text: 'Testosterone optimization protocol', color: '#ff3d00' },
   { icon: 'water-outline', text: 'Lean face & de-bloating system', color: '#00b0ff' },
   { icon: 'diamond-outline', text: 'Style & fragrance masterclass', color: '#ffd740' },
+  { icon: 'color-wand-outline', text: 'Minoxidil & beard growth guide', color: '#e17055' },
+  { icon: 'flower-outline', text: 'Collagen & anti-aging protocol', color: '#ff6090' },
+  { icon: 'barbell-outline', text: 'Face exercises & facial yoga', color: '#ff6b35' },
+  { icon: 'body-outline', text: 'Neck training for face framing', color: '#ff4757' },
+  { icon: 'snow-outline', text: 'Cold exposure & ice face method', color: '#00b0ff' },
+  { icon: 'rocket-outline', text: 'Mindset & confidence mastery', color: '#ffd740' },
+  { icon: 'camera-outline', text: 'Photo angles & lighting guide', color: '#ff6090' },
+  { icon: 'heart-circle-outline', text: 'Dating profile optimization', color: '#ff5252' },
 ];
 
 const PaywallScreen = ({ navigation }) => {
@@ -167,7 +175,7 @@ const PaywallScreen = ({ navigation }) => {
             <Text style={styles.heroSubtitle}>Join 12,000+ members transforming their looks</Text>
             <View style={styles.heroStats}>
               <View style={styles.heroStat}>
-                <Text style={[styles.heroStatNum, { color: '#00e676' }]}>15+</Text>
+                <Text style={[styles.heroStatNum, { color: '#00e676' }]}>23+</Text>
                 <Text style={styles.heroStatLabel}>Guides</Text>
               </View>
               <View style={styles.heroStatDivider} />
@@ -230,6 +238,26 @@ const PaywallScreen = ({ navigation }) => {
                   <Ionicons name={f.icon} size={16} color={f.color} />
                 </View>
                 <Text style={styles.featureText}>{f.text}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Content Categories */}
+          <Text style={styles.featuresTitle}>PRO Content Library</Text>
+          <View style={styles.contentCategories}>
+            {[
+              { icon: 'book-outline', title: 'Expert Guides', count: '23+', color: '#7c4dff', desc: 'Deep-dive masterclasses' },
+              { icon: 'scan-outline', title: 'Face Analysis', count: '∞', color: '#0066ff', desc: 'Unlimited AI scans' },
+              { icon: 'fitness-outline', title: 'Training Plans', count: '6', color: '#ff6b35', desc: 'Face, jaw, neck workouts' },
+              { icon: 'flask-outline', title: 'Protocols', count: '8', color: '#00e676', desc: 'T, collagen, minox & more' },
+            ].map((cat, i) => (
+              <View key={i} style={styles.contentCatCard}>
+                <View style={[styles.contentCatIcon, { backgroundColor: cat.color + '15' }]}>
+                  <Ionicons name={cat.icon} size={20} color={cat.color} />
+                </View>
+                <Text style={styles.contentCatCount}>{cat.count}</Text>
+                <Text style={styles.contentCatTitle}>{cat.title}</Text>
+                <Text style={styles.contentCatDesc}>{cat.desc}</Text>
               </View>
             ))}
           </View>
@@ -360,6 +388,12 @@ const styles = StyleSheet.create({
   featureItem: { flexDirection: 'row', alignItems: 'center', width: '50%', paddingVertical: 6, gap: 8 },
   featureIconBg: { width: 28, height: 28, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   featureText: { fontSize: 12, color: COLORS.textSecondary, fontWeight: '500', flex: 1 },
+  contentCategories: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
+  contentCatCard: { width: '48%', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', alignItems: 'center' },
+  contentCatIcon: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  contentCatCount: { fontSize: 22, fontWeight: '900', color: COLORS.textPrimary, marginBottom: 2 },
+  contentCatTitle: { fontSize: 12, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 2 },
+  contentCatDesc: { fontSize: 10, color: COLORS.textMuted, textAlign: 'center' },
   plansTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 10 },
   planCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 16, marginBottom: 6, borderWidth: 2, borderColor: COLORS.border },
   planCardSelected: { borderColor: COLORS.accent, backgroundColor: 'rgba(0,102,255,0.06)' },

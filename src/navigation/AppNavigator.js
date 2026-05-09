@@ -55,6 +55,14 @@ import DailyTipsScreen from '../screens/DailyTipsScreen';
 import TestosteroneGuideScreen from '../screens/TestosteroneGuideScreen';
 import FaceFatGuideScreen from '../screens/FaceFatGuideScreen';
 import SoftMaxxingGuideScreen from '../screens/SoftMaxxingGuideScreen';
+import MinoxidilGuideScreen from '../screens/MinoxidilGuideScreen';
+import CollagenGuideScreen from '../screens/CollagenGuideScreen';
+import FaceExercisesGuideScreen from '../screens/FaceExercisesGuideScreen';
+import NeckTrainingGuideScreen from '../screens/NeckTrainingGuideScreen';
+import ColdExposureGuideScreen from '../screens/ColdExposureGuideScreen';
+import MindsetGuideScreen from '../screens/MindsetGuideScreen';
+import PhotoGuideScreen from '../screens/PhotoGuideScreen';
+import DatingProfileGuideScreen from '../screens/DatingProfileGuideScreen';
 import AndrogenicIQScreen from '../screens/AndrogenicIQScreen';
 import ForumScreen from '../screens/ForumScreen';
 import ChatScreen from '../screens/ChatScreen';
@@ -150,6 +158,14 @@ const AppNavigator = () => {
           <Stack.Screen name="TestosteroneGuide" component={TestosteroneGuideScreen} />
           <Stack.Screen name="FaceFatGuide" component={FaceFatGuideScreen} />
           <Stack.Screen name="SoftMaxxingGuide" component={SoftMaxxingGuideScreen} />
+          <Stack.Screen name="MinoxidilGuide" component={MinoxidilGuideScreen} />
+          <Stack.Screen name="CollagenGuide" component={CollagenGuideScreen} />
+          <Stack.Screen name="FaceExercisesGuide" component={FaceExercisesGuideScreen} />
+          <Stack.Screen name="NeckTrainingGuide" component={NeckTrainingGuideScreen} />
+          <Stack.Screen name="ColdExposureGuide" component={ColdExposureGuideScreen} />
+          <Stack.Screen name="MindsetGuide" component={MindsetGuideScreen} />
+          <Stack.Screen name="PhotoGuide" component={PhotoGuideScreen} />
+          <Stack.Screen name="DatingProfileGuide" component={DatingProfileGuideScreen} />
           <Stack.Screen name="DailyTips" component={DailyTipsScreen} />
           <Stack.Screen name="AndrogenicIQ" component={AndrogenicIQScreen} />
           <Stack.Screen name="Forum" component={ForumScreen} />
