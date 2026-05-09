@@ -52,6 +52,9 @@ import SymmetryGuideScreen from '../screens/SymmetryGuideScreen';
 import GroomingGuideScreen from '../screens/GroomingGuideScreen';
 import SupplementsGuideScreen from '../screens/SupplementsGuideScreen';
 import DailyTipsScreen from '../screens/DailyTipsScreen';
+import TestosteroneGuideScreen from '../screens/TestosteroneGuideScreen';
+import FaceFatGuideScreen from '../screens/FaceFatGuideScreen';
+import SoftMaxxingGuideScreen from '../screens/SoftMaxxingGuideScreen';
 import AndrogenicIQScreen from '../screens/AndrogenicIQScreen';
 import ForumScreen from '../screens/ForumScreen';
 import ChatScreen from '../screens/ChatScreen';
@@ -144,6 +147,9 @@ const AppNavigator = () => {
           <Stack.Screen name="SymmetryGuide" component={SymmetryGuideScreen} />
           <Stack.Screen name="GroomingGuide" component={GroomingGuideScreen} />
           <Stack.Screen name="SupplementsGuide" component={SupplementsGuideScreen} />
+          <Stack.Screen name="TestosteroneGuide" component={TestosteroneGuideScreen} />
+          <Stack.Screen name="FaceFatGuide" component={FaceFatGuideScreen} />
+          <Stack.Screen name="SoftMaxxingGuide" component={SoftMaxxingGuideScreen} />
           <Stack.Screen name="DailyTips" component={DailyTipsScreen} />
           <Stack.Screen name="AndrogenicIQ" component={AndrogenicIQScreen} />
           <Stack.Screen name="Forum" component={ForumScreen} />

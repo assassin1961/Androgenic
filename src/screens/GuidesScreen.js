@@ -41,6 +41,14 @@ const GUIDE_CATEGORIES = [
       { id: 'supplements', screen: 'SupplementsGuide', icon: 'flask-outline', title: 'Supplements Guide', desc: 'Vitamins & supplements for aesthetics', color: '#ffab40', duration: '12 min', level: 'Intermediate', pro: true },
     ],
   },
+  {
+    title: 'PRO Masterclasses',
+    guides: [
+      { id: 'testosterone', screen: 'TestosteroneGuide', icon: 'trending-up-outline', title: 'Testosterone Guide', desc: 'Natural T optimization for facial masculinity', color: '#ff3d00', duration: '20 min', level: 'Advanced', pro: true },
+      { id: 'facefat', screen: 'FaceFatGuide', icon: 'water-outline', title: 'Lean Face Protocol', desc: 'Lose face fat & reveal bone structure', color: '#00b0ff', duration: '18 min', level: 'Intermediate', pro: true },
+      { id: 'softmaxxing', screen: 'SoftMaxxingGuide', icon: 'diamond-outline', title: 'Soft Maxxing', desc: 'Style, fragrance & grooming mastery', color: '#ffd740', duration: '16 min', level: 'All Levels', pro: true },
+    ],
+  },
 ];
 
 const allGuides = GUIDE_CATEGORIES.flatMap(c => c.guides);
@@ -151,7 +159,7 @@ const GuidesScreen = ({ navigation }) => {
                   <Ionicons name="lock-open" size={16} color="#fff" />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.upsellTitle}>Unlock All Guides</Text>
-                    <Text style={styles.upsellSub}>Eye Area, Symmetry & Supplements guides</Text>
+                    <Text style={styles.upsellSub}>6 premium guides including Testosterone, Lean Face & Soft Maxxing</Text>
                   </View>
                   <Ionicons name="arrow-forward" size={14} color="#fff" />
                 </LinearGradient>

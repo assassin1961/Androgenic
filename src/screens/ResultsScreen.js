@@ -56,6 +56,10 @@ const ResultsScreen = ({ route, navigation }) => {
     { screen: 'AIRecommendations', params: undefined, icon: 'sparkles-outline', title: 'AI Recommendations', desc: 'Personalized action plan', color: '#0066ff', pro: true },
     { screen: 'GlowUpReport', params: undefined, icon: 'document-text-outline', title: 'Glow-Up Report', desc: 'Full analysis breakdown', color: '#00e676', pro: true },
     { screen: 'BeforeAfter', params: undefined, icon: 'images-outline', title: 'Transformations', desc: 'Track your journey', color: '#ffab40', pro: true },
+    { screen: 'Guides', params: undefined, icon: 'book-outline', title: 'Expert Guides', desc: '15+ looksmaxxing masterclasses', color: '#7c4dff' },
+    { screen: 'TestosteroneGuide', params: undefined, icon: 'trending-up-outline', title: 'T Optimization', desc: 'Natural testosterone protocol', color: '#ff3d00', pro: true },
+    { screen: 'FaceFatGuide', params: undefined, icon: 'water-outline', title: 'Lean Face Protocol', desc: 'Lose face fat fast', color: '#00b0ff', pro: true },
+    { screen: 'SoftMaxxingGuide', params: undefined, icon: 'diamond-outline', title: 'Soft Maxxing', desc: 'Style & fragrance mastery', color: '#ffd740', pro: true },
   ];
 
   return (
@@ -221,29 +225,37 @@ const ResultsScreen = ({ route, navigation }) => {
         <Animated.View entering={FadeInDown.duration(350).delay(780)} style={styles.featureCards}>
           <Text style={styles.sectionTitle}>Explore</Text>
           {featureItems.map((item, i) => (
-            <TouchableOpacity
-              key={i}
-              style={styles.featureCard}
-              onPress={() => navigation.navigate(item.screen, item.params)}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.featureIconBg, { backgroundColor: item.color + '18' }]}>
-                <Ionicons name={item.icon} size={20} color={item.color} />
-              </View>
-              <View style={styles.featureCardContent}>
-                <Text style={styles.featureCardTitle}>{item.title}</Text>
-                <Text style={styles.featureCardDesc}>{item.desc}</Text>
-              </View>
-              {item.pro && !pro ? (
-                <View style={styles.proBadgeSm}>
-                  <Text style={styles.proBadgeText}>PRO</Text>
+            <Animated.View key={i} entering={FadeInDown.duration(250).delay(800 + i * 40)}>
+              <TouchableOpacity
+                style={styles.featureCard}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  if (item.pro && !pro) {
+                    navigation.navigate('Paywall');
+                  } else {
+                    navigation.navigate(item.screen, item.params);
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.featureIconBg, { backgroundColor: item.color + '18' }]}>
+                  <Ionicons name={item.icon} size={20} color={item.color} />
                 </View>
-              ) : (
-                <View style={styles.featureArrow}>
-                  <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+                <View style={styles.featureCardContent}>
+                  <Text style={styles.featureCardTitle}>{item.title}</Text>
+                  <Text style={styles.featureCardDesc}>{item.desc}</Text>
                 </View>
-              )}
-            </TouchableOpacity>
+                {item.pro && !pro ? (
+                  <View style={styles.proBadgeSm}>
+                    <Text style={styles.proBadgeText}>PRO</Text>
+                  </View>
+                ) : (
+                  <View style={styles.featureArrow}>
+                    <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+                  </View>
+                )}
+              </TouchableOpacity>
+            </Animated.View>
           ))}
         </Animated.View>
 

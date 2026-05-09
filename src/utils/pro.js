@@ -40,6 +40,10 @@ export const PRO_CONFIG = {
     '12-week improvement plan',
     'Unlimited tips & recommendations',
     'Unlimited history',
+    '15+ expert looksmaxxing guides',
+    'Testosterone optimization protocol',
+    'Lean face & de-bloating system',
+    'Style & fragrance masterclass',
   ],
 };
 

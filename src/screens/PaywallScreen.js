@@ -18,9 +18,11 @@ import GlassBackground from '../components/GlassBackground';
 const { width } = Dimensions.get('window');
 
 const SOCIAL_PROOF = [
-  { name: 'Jake M.', text: 'Score went from 5.8 to 7.2 in 3 months', rating: 5, improvement: '+1.4' },
-  { name: 'Alex R.', text: 'The facial ratios showed me exactly what to fix', rating: 5, improvement: '+1.7' },
-  { name: 'Chris D.', text: 'Best investment in my self-improvement journey', rating: 5, improvement: '+1.1' },
+  { name: 'Jake M.', text: 'Score went from 5.8 to 7.2 in 3 months following the guides', rating: 5, improvement: '+1.4', weeks: '12 wks' },
+  { name: 'Alex R.', text: 'The facial ratios showed me exactly what to fix. Testosterone guide is elite', rating: 5, improvement: '+1.7', weeks: '8 wks' },
+  { name: 'Chris D.', text: 'Best investment in my self-improvement journey. Lean face protocol works', rating: 5, improvement: '+1.1', weeks: '6 wks' },
+  { name: 'Marcus T.', text: 'Soft maxxing guide alone was worth the sub. Completely changed my style game', rating: 5, improvement: '+0.9', weeks: '4 wks' },
+  { name: 'Ryan K.', text: 'The AI recommendations are crazy accurate. My jawline looks way more defined now', rating: 5, improvement: '+1.5', weeks: '10 wks' },
 ];
 
 const PRO_FEATURES_DISPLAY = [
@@ -32,6 +34,10 @@ const PRO_FEATURES_DISPLAY = [
   { icon: 'document-text-outline', text: 'Detailed glow-up report', color: '#4d94ff' },
   { icon: 'trending-up', text: 'Progress & transformation tracking', color: '#1de9b6' },
   { icon: 'clipboard-outline', text: '12-week improvement plan', color: '#ff6090' },
+  { icon: 'book-outline', text: '15+ expert looksmaxxing guides', color: '#7c4dff' },
+  { icon: 'flask-outline', text: 'Testosterone optimization protocol', color: '#ff3d00' },
+  { icon: 'water-outline', text: 'Lean face & de-bloating system', color: '#00b0ff' },
+  { icon: 'diamond-outline', text: 'Style & fragrance masterclass', color: '#ffd740' },
 ];
 
 const PaywallScreen = ({ navigation }) => {
@@ -159,6 +165,22 @@ const PaywallScreen = ({ navigation }) => {
             </LinearGradient>
             <Text style={styles.heroTitle}>Androgenic PRO</Text>
             <Text style={styles.heroSubtitle}>Join 12,000+ members transforming their looks</Text>
+            <View style={styles.heroStats}>
+              <View style={styles.heroStat}>
+                <Text style={[styles.heroStatNum, { color: '#00e676' }]}>15+</Text>
+                <Text style={styles.heroStatLabel}>Guides</Text>
+              </View>
+              <View style={styles.heroStatDivider} />
+              <View style={styles.heroStat}>
+                <Text style={[styles.heroStatNum, { color: '#0066ff' }]}>∞</Text>
+                <Text style={styles.heroStatLabel}>Scans</Text>
+              </View>
+              <View style={styles.heroStatDivider} />
+              <View style={styles.heroStat}>
+                <Text style={[styles.heroStatNum, { color: '#ff6090' }]}>7</Text>
+                <Text style={styles.heroStatLabel}>Categories</Text>
+              </View>
+            </View>
           </Animated.View>
 
           {/* Urgency Banner */}
@@ -184,6 +206,12 @@ const PaywallScreen = ({ navigation }) => {
                   </View>
                 </View>
                 <Text style={styles.socialText}>"{s.text}"</Text>
+                {s.weeks && (
+                  <View style={styles.socialWeeks}>
+                    <Ionicons name="time-outline" size={10} color={COLORS.textMuted} />
+                    <Text style={styles.socialWeeksText}>{s.weeks}</Text>
+                  </View>
+                )}
                 <View style={styles.socialStars}>
                   {[...Array(s.rating)].map((_, si) => (
                     <Ionicons key={si} name="star" size={12} color={COLORS.gold} />
@@ -307,7 +335,12 @@ const styles = StyleSheet.create({
   hero: { alignItems: 'center', marginBottom: 16 },
   proBadgeLg: { width: 72, height: 72, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginBottom: 14, ...SHADOWS.accentGlow },
   heroTitle: { fontSize: 28, fontWeight: '900', color: COLORS.gold, letterSpacing: 1, marginBottom: 4 },
-  heroSubtitle: { fontSize: 14, color: COLORS.textSecondary },
+  heroSubtitle: { fontSize: 14, color: COLORS.textSecondary, marginBottom: 14 },
+  heroStats: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 20, gap: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  heroStat: { alignItems: 'center' },
+  heroStatNum: { fontSize: 18, fontWeight: '900' },
+  heroStatLabel: { fontSize: 9, color: COLORS.textMuted, fontWeight: '600', marginTop: 1 },
+  heroStatDivider: { width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.08)' },
   urgencyBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,215,0,0.08)', borderRadius: 12, paddingVertical: 10, gap: 8, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,215,0,0.2)' },
   urgencyText: { fontSize: 13, fontWeight: '700', color: COLORS.gold },
   socialScroll: { marginBottom: 20 },
@@ -319,6 +352,8 @@ const styles = StyleSheet.create({
   socialImp: { backgroundColor: 'rgba(0,230,118,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
   socialImpText: { fontSize: 11, fontWeight: '800', color: '#00e676' },
   socialText: { fontSize: 12, color: COLORS.textSecondary, lineHeight: 17, marginBottom: 6, fontStyle: 'italic' },
+  socialWeeks: { flexDirection: 'row', alignItems: 'center', gap: 3, marginBottom: 4 },
+  socialWeeksText: { fontSize: 9, color: COLORS.textMuted, fontWeight: '600' },
   socialStars: { flexDirection: 'row', gap: 1 },
   featuresTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 12 },
   featuresGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 20 },
