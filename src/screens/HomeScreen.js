@@ -131,6 +131,8 @@ const HomeScreen = ({ navigation }) => {
     { icon: 'water', text: 'Water', screen: 'WaterTracker', color: '#00b4d8' },
     { icon: 'gift', text: 'Refer', screen: 'Referral', color: '#FFD700' },
     { icon: 'book', text: 'Guides', screen: 'Guides', color: '#1de9b6' },
+    { icon: 'options', text: 'Calibrate', screen: 'Calibration', color: '#7c4dff' },
+    { icon: 'images', text: 'Photo Rank', screen: 'PhotoRanking', color: '#ff6090' },
   ];
 
   return (
@@ -338,6 +340,9 @@ const HomeScreen = ({ navigation }) => {
                 { icon: 'sparkles', title: 'Glow-Up Simulator', sub: 'See your potential transformation', screen: 'GlowUpSimulator', color: '#00e5ff' },
                 { icon: 'document-text', title: 'Glow-Up Report', sub: 'Detailed analysis breakdown', screen: 'GlowUpReport', color: '#00e676' },
                 { icon: 'images', title: 'Transformations', sub: 'Before & after tracking', screen: 'BeforeAfter', color: '#ffab40' },
+                { icon: 'stats-chart', title: 'Statistical Report', sub: 'Bell curve & percentile analysis', screen: 'StatisticalReport', color: '#4d94ff' },
+                { icon: 'earth', title: 'Demographic Insights', sub: 'How different groups perceive you', screen: 'DemographicInsights', color: '#7c4dff' },
+                { icon: 'camera', title: 'Photo Ranking', sub: 'Find your best photo', screen: 'PhotoRanking', color: '#ff6090' },
               ].map((item, i) => (
                 <TouchableOpacity key={i} style={styles.proCard} onPress={() => navigation.navigate(item.screen)} activeOpacity={0.7}>
                   <View style={[styles.proCardIcon, { backgroundColor: item.color + '12' }]}>

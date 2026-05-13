@@ -45,6 +45,8 @@ const ResultsScreen = ({ route, navigation }) => {
   }, []);
 
   const featureItems = [
+    { screen: 'StatisticalReport', params: { scores }, icon: 'stats-chart-outline', title: 'Statistical Report', desc: 'Bell curve, percentile & std deviation', color: '#4d94ff', pro: true },
+    { screen: 'DemographicInsights', params: { scores }, icon: 'earth-outline', title: 'Demographic Insights', desc: 'How different groups perceive you', color: '#7c4dff', pro: true },
     { screen: 'GlowUpSimulator', params: { scores, imageUri }, icon: 'sparkles-outline', title: 'Glow-Up Simulator', desc: 'See your potential transformation', color: '#ff6090', pro: true },
     { screen: 'ShareCard', params: { scores, imageUri }, icon: 'share-social-outline', title: 'Share Card', desc: 'Create a viral share card', color: '#00e5ff' },
     { screen: 'FaceShape', params: { scores }, icon: 'shapes-outline', title: 'Face Shape', desc: 'Discover your face shape', color: '#3388ff' },
@@ -68,6 +70,8 @@ const ResultsScreen = ({ route, navigation }) => {
     { screen: 'MindsetGuide', params: undefined, icon: 'rocket-outline', title: 'Confidence', desc: 'Mindset & body language', color: '#ffd740', pro: true },
     { screen: 'PhotoGuide', params: undefined, icon: 'camera-outline', title: 'Photo Mastery', desc: 'Best angles & lighting', color: '#ff6090', pro: true },
     { screen: 'DatingProfileGuide', params: undefined, icon: 'heart-circle-outline', title: 'Dating Profile', desc: 'Optimize your online presence', color: '#ff5252', pro: true },
+    { screen: 'PhotoRanking', params: undefined, icon: 'images-outline', title: 'Photo Ranking', desc: 'Find your best photo with AI', color: '#ff6090', pro: true },
+    { screen: 'Calibration', params: undefined, icon: 'options-outline', title: 'Calibrate Model', desc: 'Train the AI for better accuracy', color: '#00e5ff' },
   ];
 
   return (

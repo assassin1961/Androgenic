@@ -46,6 +46,10 @@ const PRO_FEATURES_DISPLAY = [
   { icon: 'rocket-outline', text: 'Mindset & confidence mastery', color: '#ffd740' },
   { icon: 'camera-outline', text: 'Photo angles & lighting guide', color: '#ff6090' },
   { icon: 'heart-circle-outline', text: 'Dating profile optimization', color: '#ff5252' },
+  { icon: 'stats-chart-outline', text: 'Statistical report & bell curve', color: '#4d94ff' },
+  { icon: 'earth-outline', text: 'Demographic perception breakdown', color: '#7c4dff' },
+  { icon: 'images-outline', text: 'AI photo ranking system', color: '#ff6090' },
+  { icon: 'options-outline', text: 'Model calibration engine', color: '#00e5ff' },
 ];
 
 const PaywallScreen = ({ navigation }) => {
@@ -248,7 +252,7 @@ const PaywallScreen = ({ navigation }) => {
             {[
               { icon: 'book-outline', title: 'Expert Guides', count: '23+', color: '#7c4dff', desc: 'Deep-dive masterclasses' },
               { icon: 'scan-outline', title: 'Face Analysis', count: '∞', color: '#0066ff', desc: 'Unlimited AI scans' },
-              { icon: 'fitness-outline', title: 'Training Plans', count: '6', color: '#ff6b35', desc: 'Face, jaw, neck workouts' },
+              { icon: 'stats-chart-outline', title: 'Data Science', count: '4', color: '#4d94ff', desc: 'Stats, demographics, ranking' },
               { icon: 'flask-outline', title: 'Protocols', count: '8', color: '#00e676', desc: 'T, collagen, minox & more' },
             ].map((cat, i) => (
               <View key={i} style={styles.contentCatCard}>

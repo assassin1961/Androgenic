@@ -63,6 +63,10 @@ import ColdExposureGuideScreen from '../screens/ColdExposureGuideScreen';
 import MindsetGuideScreen from '../screens/MindsetGuideScreen';
 import PhotoGuideScreen from '../screens/PhotoGuideScreen';
 import DatingProfileGuideScreen from '../screens/DatingProfileGuideScreen';
+import CalibrationScreen from '../screens/CalibrationScreen';
+import DemographicInsightsScreen from '../screens/DemographicInsightsScreen';
+import StatisticalReportScreen from '../screens/StatisticalReportScreen';
+import PhotoRankingScreen from '../screens/PhotoRankingScreen';
 import AndrogenicIQScreen from '../screens/AndrogenicIQScreen';
 import ForumScreen from '../screens/ForumScreen';
 import ChatScreen from '../screens/ChatScreen';
@@ -166,6 +170,10 @@ const AppNavigator = () => {
           <Stack.Screen name="MindsetGuide" component={MindsetGuideScreen} />
           <Stack.Screen name="PhotoGuide" component={PhotoGuideScreen} />
           <Stack.Screen name="DatingProfileGuide" component={DatingProfileGuideScreen} />
+          <Stack.Screen name="Calibration" component={CalibrationScreen} />
+          <Stack.Screen name="DemographicInsights" component={DemographicInsightsScreen} />
+          <Stack.Screen name="StatisticalReport" component={StatisticalReportScreen} />
+          <Stack.Screen name="PhotoRanking" component={PhotoRankingScreen} />
           <Stack.Screen name="DailyTips" component={DailyTipsScreen} />
           <Stack.Screen name="AndrogenicIQ" component={AndrogenicIQScreen} />
           <Stack.Screen name="Forum" component={ForumScreen} />

@@ -52,6 +52,10 @@ export const PRO_CONFIG = {
     'Mindset & confidence mastery',
     'Photo angles & lighting guide',
     'Dating profile optimization',
+    'Statistical report & bell curve',
+    'Demographic perception breakdown',
+    'AI photo ranking system',
+    'Model calibration engine',
   ],
 };
 
