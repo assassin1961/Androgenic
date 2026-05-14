@@ -39,6 +39,10 @@
         "EXPO_PUBLIC_ENV": "production"
       }
     },
+    "production:ios": {
+      "extends": "production",
+      "platform": "ios"
+    },
     "production:android": {
       "extends": "production",
       "platform": "android",
@@ -48,9 +52,9 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "YOUR_APPLE_ID@email.com",
-        "ascAppId": "YOUR_APP_STORE_CONNECT_APP_ID",
-        "appleTeamId": "YOUR_APPLE_TEAM_ID"
+        "appleId": "${APPLE_ID}",
+        "ascAppId": "${ASC_APP_ID}",
+        "appleTeamId": "${APPLE_TEAM_ID}"
       },
       "android": {
         "serviceAccountKeyPath": "./google-services.json",

@@ -1,6 +1,6 @@
 {
   "name": "androgenic-expo",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "main": "index.js",
   "scripts": {
     "start": "expo start",
@@ -17,7 +17,11 @@
     "submit:android-internal": "eas submit --platform android --profile internal-testing",
     "submit:android-beta": "eas submit --platform android --profile open-testing",
     "build:all": "eas build --platform all --profile production",
-    "update": "eas update --branch production --message"
+    "deploy:ios": "eas build --platform ios --profile production --auto-submit",
+    "deploy:android": "eas build --platform android --profile production --auto-submit",
+    "deploy:all": "eas build --platform all --profile production --auto-submit",
+    "update": "eas update --branch production --message",
+    "update:ios": "eas update --branch production --platform ios --message"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

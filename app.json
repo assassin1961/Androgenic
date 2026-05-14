@@ -2,7 +2,7 @@
   "expo": {
     "name": "Androgenic",
     "slug": "adeelahmedrahman",
-    "version": "1.1.0",
+    "version": "2.0.0",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -22,7 +22,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.androgenic.faceanalysis",
-      "buildNumber": "2",
+      "buildNumber": "3",
       "infoPlist": {
         "NSCameraUsageDescription": "Androgenic uses the camera to scan and analyze your facial features for personalized improvement recommendations.",
         "NSPhotoLibraryUsageDescription": "Androgenic accesses your photo library so you can select photos for facial analysis.",
@@ -49,7 +49,7 @@
     },
     "android": {
       "package": "com.androgenic.faceanalysis",
-      "versionCode": 6,
+      "versionCode": 7,
       "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",

@@ -64,6 +64,10 @@ export const PRO_ENTITLEMENTS = [
   'transformations',
   'unlimited_tips',
   'unlimited_history',
+  'pro_guides',
+  'statistical_report',
+  'demographic_insights',
+  'photo_ranking',
 ];
 
 // Platform-specific subscription management URLs
