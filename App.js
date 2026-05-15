@@ -1,26 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { StatusBar, View } from 'react-native';
+import { StatusBar, View, Platform } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
-import AppLockScreen, { isLockEnabled } from './src/screens/AppLockScreen';
-import { endIAP } from './src/services/iapService';
-import { loadToken } from './src/services/api';
+
+const isNative = Platform.OS !== 'web';
 
 export default function App() {
   const [locked, setLocked] = useState(false);
-  const [checkingLock, setCheckingLock] = useState(true);
+  const [checkingLock, setCheckingLock] = useState(isNative);
 
   useEffect(() => {
-    // Load auth token and check lock in parallel
-    Promise.all([
-      isLockEnabled(),
-      loadToken(),
-    ]).then(([lockEnabled]) => {
-      setLocked(lockEnabled);
+    if (!isNative) return;
+    (async () => {
+      try {
+        const { isLockEnabled } = require('./src/screens/AppLockScreen');
+        const { loadToken } = require('./src/services/api');
+        const [lockEnabled] = await Promise.all([isLockEnabled(), loadToken()]);
+        setLocked(lockEnabled);
+      } catch {}
       setCheckingLock(false);
-    });
+    })();
 
     return () => {
-      endIAP();
+      try {
+        const { endIAP } = require('./src/services/iapService');
+        endIAP();
+      } catch {}
     };
   }, []);
 
@@ -36,9 +40,10 @@ export default function App() {
     <>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
       <AppNavigator />
-      {locked && (
-        <AppLockScreen onUnlock={() => setLocked(false)} />
-      )}
+      {isNative && locked && (() => {
+        const AppLockScreen = require('./src/screens/AppLockScreen').default;
+        return <AppLockScreen onUnlock={() => setLocked(false)} />;
+      })()}
     </>
   );
 }
