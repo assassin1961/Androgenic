@@ -1,52 +1,67 @@
 // ─── Color System ───────────────────────────────────────────────────
+// Premium ultra-minimalist dark aesthetic
 export const COLORS = {
-  // Backgrounds — true blacks with subtle blue tint for OLED
+  // Backgrounds — pure blacks for OLED
   bgPrimary: '#000000',
-  bgSecondary: '#050510',
-  bgTertiary: '#0a0a18',
-  bgCard: '#0d0d1a',
-  bgCardHover: '#14141f',
-  bgElevated: '#11111e',
+  bgSecondary: '#0A0A0A',
+  bgTertiary: '#141414',
+  bgCard: '#1A1A1A',
+  bgCardHover: '#222222',
+  bgElevated: '#1A1A1A',
 
   // Glass surfaces — translucent overlays for BlurView
-  bgGlass: 'rgba(10,10,24,0.55)',
-  bgGlassLight: 'rgba(255,255,255,0.04)',
-  bgGlassMid: 'rgba(20,20,40,0.45)',
-  bgGlassHeavy: 'rgba(8,8,16,0.85)',
-  bgGlassAccent: 'rgba(0,102,255,0.10)',
+  bgGlass: 'rgba(10,10,10,0.55)',
+  bgGlassLight: 'rgba(255,255,255,0.03)',
+  bgGlassMid: 'rgba(20,20,20,0.45)',
+  bgGlassHeavy: 'rgba(0,0,0,0.85)',
+  bgGlassAccent: 'rgba(212,175,55,0.08)',
 
   // Text
-  textPrimary: '#ffffff',
-  textSecondary: '#a8a8b8',
-  textTertiary: '#6a6a7a',
-  textMuted: '#4a4a5a',
+  textPrimary: '#FFFFFF',
+  textSecondary: '#999999',
+  textTertiary: '#666666',
+  textMuted: '#444444',
+  textGold: '#D4AF37',
 
-  // Brand — electric blue
-  accent: '#0066ff',
-  accentLight: '#4d94ff',
-  accentDark: '#0044cc',
-  accentNeon: '#00aaff',
-  accentGlow: 'rgba(0,102,255,0.35)',
-  accentGlowSoft: 'rgba(0,102,255,0.15)',
+  // Brand — classic gold
+  accent: '#D4AF37',
+  accentLight: '#FFD700',
+  accentDark: '#B8960F',
+  accentNeon: '#FFD700',
+  accentGlow: 'rgba(212,175,55,0.35)',
+  accentGlowSoft: 'rgba(212,175,55,0.15)',
 
-  // Score colors
-  scoreHigh: '#00e676',
-  scoreMid: '#ffab40',
-  scoreLow: '#ff5252',
+  // Score colors (Madden-style rating system)
+  scoreExcellent: '#34C759',   // 8-10
+  scoreGood: '#4A90D9',        // 6-7.9
+  scoreAverage: '#FF9500',     // 4-5.9
+  scoreBelow: '#FF3B30',       // 0-3.9
+  // Legacy aliases
+  scoreHigh: '#34C759',
+  scoreMid: '#FF9500',
+  scoreLow: '#FF3B30',
+
+  // Accent palette
+  blue: '#4A90D9',
+  green: '#34C759',
+  red: '#FF3B30',
+  orange: '#FF9500',
 
   // Borders
-  border: 'rgba(255,255,255,0.06)',
-  borderLight: 'rgba(255,255,255,0.10)',
-  borderAccent: 'rgba(0,102,255,0.30)',
-  borderGlow: 'rgba(0,170,255,0.45)',
+  border: '#1F1F1F',
+  borderLight: '#2A2A2A',
+  borderAccent: 'rgba(212,175,55,0.30)',
+  borderGlow: 'rgba(212,175,55,0.45)',
+  divider: '#1A1A1A',
 
   // Overlays
   overlay: 'rgba(0,0,0,0.85)',
   overlayLight: 'rgba(0,0,0,0.5)',
 
   // Premium accents
-  gold: '#FFD700',
-  goldDark: '#B8860B',
+  gold: '#D4AF37',
+  goldDark: '#B8960F',
+  goldBright: '#FFD700',
   cyan: '#00e5ff',
   pink: '#ff6090',
   teal: '#1de9b6',
@@ -54,65 +69,103 @@ export const COLORS = {
   violet: '#7c3aed',
 
   // Status
-  success: '#00e676',
-  warning: '#ffab40',
-  error: '#ff5252',
-  info: '#0066ff',
+  success: '#34C759',
+  warning: '#FF9500',
+  error: '#FF3B30',
+  info: '#4A90D9',
 };
 
 // ─── Gradients ──────────────────────────────────────────────────────
 export const GRADIENTS = {
-  accent: ['#0066ff', '#4d94ff'],
-  accentAlt: ['#0066ff', '#0099ff'],
-  accentVert: ['#0066ff', '#0044cc'],
-  accentNeon: ['#0066ff', '#00aaff', '#4d94ff'],
-  gold: ['#FFD700', '#FFA500'],
-  goldShine: ['#FFD700', '#FFA500', '#FFD700'],
-  dark: ['#0d0d1a', '#000000'],
-  scoreHigh: ['#00e676', '#00c853'],
-  scoreMid: ['#ffab40', '#ff9100'],
-  scoreLow: ['#ff5252', '#d50000'],
+  // Gold/premium gradients
+  gold: ['#D4AF37', '#FFD700', '#D4AF37'],
+  goldShine: ['#D4AF37', '#FFD700', '#D4AF37'],
+  accent: ['#D4AF37', '#FFD700'],
+  accentAlt: ['#D4AF37', '#B8960F'],
+  accentVert: ['#D4AF37', '#B8960F'],
+  accentNeon: ['#D4AF37', '#FFD700', '#D4AF37'],
+
+  // Dark gradients
+  dark: ['#000000', '#0A0A0A', '#000000'],
+  card: ['#1A1A1A', '#141414'],
+  score: ['#1A1A1A', '#111111'],
+
+  // Score gradients
+  scoreHigh: ['#34C759', '#2DA44E'],
+  scoreMid: ['#FF9500', '#E68600'],
+  scoreLow: ['#FF3B30', '#D63027'],
+  scoreExcellent: ['#34C759', '#2DA44E'],
+  scoreGood: ['#4A90D9', '#3A7BC8'],
+  scoreAverage: ['#FF9500', '#E68600'],
+  scoreBelow: ['#FF3B30', '#D63027'],
 
   // Glass gradients — translucent overlays for cards
-  glass: ['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)'],
-  glassDark: ['rgba(20,20,40,0.6)', 'rgba(10,10,24,0.4)'],
-  glassAccent: ['rgba(0,102,255,0.15)', 'rgba(0,102,255,0.04)'],
-  glassGold: ['rgba(255,215,0,0.15)', 'rgba(255,215,0,0.03)'],
-  glassPremium: ['rgba(0,102,255,0.20)', 'rgba(168,85,247,0.10)'],
+  glass: ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.01)'],
+  glassDark: ['rgba(20,20,20,0.6)', 'rgba(10,10,10,0.4)'],
+  glassAccent: ['rgba(212,175,55,0.12)', 'rgba(212,175,55,0.03)'],
+  glassGold: ['rgba(212,175,55,0.15)', 'rgba(212,175,55,0.03)'],
+  glassPremium: ['rgba(212,175,55,0.20)', 'rgba(212,175,55,0.05)'],
 
   // Surface gradients
-  hero: ['rgba(0,102,255,0.18)', 'rgba(0,102,255,0.02)'],
-  cardShine: ['rgba(255,255,255,0.06)', 'rgba(255,255,255,0)'],
-  nightSky: ['#000000', '#060612', '#000000'],
-  scanGlow: ['rgba(0,102,255,0.4)', 'rgba(0,102,255,0)'],
+  hero: ['rgba(212,175,55,0.15)', 'rgba(212,175,55,0.02)'],
+  cardShine: ['rgba(255,255,255,0.04)', 'rgba(255,255,255,0)'],
+  nightSky: ['#000000', '#0A0A0A', '#000000'],
+  scanGlow: ['rgba(212,175,55,0.4)', 'rgba(212,175,55,0)'],
 
   // Mood gradients (full backgrounds)
-  ambientBlue: ['#000000', '#001833', '#000000'],
-  ambientPurple: ['#000000', '#1a0033', '#000000'],
-  ambientGold: ['#000000', '#1a1400', '#000000'],
+  ambientBlue: ['#000000', '#0A1520', '#000000'],
+  ambientPurple: ['#000000', '#120A1A', '#000000'],
+  ambientGold: ['#000000', '#1A1400', '#000000'],
 };
 
 // ─── Typography ─────────────────────────────────────────────────────
+export const TYPOGRAPHY = {
+  scoreXL: { fontSize: 72, fontWeight: '800' },
+  scoreL: { fontSize: 48, fontWeight: '700' },
+  scoreM: { fontSize: 32, fontWeight: '700' },
+  h1: { fontSize: 28, fontWeight: '700' },
+  h2: { fontSize: 22, fontWeight: '600' },
+  h3: { fontSize: 18, fontWeight: '600' },
+  body: { fontSize: 15, fontWeight: '400' },
+  caption: { fontSize: 13, fontWeight: '400' },
+  small: { fontSize: 11, fontWeight: '400' },
+};
+
+// Legacy FONTS export for backwards compatibility
 export const FONTS = {
-  regular: { fontSize: 14, color: '#ffffff' },
-  bold: { fontSize: 14, fontWeight: '700', color: '#ffffff' },
-  title: { fontSize: 24, fontWeight: '800', color: '#ffffff', letterSpacing: 0.3 },
-  subtitle: { fontSize: 16, fontWeight: '600', color: '#a8a8b8' },
-  caption: { fontSize: 12, color: '#6a6a7a' },
-  score: { fontSize: 48, fontWeight: '900', color: '#ffffff' },
+  regular: { fontSize: 15, color: COLORS.textPrimary },
+  bold: { fontSize: 15, fontWeight: '700', color: COLORS.textPrimary },
+  title: { fontSize: 28, fontWeight: '800', color: COLORS.textPrimary, letterSpacing: 0.3 },
+  subtitle: { fontSize: 18, fontWeight: '600', color: COLORS.textSecondary },
+  caption: { fontSize: 13, color: COLORS.textTertiary },
+  score: { fontSize: 72, fontWeight: '800', color: COLORS.textPrimary },
 };
 
 // ─── Shadows ────────────────────────────────────────────────────────
 export const SHADOWS = {
   card: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  subtle: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
   },
   glow: {
-    shadowColor: '#0066ff',
+    shadowColor: '#D4AF37',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  goldGlow: {
+    shadowColor: '#D4AF37',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
     shadowRadius: 24,
@@ -121,36 +174,27 @@ export const SHADOWS = {
   soft: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
   accentGlow: {
-    shadowColor: '#0066ff',
+    shadowColor: '#D4AF37',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.45,
-    shadowRadius: 20,
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
     elevation: 8,
-  },
-  goldGlow: {
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 10,
   },
   glass: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 14,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 12,
   },
 };
 
 // ─── Glass System ───────────────────────────────────────────────────
-// Apply on top of <BlurView> for the full glass effect.
-// Use BLUR_INTENSITY to control blur amount.
 export const GLASS = {
   card: {
     backgroundColor: COLORS.bgGlass,
@@ -211,21 +255,46 @@ export const SPACING = {
   xxxl: 32,
 };
 
+// ─── Score Colors (for reference) ──────────────────────────────────
+export const SCORE_COLORS = {
+  excellent: '#34C759',  // 8-10
+  good: '#4A90D9',       // 6-7.9
+  average: '#FF9500',    // 4-5.9
+  below: '#FF3B30',      // 0-3.9
+};
+
 // ─── Helpers ────────────────────────────────────────────────────────
+
+/**
+ * Returns the appropriate color for a score value (0-10 scale).
+ * - 8-10: excellent (green)
+ * - 6-7.9: good (blue)
+ * - 4-5.9: average (orange)
+ * - 0-3.9: below average (red)
+ */
 export const getScoreColor = (score) => {
-  if (score >= 70) return COLORS.scoreHigh;
-  if (score >= 40) return COLORS.scoreMid;
-  return COLORS.scoreLow;
+  if (score >= 8) return COLORS.scoreExcellent;
+  if (score >= 6) return COLORS.scoreGood;
+  if (score >= 4) return COLORS.scoreAverage;
+  return COLORS.scoreBelow;
 };
 
+/**
+ * Returns a descriptive label for a score value (0-10 scale).
+ */
 export const getScoreLabel = (score) => {
-  if (score >= 70) return 'High';
-  if (score >= 40) return 'Mid';
-  return 'Low';
+  if (score >= 8) return 'Model Tier';
+  if (score >= 6) return 'Above Average';
+  if (score >= 4) return 'Average';
+  return 'Below Average';
 };
 
+/**
+ * Returns the gradient array for a score value (0-10 scale).
+ */
 export const getScoreGradient = (score) => {
-  if (score >= 70) return GRADIENTS.scoreHigh;
-  if (score >= 40) return GRADIENTS.scoreMid;
-  return GRADIENTS.scoreLow;
+  if (score >= 8) return GRADIENTS.scoreExcellent;
+  if (score >= 6) return GRADIENTS.scoreGood;
+  if (score >= 4) return GRADIENTS.scoreAverage;
+  return GRADIENTS.scoreBelow;
 };
