@@ -1,84 +1,68 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import {
+  View, Text, StyleSheet, Dimensions, ScrollView, FlatList,
+} from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, withSpring, withDelay,
-  withSequence, withRepeat, Easing, runOnJS,
+  withSequence, withRepeat, Easing, FadeInRight, FadeOutLeft, FadeIn,
+  runOnJS,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, GRADIENTS, SHADOWS } from '../utils/theme';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { COLORS, GRADIENTS, SHADOWS, RADIUS, SPACING } from '../utils/theme';
+import GlassCard from '../components/GlassCard';
+import AnimatedPressable from '../components/AnimatedPressable';
 
 const { width, height } = Dimensions.get('window');
 
-const PARTICLES = Array.from({ length: 12 }, (_, i) => ({
-  x: Math.random() * width,
-  y: Math.random() * height,
-  size: 2 + Math.random() * 4,
-  speed: 3000 + Math.random() * 4000,
-  delay: Math.random() * 2000,
-}));
+// ─── Data ───────────────────────────────────────────────────────────────────
 
-const Particle = ({ config }) => {
-  const progress = useSharedValue(0);
+const GOALS = [
+  { id: 'jawline', label: 'Improve my jawline', icon: 'fitness-outline' },
+  { id: 'skin', label: 'Better skin', icon: 'sparkles-outline' },
+  { id: 'progress', label: 'Track my progress', icon: 'trending-up-outline' },
+  { id: 'glowup', label: 'Get a glow-up plan', icon: 'star-outline' },
+  { id: 'compare', label: 'Compare with celebrities', icon: 'people-outline' },
+  { id: 'learn', label: 'Learn looksmaxxing', icon: 'book-outline' },
+];
 
-  useEffect(() => {
-    progress.value = withDelay(
-      config.delay,
-      withRepeat(
-        withSequence(
-          withTiming(1, { duration: config.speed, easing: Easing.inOut(Easing.ease) }),
-          withTiming(0, { duration: config.speed, easing: Easing.inOut(Easing.ease) }),
-        ),
-        -1,
-        false,
-      ),
-    );
-  }, []);
+const LEVELS = [
+  { id: 'beginner', title: 'Beginner', subtitle: "I'm just starting my journey" },
+  { id: 'intermediate', title: 'Intermediate', subtitle: 'I know the basics, want to level up' },
+  { id: 'advanced', title: 'Advanced', subtitle: "I'm experienced, want data & precision" },
+];
 
-  const style = useAnimatedStyle(() => ({
-    opacity: 0.1 + progress.value * 0.4,
-    transform: [{ translateY: progress.value * -40 }],
-  }));
+const CONCERNS = [
+  'Jawline definition', 'Skin clarity', 'Dark circles', 'Facial symmetry',
+  'Hair health', 'Body fat', 'Eye area', 'Cheekbones',
+  'Forehead', 'Nose shape', 'Lip fullness', 'Neck posture',
+];
 
-  return (
-    <Animated.View
-      style={[styles.particle, style, {
-        left: config.x, top: config.y, width: config.size, height: config.size, borderRadius: config.size / 2,
-      }]}
-    />
-  );
-};
+// ─── Progress Dots ──────────────────────────────────────────────────────────
 
-const ExpandingRing = ({ delay, borderColor, initialOpacity }) => {
-  const scale = useSharedValue(0);
-  const opacity = useSharedValue(0);
+const ProgressDots = ({ currentStep, totalSteps }) => (
+  <View style={styles.dotsContainer}>
+    {Array.from({ length: totalSteps }, (_, i) => (
+      <View
+        key={i}
+        style={[
+          styles.dot,
+          i === currentStep && styles.dotActive,
+          i < currentStep && styles.dotComplete,
+        ]}
+      />
+    ))}
+  </View>
+);
 
-  useEffect(() => {
-    scale.value = withDelay(delay, withTiming(4, { duration: 900, easing: Easing.out(Easing.cubic) }));
-    opacity.value = withDelay(delay, withSequence(
-      withTiming(initialOpacity, { duration: 50 }),
-      withTiming(0, { duration: 850 }),
-    ));
-  }, []);
+// ─── Step 1: Welcome ────────────────────────────────────────────────────────
 
-  const style = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
-
-  return <Animated.View style={[styles.ring, { borderColor }, style]} />;
-};
-
-const OnboardingScreen = ({ onFinish }) => {
-  const logoScale = useSharedValue(0.2);
+const WelcomeStep = ({ onNext }) => {
+  const glowPulse = useSharedValue(0.4);
+  const logoScale = useSharedValue(0.5);
   const logoOpacity = useSharedValue(0);
-  const taglineOpacity = useSharedValue(0);
-  const taglineY = useSharedValue(30);
-  const scanLineOpacity = useSharedValue(0);
-  const scanLineY = useSharedValue(-50);
-  const featuresOpacity = useSharedValue(0);
-  const featuresY = useSharedValue(40);
-  const wholeOpacity = useSharedValue(1);
-  const glowPulse = useSharedValue(0.5);
 
   useEffect(() => {
     glowPulse.value = withRepeat(
@@ -86,114 +70,725 @@ const OnboardingScreen = ({ onFinish }) => {
         withTiming(0.8, { duration: 1500 }),
         withTiming(0.4, { duration: 1500 }),
       ),
-      -1,
-      false,
+      -1, false,
     );
-
-    // Logo entrance
-    logoScale.value = withSpring(1, { damping: 5, stiffness: 80 });
-    logoOpacity.value = withTiming(1, { duration: 500 });
-
-    // Tagline after logo (1000ms)
-    taglineOpacity.value = withDelay(1000, withTiming(1, { duration: 500 }));
-    taglineY.value = withDelay(1000, withSpring(0, { damping: 8, stiffness: 100 }));
-
-    // Scan line (1500ms)
-    scanLineOpacity.value = withDelay(1500, withSequence(
-      withTiming(1, { duration: 200 }),
-      withTiming(1, { duration: 500 }),
-      withTiming(0, { duration: 200 }),
-    ));
-    scanLineY.value = withDelay(1500, withTiming(60, { duration: 700, easing: Easing.inOut(Easing.ease) }));
-
-    // Features (2200ms)
-    featuresOpacity.value = withDelay(2200, withTiming(1, { duration: 500 }));
-    featuresY.value = withDelay(2200, withSpring(0, { damping: 7, stiffness: 100 }));
-
-    // Fade out and finish (3400ms)
-    wholeOpacity.value = withDelay(3400, withTiming(0, { duration: 500 }));
-
-    const timer = setTimeout(() => onFinish(), 3900);
-    return () => clearTimeout(timer);
+    logoScale.value = withSpring(1, { damping: 6, stiffness: 80 });
+    logoOpacity.value = withTiming(1, { duration: 600 });
   }, []);
 
-  const containerStyle = useAnimatedStyle(() => ({ opacity: wholeOpacity.value }));
   const glowStyle = useAnimatedStyle(() => ({ opacity: glowPulse.value }));
-  const logoContainerStyle = useAnimatedStyle(() => ({
+  const logoStyle = useAnimatedStyle(() => ({
     transform: [{ scale: logoScale.value }],
     opacity: logoOpacity.value,
   }));
-  const logoTextStyle = useAnimatedStyle(() => ({ opacity: logoOpacity.value }));
-  const scanStyle = useAnimatedStyle(() => ({
-    opacity: scanLineOpacity.value,
-    transform: [{ translateY: scanLineY.value }],
-  }));
-  const taglineStyle = useAnimatedStyle(() => ({
-    opacity: taglineOpacity.value,
-    transform: [{ translateY: taglineY.value }],
-  }));
-  const featuresStyle = useAnimatedStyle(() => ({
-    opacity: featuresOpacity.value,
-    transform: [{ translateY: featuresY.value }],
-  }));
 
   return (
-    <Animated.View style={[styles.container, containerStyle]}>
-      <LinearGradient colors={['#000000', '#060612', '#000000']} style={styles.bg}>
-        {PARTICLES.map((p, i) => (
-          <Particle key={i} config={p} />
-        ))}
-        <Animated.View style={[styles.bgGlow, glowStyle]} />
-        <ExpandingRing delay={500} borderColor={COLORS.accent} initialOpacity={0.9} />
-        <ExpandingRing delay={650} borderColor={COLORS.accentLight} initialOpacity={0.7} />
-        <ExpandingRing delay={800} borderColor="rgba(0,102,255,0.4)" initialOpacity={0.5} />
-        <Animated.View style={[styles.logoContainer, logoContainerStyle]}>
+    <Animated.View entering={FadeInRight.duration(400)} exiting={FadeOutLeft.duration(300)} style={styles.stepContainer}>
+      <View style={styles.welcomeContent}>
+        <Animated.View style={[styles.glowOrb, glowStyle]} />
+        <Animated.View style={[styles.logoWrapper, logoStyle]}>
           <LinearGradient colors={GRADIENTS.accent} style={[styles.logoCircle, SHADOWS.accentGlow]}>
             <Text style={styles.logoIcon}>A</Text>
           </LinearGradient>
         </Animated.View>
-        <Animated.Text style={[styles.logoText, logoTextStyle]}>ANDROGENIC</Animated.Text>
-        <Animated.View style={[styles.scanLine, scanStyle]}>
-          <LinearGradient
-            colors={['rgba(0,102,255,0)', COLORS.accent, 'rgba(0,102,255,0)']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-            style={styles.scanLineGradient}
-          />
-        </Animated.View>
-        <Animated.Text style={[styles.tagline, taglineStyle]}>
-          AI Face Analysis & Looksmaxxing
-        </Animated.Text>
-        <Animated.View style={[styles.features, featuresStyle]}>
-          {['Face Analysis', 'Score Tracking', 'Looksmax Tips', 'AI Powered'].map((feat, i) => (
-            <View key={i} style={styles.featurePill}>
-              <Text style={styles.featurePillText}>{feat}</Text>
-            </View>
-          ))}
-        </Animated.View>
-      </LinearGradient>
+        <Text style={styles.logoText}>ANDROGENIC</Text>
+        <Text style={styles.welcomeTitle}>Welcome to the #1 AI Face Analysis App</Text>
+        <Text style={styles.welcomeSubtitle}>Join 47K+ users improving their appearance</Text>
+      </View>
+
+      <View style={styles.bottomAction}>
+        <AnimatedPressable onPress={onNext} style={styles.primaryButtonWrapper}>
+          <LinearGradient colors={GRADIENTS.accent} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryButton}>
+            <Text style={styles.primaryButtonText}>Get Started</Text>
+            <Ionicons name="arrow-forward" size={20} color="#fff" />
+          </LinearGradient>
+        </AnimatedPressable>
+      </View>
     </Animated.View>
   );
 };
 
+// ─── Step 2: Goals ──────────────────────────────────────────────────────────
+
+const GoalsStep = ({ selectedGoals, onToggleGoal, onNext }) => (
+  <Animated.View entering={FadeInRight.duration(400)} exiting={FadeOutLeft.duration(300)} style={styles.stepContainer}>
+    <View style={styles.stepHeader}>
+      <Text style={styles.stepTitle}>What's your goal?</Text>
+      <Text style={styles.stepSubtitle}>Select all that apply</Text>
+    </View>
+
+    <View style={styles.goalsGrid}>
+      {GOALS.map((goal) => {
+        const selected = selectedGoals.includes(goal.id);
+        return (
+          <AnimatedPressable
+            key={goal.id}
+            onPress={() => onToggleGoal(goal.id)}
+            style={styles.goalCardWrapper}
+          >
+            <GlassCard
+              variant={selected ? 'accent' : 'default'}
+              glow={selected}
+              borderRadius={RADIUS.md}
+              style={styles.goalCard}
+            >
+              <View style={styles.goalCardContent}>
+                <View style={[styles.goalIconContainer, selected && styles.goalIconSelected]}>
+                  <Ionicons
+                    name={goal.icon}
+                    size={24}
+                    color={selected ? COLORS.accent : COLORS.textSecondary}
+                  />
+                </View>
+                <Text style={[styles.goalLabel, selected && styles.goalLabelSelected]}>
+                  {goal.label}
+                </Text>
+                {selected && (
+                  <View style={styles.checkBadge}>
+                    <Ionicons name="checkmark" size={12} color="#fff" />
+                  </View>
+                )}
+              </View>
+            </GlassCard>
+          </AnimatedPressable>
+        );
+      })}
+    </View>
+
+    <View style={styles.bottomAction}>
+      <AnimatedPressable
+        onPress={onNext}
+        disabled={selectedGoals.length === 0}
+        style={[styles.primaryButtonWrapper, selectedGoals.length === 0 && { opacity: 0.4 }]}
+      >
+        <LinearGradient colors={GRADIENTS.accent} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryButton}>
+          <Text style={styles.primaryButtonText}>Continue</Text>
+          <Ionicons name="arrow-forward" size={20} color="#fff" />
+        </LinearGradient>
+      </AnimatedPressable>
+    </View>
+  </Animated.View>
+);
+
+// ─── Step 3: Experience Level ───────────────────────────────────────────────
+
+const LevelStep = ({ selectedLevel, onSelectLevel, onNext }) => (
+  <Animated.View entering={FadeInRight.duration(400)} exiting={FadeOutLeft.duration(300)} style={styles.stepContainer}>
+    <View style={styles.stepHeader}>
+      <Text style={styles.stepTitle}>Experience level</Text>
+      <Text style={styles.stepSubtitle}>This helps us personalize your content</Text>
+    </View>
+
+    <View style={styles.levelsContainer}>
+      {LEVELS.map((level) => {
+        const selected = selectedLevel === level.id;
+        return (
+          <AnimatedPressable
+            key={level.id}
+            onPress={() => onSelectLevel(level.id)}
+            style={styles.levelCardWrapper}
+          >
+            <GlassCard
+              variant={selected ? 'accent' : 'default'}
+              glow={selected}
+              borderRadius={RADIUS.lg}
+              style={styles.levelCard}
+            >
+              <View style={styles.levelCardContent}>
+                <View style={styles.levelTextGroup}>
+                  <Text style={[styles.levelTitle, selected && styles.levelTitleSelected]}>
+                    {level.title}
+                  </Text>
+                  <Text style={styles.levelSubtitle}>{level.subtitle}</Text>
+                </View>
+                <View style={[styles.radioOuter, selected && styles.radioOuterSelected]}>
+                  {selected && <View style={styles.radioInner} />}
+                </View>
+              </View>
+            </GlassCard>
+          </AnimatedPressable>
+        );
+      })}
+    </View>
+
+    <View style={styles.bottomAction}>
+      <AnimatedPressable
+        onPress={onNext}
+        disabled={!selectedLevel}
+        style={[styles.primaryButtonWrapper, !selectedLevel && { opacity: 0.4 }]}
+      >
+        <LinearGradient colors={GRADIENTS.accent} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryButton}>
+          <Text style={styles.primaryButtonText}>Continue</Text>
+          <Ionicons name="arrow-forward" size={20} color="#fff" />
+        </LinearGradient>
+      </AnimatedPressable>
+    </View>
+  </Animated.View>
+);
+
+// ─── Step 4: Concerns ───────────────────────────────────────────────────────
+
+const ConcernsStep = ({ selectedConcerns, onToggleConcern, onNext }) => (
+  <Animated.View entering={FadeInRight.duration(400)} exiting={FadeOutLeft.duration(300)} style={styles.stepContainer}>
+    <View style={styles.stepHeader}>
+      <Text style={styles.stepTitle}>Your concerns</Text>
+      <Text style={styles.stepSubtitle}>Select your top concerns</Text>
+    </View>
+
+    <ScrollView
+      style={styles.chipsScrollView}
+      contentContainerStyle={styles.chipsContainer}
+      showsVerticalScrollIndicator={false}
+    >
+      {CONCERNS.map((concern) => {
+        const selected = selectedConcerns.includes(concern);
+        return (
+          <AnimatedPressable
+            key={concern}
+            onPress={() => onToggleConcern(concern)}
+            style={styles.chipWrapper}
+          >
+            <View style={[styles.chip, selected && styles.chipSelected]}>
+              <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                {concern}
+              </Text>
+              {selected && (
+                <Ionicons name="checkmark-circle" size={16} color={COLORS.accent} style={{ marginLeft: 4 }} />
+              )}
+            </View>
+          </AnimatedPressable>
+        );
+      })}
+    </ScrollView>
+
+    <View style={styles.bottomAction}>
+      <AnimatedPressable
+        onPress={onNext}
+        disabled={selectedConcerns.length === 0}
+        style={[styles.primaryButtonWrapper, selectedConcerns.length === 0 && { opacity: 0.4 }]}
+      >
+        <LinearGradient colors={GRADIENTS.accent} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryButton}>
+          <Text style={styles.primaryButtonText}>Continue</Text>
+          <Ionicons name="arrow-forward" size={20} color="#fff" />
+        </LinearGradient>
+      </AnimatedPressable>
+    </View>
+  </Animated.View>
+);
+
+// ─── Step 5: Ready ──────────────────────────────────────────────────────────
+
+const ReadyStep = ({ onFinish }) => {
+  const checkScale = useSharedValue(0);
+  const pulseScale = useSharedValue(1);
+
+  useEffect(() => {
+    checkScale.value = withSpring(1, { damping: 5, stiffness: 100 });
+    pulseScale.value = withRepeat(
+      withSequence(
+        withTiming(1.04, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1, false,
+    );
+  }, []);
+
+  const checkStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: checkScale.value }],
+  }));
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulseScale.value }],
+  }));
+
+  return (
+    <Animated.View entering={FadeInRight.duration(400)} exiting={FadeOutLeft.duration(300)} style={styles.stepContainer}>
+      <View style={styles.readyContent}>
+        <Animated.View style={[styles.checkContainer, checkStyle]}>
+          <LinearGradient colors={['#00e676', '#00c853']} style={styles.checkCircle}>
+            <Ionicons name="checkmark" size={44} color="#fff" />
+          </LinearGradient>
+        </Animated.View>
+
+        <Text style={styles.readyTitle}>Your personalized plan is ready</Text>
+
+        <View style={styles.statsRow}>
+          <GlassCard variant="default" borderRadius={RADIUS.md} style={styles.statCard}>
+            <View style={styles.statContent}>
+              <Text style={styles.statValue}>23+</Text>
+              <Text style={styles.statLabel}>Guides</Text>
+            </View>
+          </GlassCard>
+          <GlassCard variant="default" borderRadius={RADIUS.md} style={styles.statCard}>
+            <View style={styles.statContent}>
+              <Text style={styles.statValue}>7</Text>
+              <Text style={styles.statLabel}>Categories</Text>
+            </View>
+          </GlassCard>
+          <GlassCard variant="default" borderRadius={RADIUS.md} style={styles.statCard}>
+            <View style={styles.statContent}>
+              <Ionicons name="flash" size={20} color={COLORS.accent} />
+              <Text style={styles.statLabel}>AI Powered</Text>
+            </View>
+          </GlassCard>
+        </View>
+      </View>
+
+      <View style={styles.bottomAction}>
+        <Animated.View style={pulseStyle}>
+          <AnimatedPressable onPress={onFinish} style={styles.primaryButtonWrapper}>
+            <LinearGradient colors={GRADIENTS.accent} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryButton}>
+              <Ionicons name="scan-outline" size={20} color="#fff" />
+              <Text style={styles.primaryButtonText}>Start Your Analysis</Text>
+            </LinearGradient>
+          </AnimatedPressable>
+        </Animated.View>
+        <Text style={styles.freeScansText}>3 free scans included</Text>
+      </View>
+    </Animated.View>
+  );
+};
+
+// ─── Main Onboarding Screen ─────────────────────────────────────────────────
+
+const OnboardingScreen = ({ onFinish }) => {
+  const [step, setStep] = useState(0);
+  const [selectedGoals, setSelectedGoals] = useState([]);
+  const [selectedLevel, setSelectedLevel] = useState(null);
+  const [selectedConcerns, setSelectedConcerns] = useState([]);
+
+  const handleToggleGoal = useCallback((goalId) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelectedGoals((prev) =>
+      prev.includes(goalId) ? prev.filter((g) => g !== goalId) : [...prev, goalId]
+    );
+  }, []);
+
+  const handleSelectLevel = useCallback((levelId) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelectedLevel(levelId);
+  }, []);
+
+  const handleToggleConcern = useCallback((concern) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelectedConcerns((prev) =>
+      prev.includes(concern) ? prev.filter((c) => c !== concern) : [...prev, concern]
+    );
+  }, []);
+
+  const nextStep = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setStep((s) => s + 1);
+  }, []);
+
+  const handleFinish = useCallback(async () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    try {
+      await AsyncStorage.multiSet([
+        ['onboarding_complete', 'true'],
+        ['user_goals', JSON.stringify(selectedGoals)],
+        ['user_level', selectedLevel || 'beginner'],
+        ['user_concerns', JSON.stringify(selectedConcerns)],
+      ]);
+    } catch (e) {
+      // Silently fail — onboarding should not block the user
+    }
+    onFinish();
+  }, [selectedGoals, selectedLevel, selectedConcerns, onFinish]);
+
+  const renderStep = () => {
+    switch (step) {
+      case 0:
+        return <WelcomeStep key="welcome" onNext={nextStep} />;
+      case 1:
+        return (
+          <GoalsStep
+            key="goals"
+            selectedGoals={selectedGoals}
+            onToggleGoal={handleToggleGoal}
+            onNext={nextStep}
+          />
+        );
+      case 2:
+        return (
+          <LevelStep
+            key="level"
+            selectedLevel={selectedLevel}
+            onSelectLevel={handleSelectLevel}
+            onNext={nextStep}
+          />
+        );
+      case 3:
+        return (
+          <ConcernsStep
+            key="concerns"
+            selectedConcerns={selectedConcerns}
+            onToggleConcern={handleToggleConcern}
+            onNext={nextStep}
+          />
+        );
+      case 4:
+        return <ReadyStep key="ready" onFinish={handleFinish} />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <LinearGradient colors={['#000000', '#060612', '#000000']} style={styles.bg}>
+        {/* Ambient glow orbs */}
+        <View style={[styles.ambientOrb, { top: height * 0.1, left: -80 }]} />
+        <View style={[styles.ambientOrb, styles.ambientOrbRight, { top: height * 0.5 }]} />
+
+        {/* Progress dots */}
+        <View style={styles.progressContainer}>
+          <ProgressDots currentStep={step} totalSteps={5} />
+        </View>
+
+        {/* Step content */}
+        {renderStep()}
+      </LinearGradient>
+    </View>
+  );
+};
+
+// ─── Styles ─────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  container: { ...StyleSheet.absoluteFillObject, zIndex: 100 },
-  bg: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  particle: { position: 'absolute', backgroundColor: COLORS.accentLight },
-  bgGlow: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: COLORS.accentGlow },
-  ring: { position: 'absolute', width: 70, height: 70, borderRadius: 35, borderWidth: 2 },
-  logoContainer: { marginBottom: 14 },
-  logoCircle: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center' },
-  logoIcon: { fontSize: 44, fontWeight: '900', color: '#fff' },
-  logoText: { fontSize: 30, fontWeight: '900', color: COLORS.textPrimary, letterSpacing: 5, marginBottom: 4 },
-  scanLine: { width: 220, height: 3, marginVertical: 8 },
-  scanLineGradient: { flex: 1, borderRadius: 2 },
-  tagline: { fontSize: 14, color: COLORS.accentLight, fontWeight: '600', letterSpacing: 1.5, marginBottom: 36 },
-  features: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, paddingHorizontal: 30 },
-  featurePill: {
-    backgroundColor: 'rgba(0,102,255,0.12)', borderWidth: 1,
-    borderColor: 'rgba(0,102,255,0.25)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 100,
   },
-  featurePillText: { color: COLORS.accentLight, fontSize: 12, fontWeight: '600' },
+  bg: {
+    flex: 1,
+  },
+  ambientOrb: {
+    position: 'absolute',
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: 'rgba(0,102,255,0.15)',
+  },
+  ambientOrbRight: {
+    left: undefined,
+    right: -100,
+    backgroundColor: 'rgba(0,102,255,0.10)',
+  },
+  progressContainer: {
+    paddingTop: 60,
+    alignItems: 'center',
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  dotActive: {
+    backgroundColor: COLORS.accent,
+    width: 24,
+    shadowColor: COLORS.accent,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  dotComplete: {
+    backgroundColor: COLORS.accentLight,
+  },
+
+  // Step container
+  stepContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: 'space-between',
+  },
+
+  // Welcome step
+  welcomeContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  glowOrb: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: COLORS.accentGlow,
+  },
+  logoWrapper: {
+    marginBottom: 16,
+  },
+  logoCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoIcon: {
+    fontSize: 48,
+    fontWeight: '900',
+    color: '#fff',
+  },
+  logoText: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: COLORS.textPrimary,
+    letterSpacing: 5,
+    marginBottom: 24,
+  },
+  welcomeTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+    textAlign: 'center',
+    lineHeight: 30,
+    marginBottom: 12,
+  },
+  welcomeSubtitle: {
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
+
+  // Step header
+  stepHeader: {
+    paddingTop: 32,
+    marginBottom: 24,
+  },
+  stepTitle: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+    marginBottom: 8,
+  },
+  stepSubtitle: {
+    fontSize: 15,
+    color: COLORS.textSecondary,
+  },
+
+  // Goals grid
+  goalsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    flex: 1,
+    alignContent: 'flex-start',
+  },
+  goalCardWrapper: {
+    width: (width - 48 - 12) / 2,
+  },
+  goalCard: {
+    padding: 0,
+  },
+  goalCardContent: {
+    padding: 16,
+    alignItems: 'center',
+    position: 'relative',
+  },
+  goalIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  goalIconSelected: {
+    backgroundColor: 'rgba(0,102,255,0.15)',
+  },
+  goalLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
+  goalLabelSelected: {
+    color: COLORS.textPrimary,
+  },
+  checkBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: COLORS.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Levels
+  levelsContainer: {
+    gap: 16,
+    flex: 1,
+    justifyContent: 'flex-start',
+  },
+  levelCardWrapper: {
+    width: '100%',
+  },
+  levelCard: {
+    padding: 0,
+  },
+  levelCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+  },
+  levelTextGroup: {
+    flex: 1,
+  },
+  levelTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+    marginBottom: 4,
+  },
+  levelTitleSelected: {
+    color: COLORS.accent,
+  },
+  levelSubtitle: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+  },
+  radioOuter: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: COLORS.textTertiary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioOuterSelected: {
+    borderColor: COLORS.accent,
+  },
+  radioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: COLORS.accent,
+  },
+
+  // Concerns chips
+  chipsScrollView: {
+    flex: 1,
+    marginBottom: 16,
+  },
+  chipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    paddingBottom: 20,
+  },
+  chipWrapper: {},
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: RADIUS.pill,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  chipSelected: {
+    backgroundColor: 'rgba(0,102,255,0.12)',
+    borderColor: COLORS.borderAccent,
+  },
+  chipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  chipTextSelected: {
+    color: COLORS.accentLight,
+  },
+
+  // Ready step
+  readyContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkContainer: {
+    marginBottom: 24,
+  },
+  checkCircle: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.glow,
+    shadowColor: '#00e676',
+  },
+  readyTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statCard: {
+    padding: 0,
+  },
+  statContent: {
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    gap: 4,
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: COLORS.accent,
+  },
+  statLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+
+  // Bottom action
+  bottomAction: {
+    paddingBottom: 48,
+    alignItems: 'center',
+  },
+  primaryButtonWrapper: {
+    width: '100%',
+  },
+  primaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 17,
+    borderRadius: RADIUS.md,
+  },
+  primaryButtonText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: 0.3,
+  },
+  freeScansText: {
+    fontSize: 13,
+    color: COLORS.textTertiary,
+    marginTop: 12,
+  },
 });
 
 export default OnboardingScreen;

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import HomeScreen from '../screens/HomeScreen';
 import AnalyzingScreen from '../screens/AnalyzingScreen';
@@ -85,7 +86,28 @@ import TabBar from '../components/TabBar';
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
-  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(null); // null = loading, true = show, false = hide
+
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      try {
+        const completed = await AsyncStorage.getItem('onboarding_complete');
+        setShowOnboarding(completed !== 'true');
+      } catch (e) {
+        setShowOnboarding(false);
+      }
+    };
+    checkOnboarding();
+  }, []);
+
+  const handleOnboardingFinish = () => {
+    setShowOnboarding(false);
+  };
+
+  // Don't render anything until we know if onboarding should be shown
+  if (showOnboarding === null) {
+    return <View style={{ flex: 1, backgroundColor: '#000000' }} />;
+  }
 
   return (
     <>
@@ -201,7 +223,7 @@ const AppNavigator = () => {
         </Stack.Navigator>
       </NavigationContainer>
       {showOnboarding && (
-        <OnboardingScreen onFinish={() => setShowOnboarding(false)} />
+        <OnboardingScreen onFinish={handleOnboardingFinish} />
       )}
     </>
   );
