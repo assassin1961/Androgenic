@@ -9,10 +9,11 @@ import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, GRADIENTS, SHADOWS, BLUR } from '../utils/theme';
 import GlassBackground from '../components/GlassBackground';
 import { loadProState, getScansRemaining, isPro } from '../utils/pro';
-import { loadStreakState, getStreakState, markDayActive, getCurrentLevel, getLevelProgress } from '../utils/streaks';
+import { loadStreakState, getStreakState, markDayActive, getCurrentLevel, getLevelProgress, addXP } from '../utils/streaks';
 import { getHistory } from '../utils/history';
 
 const { width } = Dimensions.get('window');
@@ -31,6 +32,33 @@ const DAILY_TIPS = [
   { tip: 'Do 50 neck curls before bed. Strong neck = better jaw definition.', icon: 'barbell', color: '#ff6090' },
 ];
 
+const DAILY_CHALLENGES = [
+  'Take a face scan and compare with yesterday',
+  'Complete your morning skincare routine',
+  'Practice mewing for 10 minutes',
+  'Drink 8 glasses of water today',
+  'Do 5 minutes of jawline exercises',
+  'Apply SPF before going outside',
+  'Get 8 hours of sleep tonight',
+];
+
+const TRENDING_TOPICS = [
+  { title: 'Mewing results after 6 months', views: '12.4K', screen: 'Guides' },
+  { title: 'Ice face method going viral', views: '8.7K', screen: 'LooksMaxHub' },
+  { title: 'Best jawline exercises 2024', views: '15.2K', screen: 'Guides' },
+  { title: 'Skincare routine that changed my face', views: '9.1K', screen: 'LooksMaxHub' },
+  { title: 'How I went from 5 to 8 in 4 months', views: '22.3K', screen: 'LooksMaxHub' },
+];
+
+const SUCCESS_STORIES = [
+  { name: 'Jake M.', quote: 'Went from 5.8 to 7.2 in 3 months', focus: 'Jawline focus', duration: '3 months', colors: ['#0044cc', '#0066ff'] },
+  { name: 'Sarah K.', quote: 'Skin score improved 40% in 6 weeks', focus: 'Skincare focus', duration: '6 weeks', colors: ['#006b3c', '#00e676'] },
+  { name: 'Mike R.', quote: 'Lost face fat, gained definition', focus: '4 month journey', duration: '4 months', colors: ['#8b1a4a', '#ff6090'] },
+  { name: 'Alex T.', quote: 'Mewing + routine = complete transformation', focus: '6 months', duration: '6 months', colors: ['#b8860b', '#FFD700'] },
+];
+
+const CHALLENGE_STORAGE_KEY = 'androgenic_daily_challenge';
+
 const STORE_URL = 'https://androgenicpeptides.lovable.app';
 
 const HomeScreen = ({ navigation }) => {
@@ -38,15 +66,56 @@ const HomeScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [streakData, setStreakData] = useState(null);
   const [lastScore, setLastScore] = useState(null);
+  const [scanHistory, setScanHistory] = useState([]);
+  const [challengeCompleted, setChallengeCompleted] = useState(false);
+  const [totalScans, setTotalScans] = useState(0);
+  const [daysActive, setDaysActive] = useState(0);
 
   const loadData = useCallback(async () => {
     await Promise.all([loadProState(), loadStreakState()]);
     setStreakData(getStreakState());
     markDayActive().then(() => setStreakData(getStreakState()));
     const h = await getHistory();
-    if (h && h.length > 0) setLastScore(h[0]);
+    if (h && h.length > 0) {
+      setLastScore(h[0]);
+      setScanHistory(h);
+    }
+    // Load total scans and days active from streak state
+    const currentState = getStreakState();
+    setTotalScans(currentState.totalScans || 0);
+    // Calculate days active from dailyXPHistory length or streak data
+    const xpHistory = currentState.dailyXPHistory || [];
+    setDaysActive(Math.max(xpHistory.length, currentState.currentStreak || 0));
+    // Check daily challenge completion
+    await checkChallengeCompletion();
     setReady(true);
   }, []);
+
+  const checkChallengeCompletion = async () => {
+    try {
+      const today = new Date().toDateString();
+      const data = await AsyncStorage.getItem(CHALLENGE_STORAGE_KEY);
+      if (data) {
+        const parsed = JSON.parse(data);
+        setChallengeCompleted(parsed.date === today && parsed.completed);
+      } else {
+        setChallengeCompleted(false);
+      }
+    } catch {
+      setChallengeCompleted(false);
+    }
+  };
+
+  const handleCompleteChallenge = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const today = new Date().toDateString();
+    try {
+      await AsyncStorage.setItem(CHALLENGE_STORAGE_KEY, JSON.stringify({ date: today, completed: true }));
+      setChallengeCompleted(true);
+      await addXP(25, 'daily_challenge');
+      setStreakData(getStreakState());
+    } catch {}
+  };
 
   useEffect(() => { loadData(); }, []);
 
@@ -65,6 +134,7 @@ const HomeScreen = ({ navigation }) => {
   const level = streakData ? getCurrentLevel() : null;
   const levelProgress = streakData ? getLevelProgress() : 0;
   const todayTip = DAILY_TIPS[new Date().getDate() % DAILY_TIPS.length];
+  const todayChallenge = DAILY_CHALLENGES[new Date().getDay() % DAILY_CHALLENGES.length];
 
   const handleCamera = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -135,6 +205,12 @@ const HomeScreen = ({ navigation }) => {
     { icon: 'images', text: 'Photo Rank', screen: 'PhotoRanking', color: '#ff6090' },
   ];
 
+  // Progress data
+  const hasScans = scanHistory.length >= 2;
+  const firstScore = hasScans ? scanHistory[scanHistory.length - 1]?.scores?.overall : null;
+  const latestScore = hasScans ? scanHistory[0]?.scores?.overall : null;
+  const scoreImproved = hasScans && latestScore > firstScore;
+
   return (
     <GlassBackground variant="blue">
     <SafeAreaView style={styles.container}>
@@ -173,8 +249,29 @@ const HomeScreen = ({ navigation }) => {
             progressBackgroundColor="#000" />
         }
       >
-        {/* Section 0: Level + Scan CTA */}
+        {/* Quick Stats Bar - after header, before level bar */}
         <Animated.View entering={FadeInDown.duration(400).delay(0)}>
+          <View style={styles.quickStatsBar}>
+            <View style={styles.quickStatPill}>
+              <Ionicons name="scan-outline" size={12} color={COLORS.accentLight} />
+              <Text style={styles.quickStatValue}>{totalScans}</Text>
+              <Text style={styles.quickStatLabel}>Scans</Text>
+            </View>
+            <View style={styles.quickStatPill}>
+              <Ionicons name="flame-outline" size={12} color="#ff6b35" />
+              <Text style={styles.quickStatValue}>{streakData?.currentStreak || 0}</Text>
+              <Text style={styles.quickStatLabel}>Streak</Text>
+            </View>
+            <View style={styles.quickStatPill}>
+              <Ionicons name="calendar-outline" size={12} color="#00e676" />
+              <Text style={styles.quickStatValue}>{daysActive}</Text>
+              <Text style={styles.quickStatLabel}>Days</Text>
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* Section 0: Level + Progress Widget + Scan CTA */}
+        <Animated.View entering={FadeInDown.duration(400).delay(50)}>
           {streakData && (
             <TouchableOpacity style={styles.levelBar} onPress={() => navigation.navigate('Achievements')} activeOpacity={0.7}>
               <Text style={styles.levelLabel}>Lv.{level?.level || 1}</Text>
@@ -183,6 +280,37 @@ const HomeScreen = ({ navigation }) => {
                 <View style={[styles.xpBarInner, { width: `${Math.max(levelProgress * 100, 3)}%` }]} />
               </View>
               <Text style={styles.xpText}>{streakData.totalXP} XP</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Progress Widget - shown only if user has previous scans */}
+          {hasScans && (
+            <TouchableOpacity style={styles.progressWidget} onPress={() => navigation.navigate('ProgressTimeline')} activeOpacity={0.7}>
+              <View style={styles.progressHeader}>
+                <Ionicons name="trending-up" size={14} color={COLORS.accentLight} />
+                <Text style={styles.progressTitle}>Your Progress</Text>
+                <Ionicons name="chevron-forward" size={14} color={COLORS.textMuted} />
+              </View>
+              <View style={styles.progressBody}>
+                <View style={styles.progressScores}>
+                  <Text style={styles.progressFirstScore}>{firstScore}</Text>
+                  <Ionicons name={scoreImproved ? 'arrow-forward' : 'arrow-forward'} size={14} color={scoreImproved ? '#00e676' : '#ffab40'} />
+                  <Text style={[styles.progressLatestScore, { color: scoreImproved ? '#00e676' : '#ffab40' }]}>{latestScore}</Text>
+                </View>
+                <View style={styles.progressDots}>
+                  {scanHistory.slice(0, 7).reverse().map((scan, idx) => {
+                    const score = scan?.scores?.overall || 0;
+                    const normalizedHeight = Math.max((score / 100) * 16, 4);
+                    return (
+                      <View key={idx} style={[styles.progressDot, { height: normalizedHeight, backgroundColor: score >= 70 ? '#00e676' : score >= 40 ? '#ffab40' : '#ff5252' }]} />
+                    );
+                  })}
+                </View>
+                <View style={styles.progressStreak}>
+                  <Ionicons name="flame" size={12} color="#ff6b35" />
+                  <Text style={styles.progressStreakText}>{daysActive} days active</Text>
+                </View>
+              </View>
             </TouchableOpacity>
           )}
 
@@ -301,6 +429,44 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </Animated.View>
 
+        {/* Trending Now Section - after Today's Tip */}
+        <Animated.View entering={FadeInDown.duration(400).delay(360)}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Trending Now</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('LooksMaxHub')} activeOpacity={0.7}>
+              <Text style={styles.seeAll}>See All</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.trendingScroll} contentContainerStyle={styles.trendingScrollContent}>
+            {TRENDING_TOPICS.map((topic, i) => (
+              <TouchableOpacity
+                key={i}
+                activeOpacity={0.8}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  navigation.navigate(topic.screen);
+                }}
+              >
+                <View style={styles.trendingCard}>
+                  <LinearGradient
+                    colors={['rgba(0,102,255,0.12)', 'rgba(0,102,255,0.03)']}
+                    style={styles.trendingCardGradient}
+                  >
+                    <View style={styles.trendingCardHeader}>
+                      <Ionicons name="trending-up" size={14} color="#0066ff" />
+                      <Text style={styles.trendingViews}>{topic.views} views</Text>
+                    </View>
+                    <Text style={styles.trendingTitle} numberOfLines={2}>{topic.title}</Text>
+                    <View style={styles.trendingArrow}>
+                      <Ionicons name="arrow-up" size={10} color="#00e676" />
+                    </View>
+                  </LinearGradient>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </Animated.View>
+
         {/* Section 5: Peptides Store Banner */}
         <Animated.View entering={FadeInDown.duration(400).delay(400)}>
           <TouchableOpacity onPress={() => Linking.openURL(STORE_URL)} activeOpacity={0.85}>
@@ -329,6 +495,41 @@ const HomeScreen = ({ navigation }) => {
                 <Text style={styles.gridText} numberOfLines={1}>{f.text}</Text>
               </TouchableOpacity>
             ))}
+          </View>
+        </Animated.View>
+
+        {/* Daily Challenge Card - after TOOLS grid */}
+        <Animated.View entering={FadeInDown.duration(400).delay(520)}>
+          <View style={styles.dailyChallengeCard}>
+            <LinearGradient
+              colors={['rgba(0,102,255,0.15)', 'rgba(0,102,255,0.04)']}
+              style={styles.dailyChallengeGradient}
+            >
+              <View style={styles.dailyChallengeHeader}>
+                <View style={styles.dailyChallengeBadge}>
+                  <Ionicons name="flash" size={10} color="#fff" />
+                  <Text style={styles.dailyChallengeBadgeText}>Daily Challenge</Text>
+                </View>
+                <View style={styles.dailyChallengeXP}>
+                  <Text style={styles.dailyChallengeXPText}>+25 XP</Text>
+                </View>
+              </View>
+              <Text style={styles.dailyChallengeText}>{todayChallenge}</Text>
+              <TouchableOpacity
+                style={[styles.dailyChallengeBtn, challengeCompleted && styles.dailyChallengeBtnDone]}
+                onPress={!challengeCompleted ? handleCompleteChallenge : undefined}
+                activeOpacity={challengeCompleted ? 1 : 0.7}
+              >
+                <Ionicons
+                  name={challengeCompleted ? 'checkmark-circle' : 'checkmark-circle-outline'}
+                  size={18}
+                  color={challengeCompleted ? '#00e676' : COLORS.textSecondary}
+                />
+                <Text style={[styles.dailyChallengeBtnText, challengeCompleted && { color: '#00e676' }]}>
+                  {challengeCompleted ? 'Completed!' : 'Mark Complete'}
+                </Text>
+              </TouchableOpacity>
+            </LinearGradient>
           </View>
         </Animated.View>
 
@@ -366,6 +567,42 @@ const HomeScreen = ({ navigation }) => {
           )}
         </Animated.View>
 
+        {/* Success Stories Carousel - after PRO features section */}
+        <Animated.View entering={FadeInDown.duration(400).delay(620)}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Success Stories</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('BeforeAfter')} activeOpacity={0.7}>
+              <Text style={styles.seeAll}>View All</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.successScroll} contentContainerStyle={styles.successScrollContent}>
+            {SUCCESS_STORIES.map((story, i) => (
+              <TouchableOpacity
+                key={i}
+                activeOpacity={0.8}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  navigation.navigate('BeforeAfter');
+                }}
+              >
+                <LinearGradient
+                  colors={story.colors}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.successCard}
+                >
+                  <Text style={styles.successName}>{story.name}</Text>
+                  <Text style={styles.successQuote}>{story.quote}</Text>
+                  <View style={styles.successMeta}>
+                    <Text style={styles.successDuration}>{story.duration}</Text>
+                    <Text style={styles.successFocus}>{story.focus}</Text>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </Animated.View>
+
         <View style={{ height: 20 }} />
       </ScrollView>
     </SafeAreaView>
@@ -396,6 +633,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.borderLight,
   },
 
+  // Quick Stats Bar
+  quickStatsBar: {
+    flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 12, marginTop: 4,
+  },
+  quickStatPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 999,
+    paddingHorizontal: 12, paddingVertical: 7,
+    borderWidth: 1, borderColor: COLORS.borderLight,
+  },
+  quickStatValue: { color: '#fff', fontSize: 12, fontWeight: '800' },
+  quickStatLabel: { color: COLORS.textMuted, fontSize: 10, fontWeight: '500' },
+
   // Level Bar
   levelBar: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
@@ -407,6 +657,24 @@ const styles = StyleSheet.create({
   xpBarOuter: { flex: 1, height: 3, backgroundColor: COLORS.bgSecondary, borderRadius: 2, overflow: 'hidden' },
   xpBarInner: { height: '100%', backgroundColor: '#0066ff', borderRadius: 2 },
   xpText: { color: COLORS.textMuted, fontSize: 10, fontWeight: '600' },
+
+  // Progress Widget
+  progressWidget: {
+    backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 14,
+    marginBottom: 12, borderWidth: 1, borderColor: COLORS.borderLight,
+  },
+  progressHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10,
+  },
+  progressTitle: { flex: 1, color: COLORS.textSecondary, fontSize: 12, fontWeight: '700' },
+  progressBody: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  progressScores: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  progressFirstScore: { color: COLORS.textMuted, fontSize: 18, fontWeight: '800' },
+  progressLatestScore: { fontSize: 18, fontWeight: '900' },
+  progressDots: { flexDirection: 'row', alignItems: 'flex-end', gap: 3, height: 20 },
+  progressDot: { width: 4, borderRadius: 2, minHeight: 4 },
+  progressStreak: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  progressStreakText: { color: COLORS.textMuted, fontSize: 10, fontWeight: '600' },
 
   // Scan Section
   scanSection: { alignItems: 'center', paddingTop: 8, paddingBottom: 14, marginBottom: 4 },
@@ -483,6 +751,22 @@ const styles = StyleSheet.create({
   tipIcon: { width: 30, height: 30, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   tipText: { flex: 1, color: COLORS.textSecondary, fontSize: 12, lineHeight: 17 },
 
+  // Trending Section
+  trendingScroll: { marginBottom: 14, marginHorizontal: -20 },
+  trendingScrollContent: { paddingHorizontal: 20, gap: 10 },
+  trendingCard: {
+    width: 160, borderRadius: 12, overflow: 'hidden',
+    borderWidth: 1, borderColor: COLORS.borderLight,
+  },
+  trendingCardGradient: { padding: 12, minHeight: 95 },
+  trendingCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8 },
+  trendingViews: { color: COLORS.textMuted, fontSize: 9, fontWeight: '600' },
+  trendingTitle: { color: '#fff', fontSize: 12, fontWeight: '700', lineHeight: 16, flex: 1 },
+  trendingArrow: {
+    width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(0,230,118,0.12)',
+    justifyContent: 'center', alignItems: 'center', marginTop: 8, alignSelf: 'flex-end',
+  },
+
   // Store Banner
   storeBanner: {
     flexDirection: 'row', alignItems: 'center', borderRadius: 12, padding: 14,
@@ -504,6 +788,28 @@ const styles = StyleSheet.create({
   gridIcon: { width: 32, height: 32, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginBottom: 4 },
   gridText: { color: COLORS.textSecondary, fontSize: 10, fontWeight: '600', textAlign: 'center' },
 
+  // Daily Challenge
+  dailyChallengeCard: { marginBottom: 14, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.borderAccent },
+  dailyChallengeGradient: { padding: 14 },
+  dailyChallengeHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+  dailyChallengeBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: '#0066ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6,
+  },
+  dailyChallengeBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800', letterSpacing: 0.3 },
+  dailyChallengeXP: {
+    backgroundColor: 'rgba(0,230,118,0.12)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6,
+  },
+  dailyChallengeXPText: { color: '#00e676', fontSize: 10, fontWeight: '800' },
+  dailyChallengeText: { color: '#fff', fontSize: 14, fontWeight: '700', lineHeight: 20, marginBottom: 12 },
+  dailyChallengeBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.06)', paddingHorizontal: 14, paddingVertical: 10,
+    borderRadius: 10, alignSelf: 'flex-start', borderWidth: 1, borderColor: COLORS.borderLight,
+  },
+  dailyChallengeBtnDone: { backgroundColor: 'rgba(0,230,118,0.08)', borderColor: 'rgba(0,230,118,0.25)' },
+  dailyChallengeBtnText: { color: COLORS.textSecondary, fontSize: 12, fontWeight: '700' },
+
   // PRO Cards
   proCard: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)',
@@ -523,6 +829,21 @@ const styles = StyleSheet.create({
   socialStars: { flexDirection: 'row', gap: 1 },
   socialText: { color: COLORS.textMuted, fontSize: 11, fontWeight: '500' },
   socialCta: { color: '#FFD700', fontSize: 11, fontWeight: '700' },
+
+  // Success Stories
+  successScroll: { marginBottom: 14, marginHorizontal: -20 },
+  successScrollContent: { paddingHorizontal: 20, gap: 10 },
+  successCard: {
+    width: 180, borderRadius: 14, padding: 14, minHeight: 120, justifyContent: 'flex-end',
+  },
+  successName: { color: '#fff', fontSize: 14, fontWeight: '900', marginBottom: 4 },
+  successQuote: { color: 'rgba(255,255,255,0.85)', fontSize: 11, fontWeight: '600', lineHeight: 15, marginBottom: 8 },
+  successMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  successDuration: {
+    color: 'rgba(255,255,255,0.7)', fontSize: 9, fontWeight: '700',
+    backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4,
+  },
+  successFocus: { color: 'rgba(255,255,255,0.6)', fontSize: 9, fontWeight: '500' },
 });
 
 export default HomeScreen;
