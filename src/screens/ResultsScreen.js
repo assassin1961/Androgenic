@@ -1,759 +1,844 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, SafeAreaView,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image,
+  SafeAreaView, Dimensions, Platform,
 } from 'react-native';
-import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
+import Animated, {
+  FadeInDown, FadeIn, useSharedValue, useAnimatedStyle,
+  withTiming, withDelay, withSequence, Easing, interpolate,
+  runOnJS,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { COLORS, GRADIENTS, SHADOWS, GLASS, getScoreColor, getScoreLabel } from '../utils/theme';
+import * as Sharing from 'expo-sharing';
+import { captureRef } from 'react-native-view-shot';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { COLORS, SHADOWS, getScoreColor, getScoreLabel } from '../utils/theme';
 import { CATEGORY_INFO } from '../utils/faceAnalysis';
-import { isPro, canAccessCategory, getCelebrityMatch, computeFacialRatios, getMaxTipsForCategory } from '../utils/pro';
-import { getTipsForCategory, getOverallTips } from '../data/tips';
+import { isPro, canAccessCategory, getCelebrityMatch } from '../utils/pro';
+import { getTipsForCategory } from '../data/tips';
 import { recordScan } from '../utils/streaks';
-import ScoreCard from '../components/ScoreCard';
-import ScoreRing from '../components/ScoreRing';
 
-const getPercentile = (score) => {
-  if (score >= 95) return { pct: 1, label: 'Top 1%', color: '#FFD700' };
-  if (score >= 90) return { pct: 5, label: 'Top 5%', color: '#FFD700' };
-  if (score >= 85) return { pct: 10, label: 'Top 10%', color: '#ff6090' };
-  if (score >= 80) return { pct: 15, label: 'Top 15%', color: '#4d94ff' };
-  if (score >= 75) return { pct: 20, label: 'Top 20%', color: '#00e676' };
-  if (score >= 70) return { pct: 30, label: 'Top 30%', color: '#00e676' };
-  if (score >= 60) return { pct: 45, label: 'Top 45%', color: '#ffab40' };
-  if (score >= 50) return { pct: 55, label: 'Top 55%', color: '#ffab40' };
-  return { pct: 70, label: 'Top 70%', color: '#ff5252' };
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_WIDTH = SCREEN_WIDTH - 40;
+
+// --- Score tier colors (Madden-style) ---
+const GOLD = '#D4AF37';
+const SCORE_GREEN = '#34C759';
+const SCORE_BLUE = '#4A90D9';
+const SCORE_ORANGE = '#FF9500';
+const SCORE_RED = '#FF3B30';
+
+const getCardScoreColor = (score) => {
+  if (score >= 8) return SCORE_GREEN;
+  if (score >= 6) return SCORE_BLUE;
+  if (score >= 4) return SCORE_ORANGE;
+  return SCORE_RED;
 };
 
+const getPercentile = (score) => {
+  if (score >= 9.5) return 'Top 1%';
+  if (score >= 9) return 'Top 5%';
+  if (score >= 8.5) return 'Top 10%';
+  if (score >= 8) return 'Top 15%';
+  if (score >= 7.5) return 'Top 20%';
+  if (score >= 7) return 'Top 25%';
+  if (score >= 6.5) return 'Top 30%';
+  if (score >= 6) return 'Top 35%';
+  if (score >= 5.5) return 'Top 45%';
+  if (score >= 5) return 'Top 55%';
+  return 'Top 70%';
+};
+
+const getTierLabel = (score) => {
+  if (score >= 8) return 'Model Tier';
+  if (score >= 6) return 'Above Average';
+  if (score >= 4) return 'Average';
+  return 'Below Average';
+};
+
+// Convert 0-100 raw score to 1-10 display
+const toTen = (raw) => {
+  if (raw === undefined || raw === null) return 5;
+  if (raw > 10) return Math.max(1, Math.min(10, Math.round(raw / 10)));
+  return Math.max(1, Math.min(10, Math.round(raw)));
+};
+
+// --- Animated score counter component ---
+const AnimatedScore = ({ targetScore, delay = 0, fontSize = 72 }) => {
+  const [displayScore, setDisplayScore] = useState(0);
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const duration = 1200;
+      const startTime = Date.now();
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const p = Math.min(elapsed / duration, 1);
+        // Ease out cubic
+        const eased = 1 - Math.pow(1 - p, 3);
+        const current = Math.round(eased * targetScore * 10) / 10;
+        setDisplayScore(current.toFixed(1));
+        if (p < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          setDisplayScore(targetScore.toFixed(1));
+        }
+      };
+      requestAnimationFrame(animate);
+    }, delay);
+    return () => clearTimeout(timeout);
+  }, [targetScore, delay]);
+
+  const scoreColor = getCardScoreColor(targetScore);
+
+  return (
+    <Text style={[styles.heroScore, { color: scoreColor, fontSize }]}>
+      {displayScore}
+    </Text>
+  );
+};
+
+// --- Progress bar component ---
+const ScoreBar = ({ score, delay = 0 }) => {
+  const width = useSharedValue(0);
+  const color = getCardScoreColor(score);
+  const percentage = (score / 10) * 100;
+
+  useEffect(() => {
+    width.value = withDelay(delay, withTiming(percentage, { duration: 800, easing: Easing.out(Easing.cubic) }));
+  }, []);
+
+  const barStyle = useAnimatedStyle(() => ({
+    width: `${width.value}%`,
+    backgroundColor: color,
+  }));
+
+  return (
+    <View style={styles.progressBarBg}>
+      <Animated.View style={[styles.progressBarFill, barStyle]} />
+    </View>
+  );
+};
+
+// --- Factor row in the rating grid ---
+const FactorRow = ({ label, score, index }) => {
+  const scoreColor = getCardScoreColor(score);
+  const animDelay = 600 + index * 100;
+
+  return (
+    <Animated.View
+      entering={FadeInDown.duration(300).delay(animDelay)}
+      style={styles.factorRow}
+    >
+      <View style={styles.factorHeader}>
+        <Text style={styles.factorLabel}>{label}</Text>
+        <Text style={[styles.factorScore, { color: scoreColor }]}>{score.toFixed(1)}</Text>
+      </View>
+      <ScoreBar score={score} delay={animDelay} />
+    </Animated.View>
+  );
+};
+
+// --- Expandable detail card ---
+const DetailCard = ({ category, score, analysis, tip, isProTip, locked, onProPress }) => {
+  const [expanded, setExpanded] = useState(false);
+  const scoreColor = getCardScoreColor(score);
+
+  return (
+    <TouchableOpacity
+      style={styles.detailCard}
+      onPress={() => setExpanded(!expanded)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.detailHeader}>
+        <Text style={styles.detailCategory}>{category}</Text>
+        <View style={styles.detailScoreRow}>
+          <Text style={[styles.detailScore, { color: scoreColor }]}>{score.toFixed(1)}</Text>
+          <Ionicons
+            name={expanded ? 'chevron-up' : 'chevron-down'}
+            size={16}
+            color="#666"
+          />
+        </View>
+      </View>
+      <View style={styles.detailBarContainer}>
+        <View style={[styles.detailBar, { width: `${(score / 10) * 100}%`, backgroundColor: scoreColor }]} />
+      </View>
+      {expanded && (
+        <View style={styles.detailExpanded}>
+          <Text style={styles.detailAnalysis}>{analysis}</Text>
+          {tip && (
+            <View style={styles.detailTipRow}>
+              <Ionicons name="bulb-outline" size={14} color={GOLD} />
+              <Text style={styles.detailTipText}>{tip}</Text>
+              {isProTip && !isPro() && (
+                <TouchableOpacity onPress={onProPress} style={styles.proBadge}>
+                  <Text style={styles.proBadgeText}>PRO</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+};
+
+// =============================================================================
+// MAIN RESULTS SCREEN
+// =============================================================================
 const ResultsScreen = ({ route, navigation }) => {
   const { scores, imageUri } = route.params;
   const pro = isPro();
-  const celebrity = pro ? getCelebrityMatch(scores) : null;
-  const ratios = pro ? computeFacialRatios(scores) : null;
-  const overallColor = getScoreColor(scores.overall);
-  const percentile = getPercentile(scores.overall);
+  const cardRef = useRef(null);
+  const [additionalExpanded, setAdditionalExpanded] = useState(false);
 
-  const categories = ['masculinity', 'jawline', 'eyes', 'cheekbones', 'hair', 'skin', 'symmetry'];
+  // Compute display scores (convert from 0-100 to 0-10 if needed)
+  const overallScore = scores.overallRating || toTen(scores.overall);
+  const overallColor = getCardScoreColor(overallScore);
+  const percentileLabel = getPercentile(overallScore);
+  const tierLabel = getTierLabel(overallScore);
 
+  // The 6 main Madden-style factors
+  const mainFactors = [
+    { key: 'jawline', label: 'Jawline' },
+    { key: 'skin', label: 'Skin Quality' },
+    { key: 'eyes', label: 'Eye Area' },
+    { key: 'symmetry', label: 'Symmetry' },
+    { key: 'cheekbones', label: 'Cheekbones' },
+    { key: 'masculinity', label: 'Masculinity' },
+  ];
+
+  // Generate factor scores in 1-10 scale
+  const getFactorScore = (key) => {
+    const raw = scores[key];
+    if (raw === undefined || raw === null) return 5.0;
+    if (raw > 10) return Math.max(1, Math.min(10, parseFloat((raw / 10).toFixed(1))));
+    return Math.max(1, Math.min(10, parseFloat(raw.toFixed ? raw.toFixed(1) : raw)));
+  };
+
+  // Additional scores
+  const additionalScores = [
+    { label: 'Face Shape', score: getFactorScore('cheekbones'), locked: false },
+    { label: 'Hair Score', score: getFactorScore('hair'), locked: false },
+    { label: 'Potential Score', score: Math.min(10, overallScore + 1.5), locked: !pro },
+    { label: 'Celebrity Match', score: null, locked: !pro },
+  ];
+
+  // Analysis text for detail breakdown
+  const getAnalysisText = (key) => {
+    const s = getFactorScore(key);
+    const info = CATEGORY_INFO[key];
+    if (s >= 8) return `Excellent ${info?.label || key}. Top-tier facial structure in this area.`;
+    if (s >= 6) return `Good ${info?.label || key}. Above average with minor optimization possible.`;
+    if (s >= 4) return `Average ${info?.label || key}. Solid foundation with noticeable improvement potential.`;
+    return `Below average ${info?.label || key}. Significant room for enhancement with targeted effort.`;
+  };
+
+  const getImproveTip = (key) => {
+    // getTipsForCategory expects 0-100 scale
+    const rawScore = scores[key] || (getFactorScore(key) * 10);
+    const tips = getTipsForCategory ? getTipsForCategory(key, rawScore) : null;
+    if (tips && tips.length > 0) return tips[0].title + ': ' + tips[0].text.substring(0, 80) + '...';
+    return null;
+  };
+
+  // --- Haptic + record on mount ---
   useEffect(() => {
-    // Haptic feedback on score reveal
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-    // Record scan for streak/XP system
     recordScan(scores.overall);
+
+    // Save result to history
+    const saveResult = async () => {
+      try {
+        const history = JSON.parse(await AsyncStorage.getItem('scan_history') || '[]');
+        history.unshift({
+          id: Date.now(),
+          scores,
+          imageUri,
+          date: new Date().toISOString(),
+        });
+        await AsyncStorage.setItem('scan_history', JSON.stringify(history.slice(0, 50)));
+      } catch (e) {}
+    };
+    saveResult();
   }, []);
 
-  const featureItems = [
-    { screen: 'StatisticalReport', params: { scores }, icon: 'stats-chart-outline', title: 'Statistical Report', desc: 'Bell curve, percentile & std deviation', color: '#4d94ff', pro: true },
-    { screen: 'DemographicInsights', params: { scores }, icon: 'earth-outline', title: 'Demographic Insights', desc: 'How different groups perceive you', color: '#7c4dff', pro: true },
-    { screen: 'GlowUpSimulator', params: { scores, imageUri }, icon: 'sparkles-outline', title: 'Glow-Up Simulator', desc: 'See your potential transformation', color: '#ff6090', pro: true },
-    { screen: 'ShareCard', params: { scores, imageUri }, icon: 'share-social-outline', title: 'Share Card', desc: 'Create a viral share card', color: '#00e5ff' },
-    { screen: 'FaceShape', params: { scores }, icon: 'shapes-outline', title: 'Face Shape', desc: 'Discover your face shape', color: '#3388ff' },
-    { screen: 'AgeEstimate', params: { scores }, icon: 'hourglass-outline', title: 'Age Estimate', desc: 'Perceived vs real age', color: '#e17055' },
-    { screen: 'SkinTone', params: { scores }, icon: 'color-palette-outline', title: 'Skin Tone', desc: 'Personalized routine', color: '#fdcb6e' },
-    { screen: 'Products', params: undefined, icon: 'bag-outline', title: 'Products', desc: 'Recommended for you', color: '#00d26a' },
-    { screen: 'Challenge', params: undefined, icon: 'flame-outline', title: '30-Day Challenge', desc: 'Transform your look', color: '#ff6b35' },
-    { screen: 'BodyFat', params: undefined, icon: 'body-outline', title: 'Body Fat', desc: 'Face definition score', color: '#74b9ff' },
-    { screen: 'AIRecommendations', params: undefined, icon: 'sparkles-outline', title: 'AI Recommendations', desc: 'Personalized action plan', color: '#0066ff', pro: true },
-    { screen: 'GlowUpReport', params: undefined, icon: 'document-text-outline', title: 'Glow-Up Report', desc: 'Full analysis breakdown', color: '#00e676', pro: true },
-    { screen: 'BeforeAfter', params: undefined, icon: 'images-outline', title: 'Transformations', desc: 'Track your journey', color: '#ffab40', pro: true },
-    { screen: 'Guides', params: undefined, icon: 'book-outline', title: 'Expert Guides', desc: '23+ looksmaxxing masterclasses', color: '#7c4dff' },
-    { screen: 'TestosteroneGuide', params: undefined, icon: 'trending-up-outline', title: 'T Optimization', desc: 'Natural testosterone protocol', color: '#ff3d00', pro: true },
-    { screen: 'FaceFatGuide', params: undefined, icon: 'water-outline', title: 'Lean Face Protocol', desc: 'Lose face fat fast', color: '#00b0ff', pro: true },
-    { screen: 'SoftMaxxingGuide', params: undefined, icon: 'diamond-outline', title: 'Soft Maxxing', desc: 'Style & fragrance mastery', color: '#ffd740', pro: true },
-    { screen: 'MinoxidilGuide', params: undefined, icon: 'color-wand-outline', title: 'Beard Growth', desc: 'Minoxidil & dermarolling protocol', color: '#e17055', pro: true },
-    { screen: 'CollagenGuide', params: undefined, icon: 'flower-outline', title: 'Anti-Aging', desc: 'Collagen rebuilding protocol', color: '#ff6090', pro: true },
-    { screen: 'FaceExercisesGuide', params: undefined, icon: 'barbell-outline', title: 'Face Exercises', desc: 'Facial yoga & muscle training', color: '#ff6b35', pro: true },
-    { screen: 'NeckTrainingGuide', params: undefined, icon: 'body-outline', title: 'Neck Training', desc: 'Frame your face with mass', color: '#ff4757', pro: true },
-    { screen: 'ColdExposureGuide', params: undefined, icon: 'snow-outline', title: 'Ice Face Method', desc: 'De-puff & tighten skin', color: '#00b0ff', pro: true },
-    { screen: 'MindsetGuide', params: undefined, icon: 'rocket-outline', title: 'Confidence', desc: 'Mindset & body language', color: '#ffd740', pro: true },
-    { screen: 'PhotoGuide', params: undefined, icon: 'camera-outline', title: 'Photo Mastery', desc: 'Best angles & lighting', color: '#ff6090', pro: true },
-    { screen: 'DatingProfileGuide', params: undefined, icon: 'heart-circle-outline', title: 'Dating Profile', desc: 'Optimize your online presence', color: '#ff5252', pro: true },
-    { screen: 'PhotoRanking', params: undefined, icon: 'images-outline', title: 'Photo Ranking', desc: 'Find your best photo with AI', color: '#ff6090', pro: true },
-    { screen: 'Calibration', params: undefined, icon: 'options-outline', title: 'Calibrate Model', desc: 'Train the AI for better accuracy', color: '#00e5ff' },
-  ];
+  // --- Share card ---
+  const handleShare = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      if (cardRef.current) {
+        const uri = await captureRef(cardRef, {
+          format: 'png',
+          quality: 1,
+          result: 'tmpfile',
+        });
+        await Sharing.shareAsync(uri, {
+          mimeType: 'image/png',
+          dialogTitle: 'Share your rating card',
+        });
+      }
+    } catch (e) {
+      console.warn('Share failed:', e);
+    }
+  };
+
+  // Border color: gold for high scores, subtle for others
+  const cardBorderColor = overallScore >= 8 ? GOLD : '#2A2A2A';
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.navigate('Home')} style={[styles.headerBtn, GLASS.card]}>
-            <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ============ THE RATING CARD ============ */}
+        <Animated.View entering={FadeIn.duration(600)} style={styles.cardWrapper}>
+          <View
+            ref={cardRef}
+            style={[styles.ratingCard, { borderColor: cardBorderColor }]}
+            collapsable={false}
+          >
+            {/* Gold shimmer for high scores */}
+            {overallScore >= 8 && (
+              <View style={styles.goldGlow} />
+            )}
+
+            {/* User Photo */}
+            <View style={styles.photoSection}>
+              <View style={[styles.photoRing, { borderColor: overallColor }]}>
+                <Image source={{ uri: imageUri }} style={styles.photo} />
+              </View>
+            </View>
+
+            {/* Overall Score - THE number */}
+            <View style={styles.scoreSection}>
+              <AnimatedScore targetScore={overallScore} delay={400} fontSize={72} />
+              <Text style={[styles.tierLabel, { color: overallColor }]}>{tierLabel}</Text>
+              <View style={[styles.percentilePill, { borderColor: GOLD + '60' }]}>
+                <Text style={styles.percentileText}>{percentileLabel}</Text>
+              </View>
+            </View>
+
+            {/* Six-Factor Rating Grid (2 columns, 3 rows) */}
+            <View style={styles.factorsGrid}>
+              <View style={styles.factorsColumn}>
+                {mainFactors.slice(0, 3).map((f, i) => (
+                  <FactorRow
+                    key={f.key}
+                    label={f.label}
+                    score={getFactorScore(f.key)}
+                    index={i}
+                  />
+                ))}
+              </View>
+              <View style={styles.factorsColumn}>
+                {mainFactors.slice(3, 6).map((f, i) => (
+                  <FactorRow
+                    key={f.key}
+                    label={f.label}
+                    score={getFactorScore(f.key)}
+                    index={i + 3}
+                  />
+                ))}
+              </View>
+            </View>
+
+            {/* Watermark */}
+            <Text style={styles.watermark}>ANDROGENIC</Text>
+          </View>
+        </Animated.View>
+
+        {/* ============ DETAILED BREAKDOWN ============ */}
+        <Animated.View entering={FadeInDown.duration(400).delay(800)} style={styles.breakdownSection}>
+          <Text style={styles.sectionTitle}>Detailed Breakdown</Text>
+          {mainFactors.map((f) => (
+            <DetailCard
+              key={f.key}
+              category={f.label}
+              score={getFactorScore(f.key)}
+              analysis={getAnalysisText(f.key)}
+              tip={getImproveTip(f.key)}
+              isProTip={!canAccessCategory(f.key)}
+              locked={!canAccessCategory(f.key)}
+              onProPress={() => navigation.navigate('Paywall')}
+            />
+          ))}
+        </Animated.View>
+
+        {/* ============ ADDITIONAL SCORES (collapsed) ============ */}
+        <Animated.View entering={FadeInDown.duration(400).delay(1000)} style={styles.additionalSection}>
+          <TouchableOpacity
+            style={styles.additionalHeader}
+            onPress={() => setAdditionalExpanded(!additionalExpanded)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.sectionTitle}>Additional Scores</Text>
+            <Ionicons
+              name={additionalExpanded ? 'chevron-up' : 'chevron-down'}
+              size={20}
+              color="#666"
+            />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Results</Text>
-          <View style={styles.headerRight}>
-            <TouchableOpacity onPress={() => navigation.navigate('Share', { scores })} style={[styles.headerBtn, GLASS.card]}>
-              <Ionicons name="share-social-outline" size={18} color={COLORS.accent} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Tips', { scores })} style={[styles.headerBtn, GLASS.card]}>
-              <Ionicons name="bulb-outline" size={20} color={COLORS.accent} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Overall Score Hero */}
-        <Animated.View entering={FadeIn.duration(500)} style={styles.overallSection}>
-          <LinearGradient colors={GRADIENTS.hero} style={styles.heroBg}>
-            <View style={styles.overallRingRow}>
-              <View style={styles.photoWrapper}>
-                <View style={[styles.photoGlow, { shadowColor: overallColor }]} />
-                <Image source={{ uri: imageUri }} style={[styles.resultPhoto, { borderColor: overallColor }]} />
-              </View>
-              <ScoreRing score={scores.overall} size={130} strokeWidth={10} label={`${scores.overallRating}/10`} delay={200} />
-            </View>
-            <View style={styles.ratingRow}>
-              <View style={styles.ratingPill}>
-                <View style={[styles.ratingDot, { backgroundColor: overallColor }]} />
-                <Text style={[styles.ratingText, { color: overallColor }]}>{getScoreLabel(scores.overall)}</Text>
-              </View>
-              <View style={[styles.percentilePill, { backgroundColor: percentile.color + '20', borderColor: percentile.color + '40' }]}>
-                <Ionicons name="trending-up" size={12} color={percentile.color} />
-                <Text style={[styles.percentileText, { color: percentile.color }]}>{percentile.label}</Text>
-              </View>
-            </View>
-            <Text style={styles.overallDescription}>
-              {scores.overallRating >= 8 ? "You're in the top tier. Elite facial aesthetics." :
-               scores.overallRating >= 6 ? "Above average. Strong features with room to optimize." :
-               scores.overallRating >= 4 ? "Average range. Good foundation with improvement potential." :
-               "Below average. Significant looksmaxxing potential ahead."}
-            </Text>
-          </LinearGradient>
-        </Animated.View>
-
-        {/* Celebrity Match (PRO) */}
-        <Animated.View entering={FadeInDown.duration(350).delay(300)}>
-          {pro && celebrity && (
-            <View style={styles.celebrityCard}>
-              <LinearGradient colors={GRADIENTS.gold} style={styles.celebrityGradient}>
-                <Text style={styles.celebrityEmoji}>{celebrity.image}</Text>
-                <View style={styles.celebrityInfo}>
-                  <Text style={styles.celebrityLabel}>Celebrity Match</Text>
-                  <Text style={styles.celebrityName}>{celebrity.name}</Text>
-                  <Text style={styles.celebrityMatch}>{celebrity.matchPercent}% Match</Text>
+          {additionalExpanded && (
+            <View style={styles.additionalGrid}>
+              {additionalScores.map((item, i) => (
+                <View key={i} style={styles.additionalCard}>
+                  <Text style={styles.additionalLabel}>{item.label}</Text>
+                  {item.locked ? (
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate('Paywall')}
+                      style={styles.lockedRow}
+                    >
+                      <Text style={styles.lockedScore}>--</Text>
+                      <View style={styles.proBadge}>
+                        <Text style={styles.proBadgeText}>PRO</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ) : (
+                    <Text style={[styles.additionalScore, { color: getCardScoreColor(item.score || 5) }]}>
+                      {item.score ? item.score.toFixed(1) : 'N/A'}
+                    </Text>
+                  )}
+                  {!item.locked && item.score && (
+                    <View style={styles.additionalBarContainer}>
+                      <View style={[styles.additionalBar, {
+                        width: `${(item.score / 10) * 100}%`,
+                        backgroundColor: getCardScoreColor(item.score),
+                      }]} />
+                    </View>
+                  )}
                 </View>
-                <View style={styles.proBadgeSm}>
-                  <Text style={styles.proBadgeText}>PRO</Text>
-                </View>
-              </LinearGradient>
+              ))}
             </View>
           )}
+        </Animated.View>
 
-          {!pro && (
-            <TouchableOpacity onPress={() => navigation.navigate('Paywall')} activeOpacity={0.8}>
-              <View style={styles.celebrityTeaser}>
-                <View style={styles.teaserIconBg}>
-                  <Ionicons name="star" size={18} color={COLORS.gold} />
-                </View>
-                <Text style={styles.teaserText}>See your celebrity look-alike match</Text>
-                <View style={styles.proBadgeSm}>
-                  <Text style={styles.proBadgeText}>PRO</Text>
-                </View>
+        {/* Pro Upsell for free users */}
+        {!pro && (
+          <Animated.View entering={FadeInDown.duration(400).delay(1100)}>
+            <TouchableOpacity
+              style={styles.proUpsell}
+              onPress={() => navigation.navigate('Paywall')}
+              activeOpacity={0.8}
+            >
+              <View style={styles.proUpsellIcon}>
+                <Ionicons name="lock-open" size={20} color={GOLD} />
               </View>
+              <View style={styles.proUpsellContent}>
+                <Text style={styles.proUpsellTitle}>Unlock Full Analysis</Text>
+                <Text style={styles.proUpsellDesc}>Celebrity match, potential score, all categories & more</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={GOLD} />
             </TouchableOpacity>
-          )}
-        </Animated.View>
-
-        {/* Score Cards Grid */}
-        <Animated.View entering={FadeInDown.duration(350).delay(420)}>
-          <Text style={styles.sectionTitle}>Category Scores</Text>
-          <View style={styles.scoreGrid}>
-            {categories.map((cat, index) => {
-              const info = CATEGORY_INFO[cat];
-              const locked = !canAccessCategory(cat);
-              return (
-                <ScoreCard
-                  key={cat}
-                  category={cat}
-                  label={info.label}
-                  score={scores[cat]}
-                  icon={info.icon}
-                  locked={locked}
-                  index={index}
-                  onPress={() => {
-                    if (locked) {
-                      navigation.navigate('Paywall');
-                    } else {
-                      navigation.navigate('DetailAnalysis', { category: cat, scores });
-                    }
-                  }}
-                />
-              );
-            })}
-          </View>
-        </Animated.View>
-
-        {/* Facial Ratios (PRO) */}
-        {pro && ratios && (
-          <Animated.View entering={FadeInDown.duration(350).delay(540)} style={styles.ratiosSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Facial Ratios</Text>
-              <View style={styles.proBadgeSm}>
-                <Text style={styles.proBadgeText}>PRO</Text>
-              </View>
-            </View>
-            {ratios.map((ratio, i) => (
-              <View key={i} style={styles.ratioRow}>
-                <View style={styles.ratioLeft}>
-                  <Text style={styles.ratioName}>{ratio.name}</Text>
-                  <Text style={styles.ratioIdeal}>Ideal: {ratio.ideal}</Text>
-                </View>
-                <View style={styles.ratioRight}>
-                  <Text style={styles.ratioValue}>{ratio.value}</Text>
-                  <Text style={[styles.ratioRating, {
-                    color: ratio.rating === 'Excellent' || ratio.rating === 'Good' || ratio.rating === 'High' || ratio.rating === 'Ideal' || ratio.rating === 'Strong' || ratio.rating === 'Wide' || ratio.rating === 'Positive'
-                      ? COLORS.scoreHigh : COLORS.scoreMid
-                  }]}>{ratio.rating}</Text>
-                </View>
-              </View>
-            ))}
           </Animated.View>
         )}
 
-        {/* Quick Tips */}
-        <Animated.View entering={FadeInDown.duration(350).delay(660)} style={styles.tipsPreview}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Top Recommendations</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Tips', { scores })}>
-              <Text style={styles.seeAllLink}>See All</Text>
-            </TouchableOpacity>
-          </View>
-          {getOverallTips(scores.overall).slice(0, 2).map((tip, i) => (
-            <View key={i} style={styles.tipCard}>
-              <View style={styles.tipIconBg}>
-                <Ionicons name="bulb" size={16} color={COLORS.accent} />
-              </View>
-              <View style={styles.tipContent}>
-                <Text style={styles.tipTitle}>{tip.title}</Text>
-                <Text style={styles.tipText} numberOfLines={2}>{tip.text}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
-            </View>
-          ))}
-        </Animated.View>
-
-        {/* Feature Cards */}
-        <Animated.View entering={FadeInDown.duration(350).delay(780)} style={styles.featureCards}>
-          <Text style={styles.sectionTitle}>Explore</Text>
-          {featureItems.map((item, i) => (
-            <Animated.View key={i} entering={FadeInDown.duration(250).delay(800 + i * 40)}>
-              <TouchableOpacity
-                style={styles.featureCard}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  if (item.pro && !pro) {
-                    navigation.navigate('Paywall');
-                  } else {
-                    navigation.navigate(item.screen, item.params);
-                  }
-                }}
-                activeOpacity={0.7}
-              >
-                <View style={[styles.featureIconBg, { backgroundColor: item.color + '18' }]}>
-                  <Ionicons name={item.icon} size={20} color={item.color} />
-                </View>
-                <View style={styles.featureCardContent}>
-                  <Text style={styles.featureCardTitle}>{item.title}</Text>
-                  <Text style={styles.featureCardDesc}>{item.desc}</Text>
-                </View>
-                {item.pro && !pro ? (
-                  <View style={styles.proBadgeSm}>
-                    <Text style={styles.proBadgeText}>PRO</Text>
-                  </View>
-                ) : (
-                  <View style={styles.featureArrow}>
-                    <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
-                  </View>
-                )}
-              </TouchableOpacity>
-            </Animated.View>
-          ))}
-        </Animated.View>
-
-        {/* Action Buttons */}
-        <Animated.View entering={FadeInDown.duration(350).delay(900)} style={styles.actionButtons}>
-          {pro && (
-            <>
-              <TouchableOpacity
-                style={styles.actionBtn}
-                onPress={() => navigation.navigate('Progress')}
-                activeOpacity={0.7}
-              >
-                <View style={styles.actionIconBg}>
-                  <Ionicons name="trending-up" size={18} color={COLORS.accent} />
-                </View>
-                <Text style={styles.actionBtnText}>Progress</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.actionBtn}
-                onPress={() => navigation.navigate('Plan', { scores })}
-                activeOpacity={0.7}
-              >
-                <View style={styles.actionIconBg}>
-                  <Ionicons name="clipboard-outline" size={18} color={COLORS.accent} />
-                </View>
-                <Text style={styles.actionBtnText}>Plan</Text>
-              </TouchableOpacity>
-            </>
-          )}
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => navigation.navigate('Compare')}
-            activeOpacity={0.7}
-          >
-            <View style={styles.actionIconBg}>
-              <Ionicons name="git-compare-outline" size={18} color={COLORS.accent} />
-            </View>
-            <Text style={styles.actionBtnText}>Compare</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => navigation.navigate('Home')}
-            activeOpacity={0.7}
-          >
-            <LinearGradient colors={GRADIENTS.accent} style={styles.actionIconBgAccent}>
-              <Ionicons name="refresh" size={18} color="#fff" />
-            </LinearGradient>
-            <Text style={styles.actionBtnTextAccent}>New Scan</Text>
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* Pro Upsell */}
-        {!pro && (
-          <TouchableOpacity onPress={() => navigation.navigate('Paywall')} activeOpacity={0.8}>
-            <LinearGradient colors={GRADIENTS.accent} style={styles.upsellCard}>
-              <View style={styles.upsellIconBg}>
-                <Ionicons name="lock-open" size={22} color="#fff" />
-              </View>
-              <Text style={styles.upsellTitle}>Unlock Full Analysis</Text>
-              <Text style={styles.upsellText}>
-                Get all 7 categories, celebrity matching, facial ratios, progress tracking & more
-              </Text>
-              <View style={styles.upsellBtn}>
-                <Text style={styles.upsellBtnText}>Start Free Trial</Text>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-        )}
-
-        <View style={{ height: 40 }} />
+        {/* Bottom spacer for fixed buttons */}
+        <View style={{ height: 100 }} />
       </ScrollView>
+
+      {/* ============ FIXED ACTION BUTTONS ============ */}
+      <View style={styles.actionBar}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={handleShare}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="share-outline" size={20} color="#FFF" />
+          <Text style={styles.actionBtnText}>Share</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.actionBtnPrimary]}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            navigation.navigate('Tips', { scores });
+          }}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="trending-up" size={20} color="#000" />
+          <Text style={[styles.actionBtnText, styles.actionBtnTextPrimary]}>Improve</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            navigation.navigate('Home');
+          }}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="refresh" size={20} color="#FFF" />
+          <Text style={styles.actionBtnText}>Scan Again</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
 
+// =============================================================================
+// STYLES
+// =============================================================================
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.bgPrimary,
+    backgroundColor: '#000000',
   },
   scroll: {
     paddingHorizontal: 20,
+    paddingTop: 12,
   },
-  header: {
-    flexDirection: 'row',
+
+  // --- Rating Card ---
+  cardWrapper: {
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
+    marginBottom: 24,
   },
-  headerBtn: {
-    width: 40,
-    height: 40,
+  ratingCard: {
+    width: CARD_WIDTH,
+    backgroundColor: '#1A1A1A',
     borderRadius: 20,
-    justifyContent: 'center',
+    borderWidth: 1,
+    paddingVertical: 28,
+    paddingHorizontal: 20,
     alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    letterSpacing: 0.5,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  overallSection: {
-    marginBottom: 20,
-    borderRadius: 22,
     overflow: 'hidden',
+    ...SHADOWS.card,
   },
-  heroBg: {
-    padding: 24,
-    alignItems: 'center',
+  goldGlow: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: GOLD + '30',
+    shadowColor: GOLD,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 8,
   },
-  overallRingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 24,
+
+  // --- Photo ---
+  photoSection: {
     marginBottom: 16,
   },
-  photoWrapper: {
-    position: 'relative',
-  },
-  photoGlow: {
-    position: 'absolute',
-    top: -8,
-    left: -8,
-    right: -8,
-    bottom: -8,
-    borderRadius: 58,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  resultPhoto: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 3,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  ratingPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.bgCard,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  ratingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  percentilePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-    gap: 4,
-    borderWidth: 1,
-  },
-  percentileText: {
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  ratingText: {
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-  },
-  overallDescription: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  celebrityCard: {
-    borderRadius: 18,
-    overflow: 'hidden',
-    marginBottom: 20,
-    ...SHADOWS.soft,
-  },
-  celebrityGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-  },
-  celebrityEmoji: {
-    fontSize: 36,
-    marginRight: 12,
-  },
-  celebrityInfo: {
-    flex: 1,
-  },
-  celebrityLabel: {
-    color: 'rgba(0,0,0,0.6)',
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  celebrityName: {
-    color: '#000',
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  celebrityMatch: {
-    color: 'rgba(0,0,0,0.7)',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  celebrityTeaser: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.bgCard,
-    borderRadius: 18,
-    padding: 14,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: COLORS.goldDark + '40',
-    gap: 10,
-  },
-  teaserIconBg: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,215,0,0.1)',
+  photoRing: {
+    width: 158,
+    height: 158,
+    borderRadius: 79,
+    borderWidth: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  teaserText: {
-    flex: 1,
-    color: COLORS.textSecondary,
-    fontSize: 14,
-    fontWeight: '500',
+  photo: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
   },
-  proBadgeSm: {
-    backgroundColor: COLORS.gold,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+
+  // --- Score ---
+  scoreSection: {
+    alignItems: 'center',
+    marginBottom: 24,
   },
-  proBadgeText: {
-    color: '#000',
-    fontSize: 10,
+  heroScore: {
     fontWeight: '800',
-    letterSpacing: 1,
+    letterSpacing: -2,
+    marginBottom: 4,
   },
+  tierLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: 10,
+  },
+  percentilePill: {
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    backgroundColor: GOLD + '12',
+  },
+  percentileText: {
+    color: GOLD,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+
+  // --- Factors Grid ---
+  factorsGrid: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: 16,
+    marginBottom: 20,
+  },
+  factorsColumn: {
+    flex: 1,
+    gap: 14,
+  },
+  factorRow: {
+    marginBottom: 0,
+  },
+  factorHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  factorLabel: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#999999',
+  },
+  factorScore: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  progressBarBg: {
+    height: 3,
+    backgroundColor: '#2A2A2A',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: 3,
+    borderRadius: 2,
+  },
+
+  // --- Watermark ---
+  watermark: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: GOLD + '50',
+    letterSpacing: 4,
+    marginTop: 4,
+  },
+
+  // --- Section Title ---
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: 12,
-    letterSpacing: 0.3,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    color: '#FFFFFF',
     marginBottom: 12,
   },
-  scoreGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+
+  // --- Detail Breakdown ---
+  breakdownSection: {
     marginBottom: 20,
   },
-  ratiosSection: {
-    marginBottom: 20,
-  },
-  ratioRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: COLORS.bgCard,
+  detailCard: {
+    backgroundColor: '#1A1A1A',
     borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#2A2A2A',
     padding: 14,
     marginBottom: 8,
-    borderWidth: 1,
-    borderColor: COLORS.border,
   },
-  ratioLeft: {},
-  ratioName: {
-    color: COLORS.textPrimary,
+  detailHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  detailCategory: {
     fontSize: 14,
     fontWeight: '600',
+    color: '#FFFFFF',
   },
-  ratioIdeal: {
-    color: COLORS.textMuted,
-    fontSize: 11,
-    marginTop: 2,
+  detailScoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  ratioRight: {
-    alignItems: 'flex-end',
-  },
-  ratioValue: {
-    color: COLORS.textPrimary,
+  detailScore: {
     fontSize: 16,
     fontWeight: '700',
   },
-  ratioRating: {
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 2,
+  detailBarContainer: {
+    height: 3,
+    backgroundColor: '#2A2A2A',
+    borderRadius: 2,
+    marginTop: 10,
+    overflow: 'hidden',
   },
-  tipsPreview: {
-    marginBottom: 20,
+  detailBar: {
+    height: 3,
+    borderRadius: 2,
   },
-  seeAllLink: {
-    color: COLORS.accent,
-    fontSize: 14,
-    fontWeight: '600',
+  detailExpanded: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#2A2A2A',
   },
-  tipCard: {
+  detailAnalysis: {
+    fontSize: 13,
+    color: '#999999',
+    lineHeight: 19,
+    marginBottom: 10,
+  },
+  detailTipRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.bgCard,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 8,
-    gap: 10,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  tipIconBg: {
-    width: 32,
-    height: 32,
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: '#111111',
     borderRadius: 10,
-    backgroundColor: COLORS.accentGlow,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 10,
   },
-  tipContent: {
+  detailTipText: {
     flex: 1,
-  },
-  tipTitle: {
-    color: COLORS.textPrimary,
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 3,
-  },
-  tipText: {
-    color: COLORS.textSecondary,
     fontSize: 12,
-    lineHeight: 18,
+    color: '#CCCCCC',
+    lineHeight: 17,
   },
-  featureCards: {
+
+  // --- Additional Scores ---
+  additionalSection: {
     marginBottom: 20,
   },
-  featureCard: {
+  additionalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  additionalGrid: {
+    gap: 8,
+    marginTop: 8,
+  },
+  additionalCard: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#2A2A2A',
+    padding: 14,
+  },
+  additionalLabel: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#999999',
+    marginBottom: 6,
+  },
+  additionalScore: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  additionalBarContainer: {
+    height: 3,
+    backgroundColor: '#2A2A2A',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  additionalBar: {
+    height: 3,
+    borderRadius: 2,
+  },
+  lockedRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.bgCard,
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    gap: 8,
   },
-  featureIconBg: {
+  lockedScore: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#444',
+  },
+
+  // --- PRO Badge ---
+  proBadge: {
+    backgroundColor: GOLD,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 5,
+  },
+  proBadgeText: {
+    color: '#000',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+
+  // --- Pro Upsell ---
+  proUpsell: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1A1A1A',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: GOLD + '40',
+    padding: 16,
+    marginBottom: 20,
+    gap: 12,
+  },
+  proUpsellIcon: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 20,
+    backgroundColor: GOLD + '15',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
   },
-  featureCardContent: {
+  proUpsellContent: {
     flex: 1,
   },
-  featureCardTitle: {
-    color: COLORS.textPrimary,
+  proUpsellTitle: {
     fontSize: 15,
     fontWeight: '700',
+    color: '#FFFFFF',
     marginBottom: 2,
   },
-  featureCardDesc: {
-    color: COLORS.textMuted,
+  proUpsellDesc: {
     fontSize: 12,
+    color: '#999999',
   },
-  featureArrow: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: COLORS.bgSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  actionButtons: {
+
+  // --- Fixed Action Bar ---
+  actionBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
-    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 16,
+    backgroundColor: '#000000',
+    borderTopWidth: 1,
+    borderTopColor: '#1A1A1A',
     gap: 10,
-    marginBottom: 20,
   },
   actionBtn: {
-    alignItems: 'center',
-    backgroundColor: COLORS.bgCard,
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: COLORS.border,
     flex: 1,
-  },
-  actionIconBg: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: COLORS.accentGlow,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
-  },
-  actionIconBgAccent: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
     justifyContent: 'center',
-    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#1A1A1A',
+    borderWidth: 1,
+    borderColor: '#2A2A2A',
+  },
+  actionBtnPrimary: {
+    backgroundColor: GOLD,
+    borderColor: GOLD,
   },
   actionBtnText: {
-    color: COLORS.textSecondary,
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  actionBtnTextAccent: {
-    color: COLORS.accent,
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  upsellCard: {
-    borderRadius: 20,
-    padding: 28,
-    alignItems: 'center',
-    marginBottom: 12,
-    ...SHADOWS.accentGlow,
-  },
-  upsellIconBg: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  upsellTitle: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '800',
-    marginBottom: 8,
-  },
-  upsellText: {
-    color: 'rgba(255,255,255,0.8)',
     fontSize: 13,
-    textAlign: 'center',
-    lineHeight: 18,
-    marginBottom: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
-  upsellBtn: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    paddingVertical: 13,
-    paddingHorizontal: 36,
-    ...SHADOWS.soft,
-  },
-  upsellBtnText: {
-    color: COLORS.accent,
-    fontSize: 16,
-    fontWeight: '700',
+  actionBtnTextPrimary: {
+    color: '#000000',
   },
 });
 
