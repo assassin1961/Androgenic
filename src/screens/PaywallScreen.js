@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Alert, Dimensions, Platform, Linking,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Alert,
+  Dimensions, Platform, Linking, Share,
 } from 'react-native';
 import Animated, {
   FadeInDown, FadeIn, ZoomIn,
@@ -9,74 +10,65 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { COLORS, GRADIENTS, SHADOWS, GLASS } from '../utils/theme';
-import { PRO_CONFIG, startFreeTrial, purchasePlan, hasUsedTrial, isPro, restorePurchases } from '../utils/pro';
+import { COLORS, GRADIENTS, SHADOWS } from '../utils/theme';
+import { PRO_CONFIG, purchasePlan, hasUsedTrial, isPro, restorePurchases } from '../utils/pro';
 import { getManageSubscriptionUrl } from '../config/iap';
 import AnimatedPressable from '../components/AnimatedPressable';
-import GlassBackground from '../components/GlassBackground';
 
 const { width } = Dimensions.get('window');
 
-const SOCIAL_PROOF = [
-  { name: 'Jake M.', text: 'Score went from 5.8 to 7.2 in 3 months following the guides', rating: 5, improvement: '+1.4', weeks: '12 wks' },
-  { name: 'Alex R.', text: 'The facial ratios showed me exactly what to fix. Testosterone guide is elite', rating: 5, improvement: '+1.7', weeks: '8 wks' },
-  { name: 'Chris D.', text: 'Best investment in my self-improvement journey. Lean face protocol works', rating: 5, improvement: '+1.1', weeks: '6 wks' },
-  { name: 'Marcus T.', text: 'Soft maxxing guide alone was worth the sub. Completely changed my style game', rating: 5, improvement: '+0.9', weeks: '4 wks' },
-  { name: 'Ryan K.', text: 'The AI recommendations are crazy accurate. My jawline looks way more defined now', rating: 5, improvement: '+1.5', weeks: '10 wks' },
+// Mock blurred score data for the preview card
+const BLURRED_SCORES = [
+  { label: 'Overall', value: '7.8' },
+  { label: 'Jawline', value: '8.2' },
+  { label: 'Eyes', value: '7.1' },
+  { label: 'Symmetry', value: '8.5' },
+  { label: 'Skin', value: '6.9' },
+  { label: 'Hair', value: '7.4' },
 ];
 
-const PRO_FEATURES_DISPLAY = [
-  { icon: 'infinite-outline', text: 'Unlimited face scans', color: '#0066ff' },
-  { icon: 'grid-outline', text: 'All 7 analysis categories', color: '#00e676' },
-  { icon: 'people-outline', text: 'Celebrity look-alike matching', color: '#ff6b35' },
-  { icon: 'analytics-outline', text: '8 facial ratio measurements', color: '#00e5ff' },
-  { icon: 'sparkles-outline', text: 'AI-powered recommendations', color: '#ffab40' },
-  { icon: 'document-text-outline', text: 'Detailed glow-up report', color: '#4d94ff' },
-  { icon: 'trending-up', text: 'Progress & transformation tracking', color: '#1de9b6' },
-  { icon: 'clipboard-outline', text: '12-week improvement plan', color: '#ff6090' },
-  { icon: 'book-outline', text: '23+ expert looksmaxxing guides', color: '#7c4dff' },
-  { icon: 'flask-outline', text: 'Testosterone optimization protocol', color: '#ff3d00' },
-  { icon: 'water-outline', text: 'Lean face & de-bloating system', color: '#00b0ff' },
-  { icon: 'diamond-outline', text: 'Style & fragrance masterclass', color: '#ffd740' },
-  { icon: 'color-wand-outline', text: 'Minoxidil & beard growth guide', color: '#e17055' },
-  { icon: 'flower-outline', text: 'Collagen & anti-aging protocol', color: '#ff6090' },
-  { icon: 'barbell-outline', text: 'Face exercises & facial yoga', color: '#ff6b35' },
-  { icon: 'body-outline', text: 'Neck training for face framing', color: '#ff4757' },
-  { icon: 'snow-outline', text: 'Cold exposure & ice face method', color: '#00b0ff' },
-  { icon: 'rocket-outline', text: 'Mindset & confidence mastery', color: '#ffd740' },
-  { icon: 'camera-outline', text: 'Photo angles & lighting guide', color: '#ff6090' },
-  { icon: 'heart-circle-outline', text: 'Dating profile optimization', color: '#ff5252' },
-  { icon: 'stats-chart-outline', text: 'Statistical report & bell curve', color: '#4d94ff' },
-  { icon: 'earth-outline', text: 'Demographic perception breakdown', color: '#7c4dff' },
-  { icon: 'images-outline', text: 'AI photo ranking system', color: '#ff6090' },
-  { icon: 'options-outline', text: 'Model calibration engine', color: '#00e5ff' },
+const FEATURES = [
+  'Detailed face analysis across 6 categories',
+  'Personalized improvement plan',
+  'Celebrity match & potential score',
+  '23+ expert guides & protocols',
+  'Track your progress over time',
+  'Unlimited scans',
 ];
 
 const PaywallScreen = ({ navigation }) => {
-  const [selectedPlan, setSelectedPlan] = useState('monthly');
+  const [selectedPlan, setSelectedPlan] = useState('yearly');
   const [loading, setLoading] = useState(false);
+  const [friendsInvited, setFriendsInvited] = useState(0);
   const trialUsed = hasUsedTrial();
   const alreadyPro = isPro();
 
-  const shimmerX = useSharedValue(-width);
   const pulseScale = useSharedValue(1);
-  const urgencyOpacity = useSharedValue(0.8);
+  const glowOpacity = useSharedValue(0.3);
 
   useEffect(() => {
-    shimmerX.value = withRepeat(withTiming(width, { duration: 2500, easing: Easing.linear }), -1, false);
     pulseScale.value = withRepeat(
-      withSequence(withTiming(1.03, { duration: 1200 }), withTiming(1, { duration: 1200 })),
+      withSequence(
+        withTiming(1.02, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+      ),
       -1, false,
     );
-    urgencyOpacity.value = withRepeat(
-      withSequence(withTiming(1, { duration: 800 }), withTiming(0.8, { duration: 800 })),
+    glowOpacity.value = withRepeat(
+      withSequence(
+        withTiming(0.6, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.3, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+      ),
       -1, false,
     );
   }, []);
 
-  const shimmerStyle = useAnimatedStyle(() => ({ transform: [{ translateX: shimmerX.value }] }));
   const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulseScale.value }] }));
-  const urgencyStyle = useAnimatedStyle(() => ({ opacity: urgencyOpacity.value }));
+  const glowStyle = useAnimatedStyle(() => ({ opacity: glowOpacity.value }));
+
+  const getSelectedPlanData = () => {
+    return PRO_CONFIG.plans.find(p => p.id === selectedPlan) || PRO_CONFIG.plans[2];
+  };
 
   const handleSubscribe = async () => {
     try {
@@ -90,24 +82,6 @@ const PaywallScreen = ({ navigation }) => {
     } catch (err) {
       if (err.message !== 'CANCELLED') {
         Alert.alert('Purchase Failed', 'Something went wrong. Please try again.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleStartTrial = async () => {
-    try {
-      setLoading(true);
-      await purchasePlan('monthly');
-      Alert.alert(
-        'Welcome to PRO!',
-        `Your ${PRO_CONFIG.trialDays}-day free trial has started. Enjoy all PRO features!`,
-        [{ text: 'Explore PRO', onPress: () => navigation.goBack() }]
-      );
-    } catch (err) {
-      if (err.message !== 'CANCELLED') {
-        Alert.alert('Error', 'Could not start trial. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -132,9 +106,28 @@ const PaywallScreen = ({ navigation }) => {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      const result = await Share.share({
+        message: Platform.OS === 'ios'
+          ? 'Check out Androgenic - AI-powered face analysis that actually works. Get your score: https://androgenic.app/invite'
+          : 'https://androgenic.app/invite',
+        title: 'Unlock Androgenic PRO for free',
+      });
+      if (result.action === Share.sharedAction) {
+        setFriendsInvited(prev => Math.min(prev + 1, 3));
+        if (friendsInvited + 1 >= 3) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+      }
+    } catch (err) {
+      // Share cancelled or failed
+    }
+  };
+
   if (alreadyPro) {
     return (
-      <GlassBackground variant="gold">
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <AnimatedPressable onPress={() => navigation.goBack()} style={styles.closeBtn}>
@@ -154,287 +147,581 @@ const PaywallScreen = ({ navigation }) => {
           </AnimatedPressable>
         </View>
       </SafeAreaView>
-      </GlassBackground>
     );
   }
 
+  const selectedPlanData = getSelectedPlanData();
+
   return (
-    <GlassBackground variant="purple">
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Animated.View entering={FadeIn.duration(500)}>
-          {/* Close */}
-          <View style={styles.header}>
-            <AnimatedPressable onPress={() => navigation.goBack()} style={[styles.closeBtn, GLASS.card]}>
-              <Ionicons name="close" size={22} color={COLORS.textPrimary} />
-            </AnimatedPressable>
-          </View>
-
-          {/* Hero */}
-          <Animated.View entering={FadeInDown.duration(400).delay(100)} style={styles.hero}>
-            <LinearGradient colors={GRADIENTS.gold} style={styles.proBadgeLg}>
-              <Ionicons name="diamond" size={32} color="#000" />
-            </LinearGradient>
-            <Text style={styles.heroTitle}>Androgenic PRO</Text>
-            <Text style={styles.heroSubtitle}>Join 12,000+ members transforming their looks</Text>
-            <View style={styles.heroStats}>
-              <View style={styles.heroStat}>
-                <Text style={[styles.heroStatNum, { color: '#00e676' }]}>23+</Text>
-                <Text style={styles.heroStatLabel}>Guides</Text>
-              </View>
-              <View style={styles.heroStatDivider} />
-              <View style={styles.heroStat}>
-                <Text style={[styles.heroStatNum, { color: '#0066ff' }]}>∞</Text>
-                <Text style={styles.heroStatLabel}>Scans</Text>
-              </View>
-              <View style={styles.heroStatDivider} />
-              <View style={styles.heroStat}>
-                <Text style={[styles.heroStatNum, { color: '#ff6090' }]}>7</Text>
-                <Text style={styles.heroStatLabel}>Categories</Text>
-              </View>
-            </View>
-          </Animated.View>
-
-          {/* Urgency Banner */}
-          <Animated.View style={urgencyStyle}>
-            <View style={styles.urgencyBanner}>
-              <Ionicons name="flash" size={16} color="#FFD700" />
-              <Text style={styles.urgencyText}>Limited offer: 50% off first month</Text>
-              <Ionicons name="flash" size={16} color="#FFD700" />
-            </View>
-          </Animated.View>
-
-          {/* Social Proof */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.socialScroll}>
-            {SOCIAL_PROOF.map((s, i) => (
-              <View key={i} style={styles.socialCard}>
-                <View style={styles.socialHeader}>
-                  <LinearGradient colors={GRADIENTS.accent} style={styles.socialAvatar}>
-                    <Text style={styles.socialInitial}>{s.name[0]}</Text>
-                  </LinearGradient>
-                  <Text style={styles.socialName}>{s.name}</Text>
-                  <View style={styles.socialImp}>
-                    <Text style={styles.socialImpText}>{s.improvement}</Text>
-                  </View>
-                </View>
-                <Text style={styles.socialText}>"{s.text}"</Text>
-                {s.weeks && (
-                  <View style={styles.socialWeeks}>
-                    <Ionicons name="time-outline" size={10} color={COLORS.textMuted} />
-                    <Text style={styles.socialWeeksText}>{s.weeks}</Text>
-                  </View>
-                )}
-                <View style={styles.socialStars}>
-                  {[...Array(s.rating)].map((_, si) => (
-                    <Ionicons key={si} name="star" size={12} color={COLORS.gold} />
-                  ))}
-                </View>
-              </View>
-            ))}
-          </ScrollView>
-
-          {/* Features Grid */}
-          <Text style={styles.featuresTitle}>Everything You Get</Text>
-          <View style={styles.featuresGrid}>
-            {PRO_FEATURES_DISPLAY.map((f, i) => (
-              <View key={i} style={styles.featureItem}>
-                <View style={[styles.featureIconBg, { backgroundColor: f.color + '18' }]}>
-                  <Ionicons name={f.icon} size={16} color={f.color} />
-                </View>
-                <Text style={styles.featureText}>{f.text}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Content Categories */}
-          <Text style={styles.featuresTitle}>PRO Content Library</Text>
-          <View style={styles.contentCategories}>
-            {[
-              { icon: 'book-outline', title: 'Expert Guides', count: '23+', color: '#7c4dff', desc: 'Deep-dive masterclasses' },
-              { icon: 'scan-outline', title: 'Face Analysis', count: '∞', color: '#0066ff', desc: 'Unlimited AI scans' },
-              { icon: 'stats-chart-outline', title: 'Data Science', count: '4', color: '#4d94ff', desc: 'Stats, demographics, ranking' },
-              { icon: 'flask-outline', title: 'Protocols', count: '8', color: '#00e676', desc: 'T, collagen, minox & more' },
-            ].map((cat, i) => (
-              <View key={i} style={styles.contentCatCard}>
-                <View style={[styles.contentCatIcon, { backgroundColor: cat.color + '15' }]}>
-                  <Ionicons name={cat.icon} size={20} color={cat.color} />
-                </View>
-                <Text style={styles.contentCatCount}>{cat.count}</Text>
-                <Text style={styles.contentCatTitle}>{cat.title}</Text>
-                <Text style={styles.contentCatDesc}>{cat.desc}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Plans */}
-          <Text style={styles.plansTitle}>Choose Your Plan</Text>
-          {PRO_CONFIG.plans.map((plan, idx) => {
-            const isSelected = selectedPlan === plan.id;
-            return (
-              <Animated.View key={plan.id} entering={FadeInDown.duration(300).delay(300 + idx * 80)}>
-                <AnimatedPressable onPress={() => { Haptics.selectionAsync(); setSelectedPlan(plan.id); }} scaleDown={0.97}>
-                  <View style={[styles.planCard, isSelected && styles.planCardSelected]}>
-                    <View style={styles.planLeft}>
-                      <View style={[styles.planRadio, isSelected && styles.planRadioSelected]}>
-                        {isSelected && <View style={styles.planRadioDot} />}
-                      </View>
-                      <View>
-                        <View style={styles.planLabelRow}>
-                          <Text style={[styles.planLabel, isSelected && styles.planLabelSelected]}>{plan.label}</Text>
-                          {plan.popular && <View style={styles.popularBadge}><Text style={styles.popularText}>BEST VALUE</Text></View>}
-                          {plan.savings && !plan.popular && <View style={styles.savingsBadge}><Text style={styles.savingsText}>{plan.savings}</Text></View>}
-                        </View>
-                        <Text style={styles.planPeriod}>{plan.period}</Text>
-                      </View>
-                    </View>
-                    <Text style={[styles.planPrice, isSelected && { color: COLORS.accent }]}>{plan.price}</Text>
-                  </View>
-                </AnimatedPressable>
-              </Animated.View>
-            );
-          })}
-
-          {/* Trial CTA */}
-          {!trialUsed && (
-            <AnimatedPressable onPress={handleStartTrial} scaleDown={0.97}>
-              <Animated.View style={pulseStyle}>
-                <LinearGradient colors={GRADIENTS.gold} style={styles.trialBtn}>
-                  <Animated.View style={[styles.shimmerBar, shimmerStyle]} />
-                  <Ionicons name="gift-outline" size={20} color="#000" />
-                  <View style={styles.trialBtnContent}>
-                    <Text style={styles.trialBtnText}>Start {PRO_CONFIG.trialDays}-Day Free Trial</Text>
-                    <Text style={styles.trialBtnSub}>Cancel anytime during trial</Text>
-                  </View>
-                </LinearGradient>
-              </Animated.View>
-            </AnimatedPressable>
-          )}
-
-          {/* Subscribe CTA */}
-          <AnimatedPressable onPress={handleSubscribe} scaleDown={0.97}>
-            <LinearGradient colors={GRADIENTS.accent} style={styles.ctaBtn}>
-              <Text style={styles.ctaBtnText}>
-                {trialUsed ? 'Subscribe Now' : 'Or Subscribe Now'}
-              </Text>
-            </LinearGradient>
+        {/* Header with close button */}
+        <Animated.View entering={FadeIn.duration(300)} style={styles.header}>
+          <AnimatedPressable onPress={() => navigation.goBack()} style={styles.closeBtn}>
+            <Ionicons name="close" size={22} color={COLORS.textSecondary} />
           </AnimatedPressable>
-
-          {/* Guarantee */}
-          <View style={styles.guaranteeRow}>
-            <Ionicons name="shield-checkmark-outline" size={16} color="#00e676" />
-            <Text style={styles.guaranteeText}>7-day money-back guarantee</Text>
-          </View>
-
-          {/* Restore */}
-          <TouchableOpacity onPress={handleRestore} style={styles.restoreBtn} disabled={loading}>
-            <Text style={styles.restoreText}>Restore Purchase</Text>
-          </TouchableOpacity>
-
-          {/* Legal */}
-          <Text style={styles.legalText}>
-            {Platform.OS === 'ios'
-              ? 'Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period. You can manage and cancel your subscriptions in your App Store account settings.'
-              : 'Payment will be charged to your Google Play account at confirmation of purchase. Subscription automatically renews unless canceled at least 24 hours before the end of the current period. You can manage and cancel your subscriptions in Google Play Store > Account > Subscriptions.'}
-            {' '}Any unused portion of a free trial will be forfeited when you purchase a subscription.
-          </Text>
-          <View style={styles.legalLinks}>
-            <TouchableOpacity onPress={() => Linking.openURL('https://androgenic.app/terms')}>
-              <Text style={styles.legalLink}>Terms of Service</Text>
-            </TouchableOpacity>
-            <Text style={styles.legalDivider}>|</Text>
-            <TouchableOpacity onPress={() => Linking.openURL('https://androgenic.app/privacy')}>
-              <Text style={styles.legalLink}>Privacy Policy</Text>
-            </TouchableOpacity>
-            <Text style={styles.legalDivider}>|</Text>
-            <TouchableOpacity onPress={() => Linking.openURL(getManageSubscriptionUrl())}>
-              <Text style={styles.legalLink}>Manage Subscription</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ height: 30 }} />
         </Animated.View>
+
+        {/* Section 1: Blurred Preview Card */}
+        <Animated.View entering={FadeInDown.duration(500).delay(100)} style={styles.blurSection}>
+          <View style={styles.blurredCard}>
+            {/* Mock score grid */}
+            <View style={styles.blurredGrid}>
+              {BLURRED_SCORES.map((item, i) => (
+                <View key={i} style={styles.blurredScoreItem}>
+                  <Text style={styles.blurredLabel}>{item.label}</Text>
+                  <Text style={styles.blurredValue}>{item.value}</Text>
+                </View>
+              ))}
+            </View>
+            {/* Blur overlay */}
+            <View style={styles.blurOverlay} />
+            {/* Lock icon centered */}
+            <View style={styles.lockContainer}>
+              <Animated.View style={glowStyle}>
+                <View style={styles.lockGlow} />
+              </Animated.View>
+              <View style={styles.lockIcon}>
+                <Ionicons name="lock-closed" size={28} color="#D4AF37" />
+              </View>
+            </View>
+          </View>
+          <Text style={styles.unlockTitle}>Unlock Your Results</Text>
+          <Text style={styles.unlockSubtitle}>Your analysis is ready</Text>
+        </Animated.View>
+
+        {/* Section 2: Value Proposition */}
+        <Animated.View entering={FadeInDown.duration(500).delay(200)} style={styles.featuresSection}>
+          {FEATURES.map((feature, i) => (
+            <View key={i} style={styles.featureRow}>
+              <Ionicons name="checkmark-circle" size={20} color="#D4AF37" />
+              <Text style={styles.featureText}>{feature}</Text>
+            </View>
+          ))}
+        </Animated.View>
+
+        {/* Section 3: Pricing Plans */}
+        <Animated.View entering={FadeInDown.duration(500).delay(300)} style={styles.plansSection}>
+          <View style={styles.plansRow}>
+            {/* Weekly */}
+            <AnimatedPressable
+              onPress={() => { Haptics.selectionAsync(); setSelectedPlan('weekly'); }}
+              style={[styles.planCard, selectedPlan === 'weekly' && styles.planCardSelected]}
+            >
+              <Text style={styles.planDuration}>Weekly</Text>
+              <Text style={styles.planPrice}>$4.99</Text>
+              <Text style={styles.planPeriod}>/week</Text>
+            </AnimatedPressable>
+
+            {/* Yearly - Best Value */}
+            <AnimatedPressable
+              onPress={() => { Haptics.selectionAsync(); setSelectedPlan('yearly'); }}
+              style={[styles.planCard, styles.planCardYearly, selectedPlan === 'yearly' && styles.planCardSelected]}
+            >
+              <View style={styles.bestValueBadge}>
+                <Text style={styles.bestValueText}>BEST VALUE</Text>
+              </View>
+              <Text style={styles.planDuration}>Yearly</Text>
+              <Text style={styles.planPrice}>$39.99</Text>
+              <Text style={styles.planPeriod}>/year</Text>
+              <Text style={styles.planBreakdown}>$0.77/week</Text>
+              <View style={styles.savePill}>
+                <Text style={styles.savePillText}>Save 85%</Text>
+              </View>
+            </AnimatedPressable>
+
+            {/* Lifetime */}
+            <AnimatedPressable
+              onPress={() => { Haptics.selectionAsync(); setSelectedPlan('lifetime'); }}
+              style={[styles.planCard, selectedPlan === 'lifetime' && styles.planCardSelected]}
+            >
+              <Text style={styles.planDuration}>Lifetime</Text>
+              <Text style={styles.planPrice}>$79.99</Text>
+              <Text style={styles.planPeriod}>one-time</Text>
+            </AnimatedPressable>
+          </View>
+        </Animated.View>
+
+        {/* Section 4: CTA Button */}
+        <Animated.View entering={FadeInDown.duration(500).delay(400)}>
+          <AnimatedPressable onPress={handleSubscribe} scaleDown={0.97} disabled={loading}>
+            <Animated.View style={pulseStyle}>
+              <LinearGradient
+                colors={['#D4AF37', '#FFD700', '#D4AF37']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.ctaButton}
+              >
+                <Text style={styles.ctaButtonText}>
+                  {!trialUsed ? 'Start Free Trial' : 'Continue'}
+                </Text>
+              </LinearGradient>
+            </Animated.View>
+          </AnimatedPressable>
+          {!trialUsed && (
+            <Text style={styles.ctaSubtext}>
+              {PRO_CONFIG.trialDays}-day free trial, then {selectedPlanData.price}{selectedPlanData.period !== 'one-time' ? selectedPlanData.period : ''}
+            </Text>
+          )}
+          <Text style={styles.cancelText}>Cancel anytime</Text>
+        </Animated.View>
+
+        {/* Section 5: Social Proof */}
+        <Animated.View entering={FadeInDown.duration(500).delay(500)} style={styles.socialSection}>
+          <View style={styles.ratingRow}>
+            {[1, 2, 3, 4, 5].map(i => (
+              <Ionicons key={i} name="star" size={16} color="#D4AF37" />
+            ))}
+            <Text style={styles.ratingText}>Rated 4.9 by 12,000+ users</Text>
+          </View>
+          <View style={styles.testimonialCard}>
+            <Text style={styles.testimonialText}>
+              "Score went from 5.8 to 7.2 in 3 months following the guides. The facial ratio analysis showed me exactly what to focus on."
+            </Text>
+            <Text style={styles.testimonialAuthor}>- Jake M., +1.4 improvement</Text>
+          </View>
+        </Animated.View>
+
+        {/* Section 6: Alternative Unlock - Viral Mechanic */}
+        <Animated.View entering={FadeInDown.duration(500).delay(600)} style={styles.referralSection}>
+          <View style={styles.orDivider}>
+            <View style={styles.orLine} />
+            <Text style={styles.orText}>OR</Text>
+            <View style={styles.orLine} />
+          </View>
+          <Text style={styles.referralTitle}>Invite 3 friends to unlock for free</Text>
+          <AnimatedPressable onPress={handleShare} style={styles.shareButton}>
+            <Ionicons name="share-outline" size={18} color="#D4AF37" />
+            <Text style={styles.shareButtonText}>Share with friends</Text>
+          </AnimatedPressable>
+          <View style={styles.progressRow}>
+            {[0, 1, 2].map(i => (
+              <View
+                key={i}
+                style={[styles.progressDot, i < friendsInvited && styles.progressDotFilled]}
+              />
+            ))}
+            <Text style={styles.progressText}>{friendsInvited}/3 friends invited</Text>
+          </View>
+        </Animated.View>
+
+        {/* Section 7: Bottom Links */}
+        <View style={styles.bottomLinks}>
+          <TouchableOpacity onPress={handleRestore} disabled={loading}>
+            <Text style={styles.bottomLinkText}>Restore Purchases</Text>
+          </TouchableOpacity>
+          <Text style={styles.bottomDivider}>|</Text>
+          <TouchableOpacity onPress={() => Linking.openURL('https://androgenic.app/terms')}>
+            <Text style={styles.bottomLinkText}>Terms</Text>
+          </TouchableOpacity>
+          <Text style={styles.bottomDivider}>|</Text>
+          <TouchableOpacity onPress={() => Linking.openURL('https://androgenic.app/privacy')}>
+            <Text style={styles.bottomLinkText}>Privacy</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Legal */}
+        <Text style={styles.legalText}>
+          {Platform.OS === 'ios'
+            ? 'Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period.'
+            : 'Payment will be charged to your Google Play account at confirmation of purchase. Subscription automatically renews unless canceled at least 24 hours before the end of the current period.'}
+        </Text>
+
+        <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
-    </GlassBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'transparent' },
-  scroll: { paddingHorizontal: 20 },
-  header: { alignItems: 'flex-end', paddingVertical: 8 },
-  closeBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
-  hero: { alignItems: 'center', marginBottom: 16 },
-  proBadgeLg: { width: 72, height: 72, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginBottom: 14, ...SHADOWS.accentGlow },
-  heroTitle: { fontSize: 28, fontWeight: '900', color: COLORS.gold, letterSpacing: 1, marginBottom: 4 },
-  heroSubtitle: { fontSize: 14, color: COLORS.textSecondary, marginBottom: 14 },
-  heroStats: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 20, gap: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
-  heroStat: { alignItems: 'center' },
-  heroStatNum: { fontSize: 18, fontWeight: '900' },
-  heroStatLabel: { fontSize: 9, color: COLORS.textMuted, fontWeight: '600', marginTop: 1 },
-  heroStatDivider: { width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.08)' },
-  urgencyBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,215,0,0.08)', borderRadius: 12, paddingVertical: 10, gap: 8, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,215,0,0.2)' },
-  urgencyText: { fontSize: 13, fontWeight: '700', color: COLORS.gold },
-  socialScroll: { marginBottom: 20 },
-  socialCard: { backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 14, marginRight: 10, width: 240, borderWidth: 1, borderColor: COLORS.border },
-  socialHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  socialAvatar: { width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
-  socialInitial: { fontSize: 12, fontWeight: '800', color: '#fff' },
-  socialName: { fontSize: 12, fontWeight: '700', color: COLORS.textPrimary, flex: 1 },
-  socialImp: { backgroundColor: 'rgba(0,230,118,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
-  socialImpText: { fontSize: 11, fontWeight: '800', color: '#00e676' },
-  socialText: { fontSize: 12, color: COLORS.textSecondary, lineHeight: 17, marginBottom: 6, fontStyle: 'italic' },
-  socialWeeks: { flexDirection: 'row', alignItems: 'center', gap: 3, marginBottom: 4 },
-  socialWeeksText: { fontSize: 9, color: COLORS.textMuted, fontWeight: '600' },
-  socialStars: { flexDirection: 'row', gap: 1 },
-  featuresTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 12 },
-  featuresGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 20 },
-  featureItem: { flexDirection: 'row', alignItems: 'center', width: '50%', paddingVertical: 6, gap: 8 },
-  featureIconBg: { width: 28, height: 28, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  featureText: { fontSize: 12, color: COLORS.textSecondary, fontWeight: '500', flex: 1 },
-  contentCategories: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
-  contentCatCard: { width: '48%', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', alignItems: 'center' },
-  contentCatIcon: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
-  contentCatCount: { fontSize: 22, fontWeight: '900', color: COLORS.textPrimary, marginBottom: 2 },
-  contentCatTitle: { fontSize: 12, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 2 },
-  contentCatDesc: { fontSize: 10, color: COLORS.textMuted, textAlign: 'center' },
-  plansTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 10 },
-  planCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 16, marginBottom: 6, borderWidth: 2, borderColor: COLORS.border },
-  planCardSelected: { borderColor: COLORS.accent, backgroundColor: 'rgba(0,102,255,0.06)' },
-  planLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  planRadio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: COLORS.border, justifyContent: 'center', alignItems: 'center' },
-  planRadioSelected: { borderColor: COLORS.accent },
-  planRadioDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.accent },
-  planLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  planLabel: { fontSize: 15, fontWeight: '700', color: COLORS.textPrimary },
-  planLabelSelected: { color: COLORS.accent },
-  planPeriod: { fontSize: 11, color: COLORS.textMuted, marginTop: 1 },
-  planPrice: { fontSize: 20, fontWeight: '800', color: COLORS.textPrimary },
-  popularBadge: { backgroundColor: COLORS.accent, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  popularText: { color: '#fff', fontSize: 8, fontWeight: '800', letterSpacing: 0.5 },
-  savingsBadge: { backgroundColor: '#00e676', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  savingsText: { color: '#000', fontSize: 8, fontWeight: '800' },
-  trialBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, borderRadius: 16, paddingVertical: 18, marginTop: 16, marginBottom: 8, overflow: 'hidden' },
-  trialBtnContent: { alignItems: 'flex-start' },
-  trialBtnText: { fontSize: 18, fontWeight: '800', color: '#000' },
-  trialBtnSub: { fontSize: 11, color: 'rgba(0,0,0,0.5)', fontWeight: '600' },
-  shimmerBar: { position: 'absolute', top: 0, bottom: 0, width: 50, backgroundColor: 'rgba(255,255,255,0.25)', transform: [{ skewX: '-20deg' }] },
-  ctaBtn: { paddingVertical: 16, borderRadius: 16, alignItems: 'center', marginBottom: 12 },
-  ctaBtnText: { color: '#fff', fontSize: 17, fontWeight: '800' },
-  guaranteeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 12 },
-  guaranteeText: { fontSize: 12, color: '#00e676', fontWeight: '600' },
-  restoreBtn: { alignItems: 'center', paddingVertical: 8 },
-  restoreText: { color: COLORS.textMuted, fontSize: 13, textDecorationLine: 'underline' },
-  legalText: { fontSize: 10, color: COLORS.textMuted, textAlign: 'center', lineHeight: 14, marginTop: 8, paddingHorizontal: 10 },
-  legalLinks: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 10 },
-  legalLink: { fontSize: 11, color: COLORS.accent, textDecorationLine: 'underline' },
-  legalDivider: { fontSize: 11, color: COLORS.textMuted },
-  alreadyPro: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
-  proBadgeSuccess: { width: 72, height: 72, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
-  alreadyProTitle: { fontSize: 24, fontWeight: '800', color: COLORS.gold, marginBottom: 8 },
-  alreadyProText: { color: COLORS.textSecondary, fontSize: 14, marginBottom: 24 },
-  doneBtn: { backgroundColor: COLORS.accent, paddingVertical: 14, paddingHorizontal: 40, borderRadius: 14 },
-  doneBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  container: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  scroll: {
+    paddingHorizontal: 24,
+  },
+  header: {
+    alignItems: 'flex-end',
+    paddingVertical: 12,
+  },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#1A1A1A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Blurred Preview Section
+  blurSection: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  blurredCard: {
+    width: '100%',
+    backgroundColor: '#1A1A1A',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#1F1F1F',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  blurredGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  blurredScoreItem: {
+    width: '30%',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  blurredLabel: {
+    fontSize: 11,
+    color: '#666666',
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  blurredValue: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  blurOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    backdropFilter: 'blur(10px)',
+  },
+  lockContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  lockGlow: {
+    position: 'absolute',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(212,175,55,0.2)',
+  },
+  lockIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(212,175,55,0.12)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(212,175,55,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  unlockTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginTop: 20,
+    letterSpacing: 0.3,
+  },
+  unlockSubtitle: {
+    fontSize: 14,
+    color: '#999999',
+    marginTop: 4,
+  },
+
+  // Features Section
+  featuresSection: {
+    marginBottom: 32,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 10,
+  },
+  featureText: {
+    fontSize: 15,
+    color: '#FFFFFF',
+    fontWeight: '400',
+    flex: 1,
+  },
+
+  // Plans Section
+  plansSection: {
+    marginBottom: 24,
+  },
+  plansRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  planCard: {
+    flex: 1,
+    backgroundColor: '#1A1A1A',
+    borderRadius: 14,
+    padding: 14,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#1F1F1F',
+    position: 'relative',
+    overflow: 'visible',
+  },
+  planCardYearly: {
+    paddingTop: 22,
+  },
+  planCardSelected: {
+    borderColor: '#D4AF37',
+    backgroundColor: 'rgba(212,175,55,0.04)',
+    ...SHADOWS.glow,
+  },
+  bestValueBadge: {
+    position: 'absolute',
+    top: -10,
+    backgroundColor: '#D4AF37',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  bestValueText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#000000',
+    letterSpacing: 0.5,
+  },
+  planDuration: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#999999',
+    marginBottom: 4,
+  },
+  planPrice: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  planPeriod: {
+    fontSize: 11,
+    color: '#666666',
+    marginTop: 2,
+  },
+  planBreakdown: {
+    fontSize: 11,
+    color: '#D4AF37',
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  savePill: {
+    backgroundColor: 'rgba(212,175,55,0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    marginTop: 6,
+  },
+  savePillText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#D4AF37',
+  },
+
+  // CTA Button
+  ctaButton: {
+    paddingVertical: 18,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  ctaButtonText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#000000',
+    letterSpacing: 0.3,
+  },
+  ctaSubtext: {
+    fontSize: 13,
+    color: '#999999',
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  cancelText: {
+    fontSize: 12,
+    color: '#666666',
+    textAlign: 'center',
+    marginTop: 6,
+    marginBottom: 28,
+  },
+
+  // Social Proof
+  socialSection: {
+    marginBottom: 28,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    marginBottom: 14,
+  },
+  ratingText: {
+    fontSize: 13,
+    color: '#999999',
+    marginLeft: 8,
+    fontWeight: '500',
+  },
+  testimonialCard: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#1F1F1F',
+  },
+  testimonialText: {
+    fontSize: 14,
+    color: '#CCCCCC',
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  testimonialAuthor: {
+    fontSize: 12,
+    color: '#666666',
+    marginTop: 10,
+    fontWeight: '600',
+  },
+
+  // Referral Section
+  referralSection: {
+    marginBottom: 32,
+  },
+  orDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  orLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#1F1F1F',
+  },
+  orText: {
+    fontSize: 12,
+    color: '#666666',
+    fontWeight: '700',
+    marginHorizontal: 16,
+  },
+  referralTitle: {
+    fontSize: 15,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 14,
+  },
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1.5,
+    borderColor: '#D4AF37',
+    borderRadius: 12,
+    paddingVertical: 14,
+    marginBottom: 14,
+  },
+  shareButtonText: {
+    fontSize: 15,
+    color: '#D4AF37',
+    fontWeight: '600',
+  },
+  progressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  progressDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: '#666666',
+    backgroundColor: 'transparent',
+  },
+  progressDotFilled: {
+    backgroundColor: '#D4AF37',
+    borderColor: '#D4AF37',
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#666666',
+    marginLeft: 6,
+  },
+
+  // Bottom Links
+  bottomLinks: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  bottomLinkText: {
+    fontSize: 12,
+    color: '#666666',
+  },
+  bottomDivider: {
+    fontSize: 12,
+    color: '#444444',
+  },
+
+  // Legal
+  legalText: {
+    fontSize: 10,
+    color: '#444444',
+    textAlign: 'center',
+    lineHeight: 14,
+    paddingHorizontal: 10,
+  },
+
+  // Already Pro
+  alreadyPro: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  proBadgeSuccess: {
+    width: 72,
+    height: 72,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  alreadyProTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#D4AF37',
+    marginBottom: 8,
+  },
+  alreadyProText: {
+    color: '#999999',
+    fontSize: 14,
+    marginBottom: 24,
+  },
+  doneBtn: {
+    backgroundColor: '#D4AF37',
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    borderRadius: 14,
+  },
+  doneBtnText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '700',
+  },
 });
 
 export default PaywallScreen;
