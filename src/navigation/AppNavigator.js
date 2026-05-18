@@ -88,6 +88,7 @@ import FaceWorkoutScreen from '../screens/FaceWorkoutScreen';
 import PostureCheckerScreen from '../screens/PostureCheckerScreen';
 import GlowUpPreviewScreen from '../screens/GlowUpPreviewScreen';
 import SupplementStackScreen from '../screens/SupplementStackScreen';
+import StyleGuideScreen from '../screens/StyleGuideScreen';
 import TabBar from '../components/TabBar';
 
 const Stack = createNativeStackNavigator();
@@ -224,6 +225,7 @@ const AppNavigator = () => {
           <Stack.Screen name="PostureChecker" component={PostureCheckerScreen} />
           <Stack.Screen name="GlowUpPreview" component={GlowUpPreviewScreen} />
           <Stack.Screen name="SupplementStack" component={SupplementStackScreen} />
+          <Stack.Screen name="StyleGuide" component={StyleGuideScreen} />
           <Stack.Screen
             name="ShareCard"
             component={ShareCardScreen}
