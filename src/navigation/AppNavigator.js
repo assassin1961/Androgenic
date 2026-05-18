@@ -85,6 +85,7 @@ import StreakCalendarScreen from '../screens/StreakCalendarScreen';
 import HairstyleScreen from '../screens/HairstyleScreen';
 import RateMyLookScreen from '../screens/RateMyLookScreen';
 import FaceWorkoutScreen from '../screens/FaceWorkoutScreen';
+import PostureCheckerScreen from '../screens/PostureCheckerScreen';
 import TabBar from '../components/TabBar';
 
 const Stack = createNativeStackNavigator();
@@ -218,6 +219,7 @@ const AppNavigator = () => {
           <Stack.Screen name="Hairstyle" component={HairstyleScreen} />
           <Stack.Screen name="FaceWorkout" component={FaceWorkoutScreen} />
           <Stack.Screen name="RateMyLook" component={RateMyLookScreen} />
+          <Stack.Screen name="PostureChecker" component={PostureCheckerScreen} />
           <Stack.Screen
             name="ShareCard"
             component={ShareCardScreen}
