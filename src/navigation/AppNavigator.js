@@ -75,6 +75,7 @@ import PostDetailScreen from '../screens/PostDetailScreen';
 import LooksMaxHubScreen from '../screens/LooksMaxHubScreen';
 import ProgressTimelineScreen from '../screens/ProgressTimelineScreen';
 import SkincareAnalyzerScreen from '../screens/SkincareAnalyzerScreen';
+import SkincareScannerScreen from '../screens/SkincareScannerScreen';
 import FaceSymmetryScreen from '../screens/FaceSymmetryScreen';
 import MealPlanScreen from '../screens/MealPlanScreen';
 import SleepTrackerScreen from '../screens/SleepTrackerScreen';
@@ -207,6 +208,7 @@ const AppNavigator = () => {
           <Stack.Screen name="LooksMaxHub" component={LooksMaxHubScreen} />
           <Stack.Screen name="ProgressTimeline" component={ProgressTimelineScreen} />
           <Stack.Screen name="SkincareAnalyzer" component={SkincareAnalyzerScreen} />
+          <Stack.Screen name="SkincareScanner" component={SkincareScannerScreen} />
           <Stack.Screen name="FaceSymmetry" component={FaceSymmetryScreen} />
           <Stack.Screen name="MealPlan" component={MealPlanScreen} />
           <Stack.Screen name="SleepTracker" component={SleepTrackerScreen} />
