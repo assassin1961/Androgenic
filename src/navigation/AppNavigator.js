@@ -81,6 +81,7 @@ import SleepTrackerScreen from '../screens/SleepTrackerScreen';
 import ReferralScreen from '../screens/ReferralScreen';
 import ShareTemplatesScreen from '../screens/ShareTemplatesScreen';
 import StreakCalendarScreen from '../screens/StreakCalendarScreen';
+import HairstyleScreen from '../screens/HairstyleScreen';
 import TabBar from '../components/TabBar';
 
 const Stack = createNativeStackNavigator();
@@ -210,6 +211,7 @@ const AppNavigator = () => {
           <Stack.Screen name="Referral" component={ReferralScreen} />
           <Stack.Screen name="ShareTemplates" component={ShareTemplatesScreen} />
           <Stack.Screen name="StreakCalendar" component={StreakCalendarScreen} />
+          <Stack.Screen name="Hairstyle" component={HairstyleScreen} />
           <Stack.Screen
             name="ShareCard"
             component={ShareCardScreen}
