@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import Animated, {
   FadeInDown, FadeIn, useSharedValue, useAnimatedStyle,
-  withTiming, withDelay, withSequence, Easing, interpolate,
+  withTiming, withDelay, withSequence, withRepeat, Easing, interpolate,
   runOnJS,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,6 +28,9 @@ const SCORE_GREEN = '#34C759';
 const SCORE_BLUE = '#4A90D9';
 const SCORE_ORANGE = '#FF9500';
 const SCORE_RED = '#FF3B30';
+
+const RESULT_EXPIRY_KEY = 'result_timestamp_';
+const RESULT_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 const getCardScoreColor = (score) => {
   if (score >= 8) return SCORE_GREEN;
@@ -64,10 +67,14 @@ const toTen = (raw) => {
   return Math.max(1, Math.min(10, Math.round(raw)));
 };
 
+// Categories free users can see (first two shown)
+const FREE_VISIBLE_CATEGORIES = ['jawline', 'skin'];
+// Categories that are blurred/locked for free users
+const LOCKED_CATEGORIES = ['eyes', 'symmetry', 'cheekbones', 'masculinity'];
+
 // --- Animated score counter component ---
 const AnimatedScore = ({ targetScore, delay = 0, fontSize = 72 }) => {
   const [displayScore, setDisplayScore] = useState(0);
-  const progress = useSharedValue(0);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -101,10 +108,10 @@ const AnimatedScore = ({ targetScore, delay = 0, fontSize = 72 }) => {
 };
 
 // --- Progress bar component ---
-const ScoreBar = ({ score, delay = 0 }) => {
+const ScoreBar = ({ score, delay = 0, locked = false }) => {
   const width = useSharedValue(0);
-  const color = getCardScoreColor(score);
-  const percentage = (score / 10) * 100;
+  const color = locked ? '#444' : getCardScoreColor(score);
+  const percentage = locked ? 60 : (score / 10) * 100;
 
   useEffect(() => {
     width.value = withDelay(delay, withTiming(percentage, { duration: 800, easing: Easing.out(Easing.cubic) }));
@@ -123,8 +130,8 @@ const ScoreBar = ({ score, delay = 0 }) => {
 };
 
 // --- Factor row in the rating grid ---
-const FactorRow = ({ label, score, index }) => {
-  const scoreColor = getCardScoreColor(score);
+const FactorRow = ({ label, score, index, locked = false, onLockPress }) => {
+  const scoreColor = locked ? '#444' : getCardScoreColor(score);
   const animDelay = 600 + index * 100;
 
   return (
@@ -132,12 +139,60 @@ const FactorRow = ({ label, score, index }) => {
       entering={FadeInDown.duration(300).delay(animDelay)}
       style={styles.factorRow}
     >
-      <View style={styles.factorHeader}>
-        <Text style={styles.factorLabel}>{label}</Text>
-        <Text style={[styles.factorScore, { color: scoreColor }]}>{score.toFixed(1)}</Text>
-      </View>
-      <ScoreBar score={score} delay={animDelay} />
+      <TouchableOpacity
+        activeOpacity={locked ? 0.7 : 1}
+        onPress={locked ? onLockPress : undefined}
+        disabled={!locked}
+      >
+        <View style={styles.factorHeader}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Text style={[styles.factorLabel, locked && { color: '#555' }]}>{label}</Text>
+            {locked && (
+              <Ionicons name="lock-closed" size={10} color={GOLD} />
+            )}
+          </View>
+          <Text style={[styles.factorScore, { color: scoreColor }]}>
+            {locked ? '•••' : score.toFixed(1)}
+          </Text>
+        </View>
+        <View style={{ position: 'relative' }}>
+          <ScoreBar score={score} delay={animDelay} locked={locked} />
+          {locked && (
+            <View style={styles.factorLockOverlay} />
+          )}
+        </View>
+      </TouchableOpacity>
     </Animated.View>
+  );
+};
+
+// --- Locked category card for detailed breakdown ---
+const LockedDetailCard = ({ category, onPress }) => {
+  return (
+    <TouchableOpacity
+      style={[styles.detailCard, styles.lockedDetailCard]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.lockedDetailOverlay}>
+        <View style={styles.detailHeader}>
+          <Text style={[styles.detailCategory, { color: '#666' }]}>{category}</Text>
+          <View style={styles.detailScoreRow}>
+            <Text style={[styles.detailScore, { color: '#444' }]}>?</Text>
+            <View style={styles.lockIconCircle}>
+              <Ionicons name="lock-closed" size={12} color={GOLD} />
+            </View>
+          </View>
+        </View>
+        <View style={styles.detailBarContainer}>
+          <View style={[styles.detailBar, { width: '55%', backgroundColor: '#333' }]} />
+        </View>
+        <View style={styles.lockedDetailHint}>
+          <Ionicons name="eye-off-outline" size={12} color={GOLD + '90'} />
+          <Text style={styles.lockedDetailHintText}>Unlock with PRO to see score</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 };
 
@@ -186,6 +241,98 @@ const DetailCard = ({ category, score, analysis, tip, isProTip, locked, onProPre
   );
 };
 
+// --- Unlock Full Analysis CTA card ---
+const UnlockAnalysisCard = ({ onPress }) => {
+  return (
+    <TouchableOpacity
+      style={styles.unlockCard}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <View style={styles.unlockCardInner}>
+        <View style={styles.unlockIconRow}>
+          <View style={styles.unlockIconCircle}>
+            <Ionicons name="analytics" size={22} color={GOLD} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.unlockCardTitle}>Unlock Full Analysis</Text>
+            <Text style={styles.unlockCardDesc}>See all 6 categories + improvement tips</Text>
+          </View>
+        </View>
+        <View style={styles.unlockButton}>
+          <Ionicons name="lock-open" size={14} color="#000" />
+          <Text style={styles.unlockButtonText}>Unlock with PRO</Text>
+        </View>
+        <Text style={styles.unlockTrialText}>3-day free trial available</Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+// --- Share template card ---
+const ShareTemplateCard = ({ label, isBasic, onPress, locked }) => {
+  return (
+    <TouchableOpacity
+      style={[styles.shareTemplateCard, locked && styles.shareTemplateLocked]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Text style={[styles.shareTemplateLabel, locked && { color: '#555' }]}>{label}</Text>
+      {locked ? (
+        <View style={styles.proBadge}>
+          <Text style={styles.proBadgeText}>PRO</Text>
+        </View>
+      ) : isBasic ? (
+        <Text style={styles.shareTemplateFreeTag}>Free</Text>
+      ) : null}
+      {locked && (
+        <Text style={styles.shareTemplateUpgrade}>Upgrade to unlock</Text>
+      )}
+    </TouchableOpacity>
+  );
+};
+
+// --- Bounce CTA banner ---
+const BottomCTABanner = ({ onPress }) => {
+  const translateY = useSharedValue(0);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    // Appear after 3 seconds
+    const timer = setTimeout(() => {
+      opacity.value = withTiming(1, { duration: 400 });
+      // Subtle bounce loop
+      translateY.value = withRepeat(
+        withSequence(
+          withTiming(-4, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+        ),
+        -1,
+        true,
+      );
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View style={[styles.bottomCTA, animStyle]}>
+      <TouchableOpacity
+        style={styles.bottomCTAButton}
+        onPress={onPress}
+        activeOpacity={0.85}
+      >
+        <Ionicons name="star" size={16} color="#000" />
+        <Text style={styles.bottomCTAText}>Unlock Full Analysis — Start Free Trial</Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
 // =============================================================================
 // MAIN RESULTS SCREEN
 // =============================================================================
@@ -194,6 +341,8 @@ const ResultsScreen = ({ route, navigation }) => {
   const pro = isPro();
   const cardRef = useRef(null);
   const [additionalExpanded, setAdditionalExpanded] = useState(false);
+  const [resultsExpired, setResultsExpired] = useState(false);
+  const [selectedShareTemplate, setSelectedShareTemplate] = useState('minimal');
 
   // Compute display scores (convert from 0-100 to 0-10 if needed)
   const overallScore = scores.overallRating || toTen(scores.overall);
@@ -217,6 +366,20 @@ const ResultsScreen = ({ route, navigation }) => {
     if (raw === undefined || raw === null) return 5.0;
     if (raw > 10) return Math.max(1, Math.min(10, parseFloat((raw / 10).toFixed(1))));
     return Math.max(1, Math.min(10, parseFloat(raw.toFixed ? raw.toFixed(1) : raw)));
+  };
+
+  // Check if a category is locked for free users
+  const isCategoryLocked = (key) => {
+    if (pro) return false;
+    if (resultsExpired) return true; // All categories locked after 24h for free
+    return LOCKED_CATEGORIES.includes(key);
+  };
+
+  // Check if a category is visible (free teaser) in the rating card
+  const isCategoryVisibleInCard = (key) => {
+    if (pro) return true;
+    if (resultsExpired) return FREE_VISIBLE_CATEGORIES.includes(key); // Only jawline & skin after expiry
+    return FREE_VISIBLE_CATEGORIES.includes(key) || !LOCKED_CATEGORIES.includes(key);
   };
 
   // Additional scores
@@ -244,6 +407,31 @@ const ResultsScreen = ({ route, navigation }) => {
     if (tips && tips.length > 0) return tips[0].title + ': ' + tips[0].text.substring(0, 80) + '...';
     return null;
   };
+
+  const goToPaywall = (source) => {
+    navigation.navigate('Paywall');
+  };
+
+  // --- Check result expiry for free users ---
+  useEffect(() => {
+    if (pro) return;
+    const checkExpiry = async () => {
+      try {
+        const resultId = scores.overall ? `${RESULT_EXPIRY_KEY}${Math.round(scores.overall)}` : RESULT_EXPIRY_KEY + 'latest';
+        const stored = await AsyncStorage.getItem(resultId);
+        if (stored) {
+          const timestamp = parseInt(stored, 10);
+          if (Date.now() - timestamp > RESULT_EXPIRY_MS) {
+            setResultsExpired(true);
+          }
+        } else {
+          // Store current timestamp for this result
+          await AsyncStorage.setItem(resultId, String(Date.now()));
+        }
+      } catch (e) {}
+    };
+    checkExpiry();
+  }, [pro]);
 
   // --- Haptic + record on mount ---
   useEffect(() => {
@@ -289,6 +477,14 @@ const ResultsScreen = ({ route, navigation }) => {
   // Border color: gold for high scores, subtle for others
   const cardBorderColor = overallScore >= 8 ? GOLD : '#2A2A2A';
 
+  // Share templates
+  const shareTemplates = [
+    { id: 'minimal', label: 'Minimal', locked: false, isBasic: true },
+    { id: 'detailed', label: 'Detailed', locked: !pro },
+    { id: 'neon', label: 'Neon Glow', locked: !pro },
+    { id: 'gold', label: 'Gold Elite', locked: !pro },
+  ];
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -314,7 +510,7 @@ const ResultsScreen = ({ route, navigation }) => {
               </View>
             </View>
 
-            {/* Overall Score - THE number */}
+            {/* Overall Score - THE number (always shown) */}
             <View style={styles.scoreSection}>
               <AnimatedScore targetScore={overallScore} delay={400} fontSize={72} />
               <Text style={[styles.tierLabel, { color: overallColor }]}>{tierLabel}</Text>
@@ -332,6 +528,8 @@ const ResultsScreen = ({ route, navigation }) => {
                     label={f.label}
                     score={getFactorScore(f.key)}
                     index={i}
+                    locked={isCategoryLocked(f.key)}
+                    onLockPress={() => goToPaywall('locked_factor_' + f.key)}
                   />
                 ))}
               </View>
@@ -342,6 +540,8 @@ const ResultsScreen = ({ route, navigation }) => {
                     label={f.label}
                     score={getFactorScore(f.key)}
                     index={i + 3}
+                    locked={isCategoryLocked(f.key)}
+                    onLockPress={() => goToPaywall('locked_factor_' + f.key)}
                   />
                 ))}
               </View>
@@ -352,21 +552,73 @@ const ResultsScreen = ({ route, navigation }) => {
           </View>
         </Animated.View>
 
+        {/* ============ RESULT EXPIRY NUDGE (free users only) ============ */}
+        {!pro && (
+          <Animated.View entering={FadeInDown.duration(300).delay(700)}>
+            <View style={styles.expiryNudge}>
+              <Ionicons name="time-outline" size={14} color={GOLD + '90'} />
+              <Text style={styles.expiryNudgeText}>
+                {resultsExpired
+                  ? 'Detailed results have expired. Upgrade to keep results forever.'
+                  : 'Detailed results available for 24 hours'}
+              </Text>
+            </View>
+          </Animated.View>
+        )}
+
         {/* ============ DETAILED BREAKDOWN ============ */}
         <Animated.View entering={FadeInDown.duration(400).delay(800)} style={styles.breakdownSection}>
           <Text style={styles.sectionTitle}>Detailed Breakdown</Text>
-          {mainFactors.map((f) => (
-            <DetailCard
-              key={f.key}
-              category={f.label}
-              score={getFactorScore(f.key)}
-              analysis={getAnalysisText(f.key)}
-              tip={getImproveTip(f.key)}
-              isProTip={!canAccessCategory(f.key)}
-              locked={!canAccessCategory(f.key)}
-              onProPress={() => navigation.navigate('Paywall')}
-            />
-          ))}
+
+          {/* Free visible categories: Jawline and Skin Quality */}
+          {mainFactors
+            .filter((f) => !isCategoryLocked(f.key))
+            .map((f) => (
+              <DetailCard
+                key={f.key}
+                category={f.label}
+                score={getFactorScore(f.key)}
+                analysis={getAnalysisText(f.key)}
+                tip={getImproveTip(f.key)}
+                isProTip={!canAccessCategory(f.key)}
+                locked={!canAccessCategory(f.key)}
+                onProPress={() => goToPaywall('detail_tip_' + f.key)}
+              />
+            ))}
+
+          {/* Unlock Full Analysis card (between visible and locked) - free users only */}
+          {!pro && (
+            <UnlockAnalysisCard onPress={() => goToPaywall('unlock_analysis_card')} />
+          )}
+
+          {/* Locked categories for free users */}
+          {!pro &&
+            mainFactors
+              .filter((f) => isCategoryLocked(f.key))
+              .map((f) => (
+                <LockedDetailCard
+                  key={f.key}
+                  category={f.label}
+                  onPress={() => goToPaywall('locked_detail_' + f.key)}
+                />
+              ))}
+
+          {/* PRO users see all categories normally */}
+          {pro &&
+            mainFactors
+              .filter((f) => !FREE_VISIBLE_CATEGORIES.includes(f.key))
+              .map((f) => (
+                <DetailCard
+                  key={f.key}
+                  category={f.label}
+                  score={getFactorScore(f.key)}
+                  analysis={getAnalysisText(f.key)}
+                  tip={getImproveTip(f.key)}
+                  isProTip={false}
+                  locked={false}
+                  onProPress={() => {}}
+                />
+              ))}
         </Animated.View>
 
         {/* ============ ADDITIONAL SCORES (collapsed) ============ */}
@@ -390,10 +642,12 @@ const ResultsScreen = ({ route, navigation }) => {
                   <Text style={styles.additionalLabel}>{item.label}</Text>
                   {item.locked ? (
                     <TouchableOpacity
-                      onPress={() => navigation.navigate('Paywall')}
+                      onPress={() => goToPaywall('additional_' + item.label)}
                       style={styles.lockedRow}
                     >
-                      <Text style={styles.lockedScore}>--</Text>
+                      <Text style={styles.lockedScore}>
+                        {item.label === 'Celebrity Match' ? '???' : '•••'}
+                      </Text>
                       <View style={styles.proBadge}>
                         <Text style={styles.proBadgeText}>PRO</Text>
                       </View>
@@ -411,18 +665,54 @@ const ResultsScreen = ({ route, navigation }) => {
                       }]} />
                     </View>
                   )}
+                  {item.locked && (
+                    <Text style={styles.lockedMissingText}>
+                      {item.label === 'Potential Score'
+                        ? 'See how much you can improve'
+                        : item.label === 'Celebrity Match'
+                        ? 'Find your celebrity look-alike'
+                        : 'Unlock to view'}
+                    </Text>
+                  )}
                 </View>
               ))}
             </View>
           )}
         </Animated.View>
 
-        {/* Pro Upsell for free users */}
+        {/* ============ SHARE TEMPLATES ============ */}
+        <Animated.View entering={FadeInDown.duration(400).delay(1050)} style={styles.shareSection}>
+          <Text style={styles.sectionTitle}>Share Card</Text>
+          <View style={styles.shareTemplateGrid}>
+            {shareTemplates.map((template) => (
+              <ShareTemplateCard
+                key={template.id}
+                label={template.label}
+                isBasic={template.isBasic}
+                locked={template.locked}
+                onPress={() => {
+                  if (template.locked) {
+                    goToPaywall('share_template_' + template.id);
+                  } else {
+                    setSelectedShareTemplate(template.id);
+                  }
+                }}
+              />
+            ))}
+          </View>
+          {!pro && (
+            <Text style={styles.shareWatermarkNote}>
+              Free shares include ANDROGENIC watermark
+            </Text>
+          )}
+        </Animated.View>
+
+        {/* ============ PRO UPSELL (free users) ============ */}
         {!pro && (
           <Animated.View entering={FadeInDown.duration(400).delay(1100)}>
             <TouchableOpacity
               style={styles.proUpsell}
-              onPress={() => navigation.navigate('Paywall')}
+              onPress={() => goToPaywall('results_upsell')}
               activeOpacity={0.8}
             >
               <View style={styles.proUpsellIcon}>
@@ -437,12 +727,12 @@ const ResultsScreen = ({ route, navigation }) => {
           </Animated.View>
         )}
 
-        {/* Bottom spacer for fixed buttons */}
-        <View style={{ height: 100 }} />
+        {/* Bottom spacer for fixed buttons + CTA banner */}
+        <View style={{ height: pro ? 100 : 160 }} />
       </ScrollView>
 
       {/* ============ FIXED ACTION BUTTONS ============ */}
-      <View style={styles.actionBar}>
+      <View style={[styles.actionBar, !pro && { bottom: 56 }]}>
         <TouchableOpacity
           style={styles.actionBtn}
           onPress={handleShare}
@@ -476,6 +766,11 @@ const ResultsScreen = ({ route, navigation }) => {
           <Text style={styles.actionBtnText}>Scan Again</Text>
         </TouchableOpacity>
       </View>
+
+      {/* ============ BOTTOM CTA BANNER (free users only) ============ */}
+      {!pro && (
+        <BottomCTABanner onPress={() => goToPaywall('bottom_cta')} />
+      )}
     </SafeAreaView>
   );
 };
@@ -603,6 +898,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
+  factorLockOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderRadius: 2,
+  },
   progressBarBg: {
     height: 3,
     backgroundColor: '#2A2A2A',
@@ -700,6 +1000,100 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
 
+  // --- Locked Detail Card ---
+  lockedDetailCard: {
+    backgroundColor: '#141414',
+    borderColor: '#222',
+    overflow: 'hidden',
+  },
+  lockedDetailOverlay: {
+    opacity: 0.85,
+  },
+  lockIconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: GOLD + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  lockedDetailHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#222',
+  },
+  lockedDetailHintText: {
+    fontSize: 11,
+    color: GOLD + '80',
+    fontWeight: '500',
+  },
+
+  // --- Unlock Analysis Card ---
+  unlockCard: {
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: GOLD + '60',
+    backgroundColor: GOLD + '08',
+    marginBottom: 12,
+    marginTop: 4,
+    overflow: 'hidden',
+  },
+  unlockCardInner: {
+    padding: 18,
+    alignItems: 'center',
+  },
+  unlockIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    width: '100%',
+    marginBottom: 16,
+  },
+  unlockIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: GOLD + '18',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  unlockCardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 2,
+  },
+  unlockCardDesc: {
+    fontSize: 13,
+    color: '#999',
+  },
+  unlockButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: GOLD,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    width: '100%',
+    marginBottom: 8,
+  },
+  unlockButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#000',
+  },
+  unlockTrialText: {
+    fontSize: 11,
+    color: '#777',
+    fontWeight: '500',
+  },
+
   // --- Additional Scores ---
   additionalSection: {
     marginBottom: 20,
@@ -752,6 +1146,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#444',
   },
+  lockedMissingText: {
+    fontSize: 11,
+    color: '#555',
+    marginTop: 6,
+    fontStyle: 'italic',
+  },
 
   // --- PRO Badge ---
   proBadge: {
@@ -801,6 +1201,72 @@ const styles = StyleSheet.create({
     color: '#999999',
   },
 
+  // --- Share Section ---
+  shareSection: {
+    marginBottom: 20,
+  },
+  shareTemplateGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  shareTemplateCard: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#2A2A2A',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  shareTemplateLocked: {
+    opacity: 0.6,
+  },
+  shareTemplateLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFF',
+  },
+  shareTemplateFreeTag: {
+    fontSize: 10,
+    color: SCORE_GREEN,
+    fontWeight: '600',
+  },
+  shareTemplateUpgrade: {
+    fontSize: 9,
+    color: GOLD + '80',
+    fontWeight: '500',
+    marginLeft: 2,
+  },
+  shareWatermarkNote: {
+    fontSize: 11,
+    color: '#555',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+
+  // --- Expiry Nudge ---
+  expiryNudge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+    backgroundColor: GOLD + '08',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: GOLD + '15',
+  },
+  expiryNudgeText: {
+    fontSize: 11,
+    color: GOLD + '90',
+    fontWeight: '500',
+  },
+
   // --- Fixed Action Bar ---
   actionBar: {
     position: 'absolute',
@@ -839,6 +1305,37 @@ const styles = StyleSheet.create({
   },
   actionBtnTextPrimary: {
     color: '#000000',
+  },
+
+  // --- Bottom CTA Banner ---
+  bottomCTA: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingBottom: Platform.OS === 'ios' ? 4 : 4,
+    paddingTop: 4,
+    backgroundColor: '#000',
+  },
+  bottomCTAButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: GOLD,
+    borderRadius: 12,
+    paddingVertical: 14,
+    shadowColor: GOLD,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  bottomCTAText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#000',
   },
 });
 

@@ -17,6 +17,29 @@ import { isLoggedIn, restoreServerPurchases, getSubscriptionStatus } from '../se
 
 const STORAGE_KEY = 'androgenic_pro';
 
+// --- New storage keys ---
+const SCAN_COUNT_KEY = 'androgenic_total_scans_used';
+const TRIAL_USED_KEY = 'androgenic_trial_used';
+const TRIAL_START_KEY = 'androgenic_trial_start';
+const PAYWALL_HITS_KEY = 'androgenic_paywall_hits';
+const AI_CHAT_MESSAGES_KEY = 'androgenic_ai_chat_messages';
+const INVITE_COUNT_KEY = 'androgenic_invite_count';
+const DISCOUNT_OFFER_KEY = 'androgenic_discount_offer';
+
+// --- Constants ---
+export const SCAN_LIMIT = 3;
+export const FREE_CATEGORIES = ['jawline', 'skin'];
+export const INVITES_NEEDED = 3;
+
+const FREE_GUIDES_LIMIT = 4;
+const FREE_AI_CHAT_MESSAGES = 10;
+const FREE_HAIRSTYLE_RECOMMENDATIONS = 2;
+const FREE_SUPPLEMENTS = 3;
+const FREE_SHARE_TEMPLATE = 'Minimal';
+const DISCOUNT_PERCENT = 40;
+const DISCOUNT_WINDOW_HOURS = 24;
+const PAYWALL_HITS_FOR_DISCOUNT = 3;
+
 export const PRO_CONFIG = {
   freeScansPerDay: 3,
   freeHistoryLimit: 3,
@@ -384,4 +407,381 @@ export const togglePlanTask = async (taskId) => {
 
 export const isTaskCompleted = (taskId) => {
   return proState?.planTasks?.[taskId] || false;
+};
+
+
+// =============================================================================
+// CONVERSION OPTIMIZATION FEATURES
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// 1. HARD SCAN LIMIT (total, not per-day)
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the number of free scans remaining (lifetime total, not daily).
+ * Pro users get Infinity.
+ */
+export const getTotalScansRemaining = async () => {
+  if (isPro()) return Infinity;
+  try {
+    const used = await AsyncStorage.getItem(SCAN_COUNT_KEY);
+    const count = used ? parseInt(used, 10) : 0;
+    return Math.max(0, SCAN_LIMIT - count);
+  } catch {
+    return SCAN_LIMIT;
+  }
+};
+
+/**
+ * Decrements the lifetime scan counter. Returns false if no scans remain
+ * (user must subscribe). Pro users always return true.
+ */
+export const useTotalScan = async () => {
+  if (isPro()) return true;
+  try {
+    const used = await AsyncStorage.getItem(SCAN_COUNT_KEY);
+    const count = used ? parseInt(used, 10) : 0;
+    if (count >= SCAN_LIMIT) return false;
+    await AsyncStorage.setItem(SCAN_COUNT_KEY, String(count + 1));
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+// ---------------------------------------------------------------------------
+// 2. RESULTS GATING
+// ---------------------------------------------------------------------------
+
+const ALL_RESULT_CATEGORIES = ['jawline', 'skin', 'eyes', 'cheekbones', 'hair', 'symmetry'];
+
+/**
+ * Returns the list of category keys visible to the current user.
+ * Free users only see jawline and skin; PRO sees all 6.
+ */
+export const getVisibleCategories = () => {
+  if (isPro()) return [...ALL_RESULT_CATEGORIES];
+  return [...FREE_CATEGORIES];
+};
+
+/**
+ * Returns true if the given result category is locked for the current user.
+ */
+export const isResultLocked = (category) => {
+  if (isPro()) return false;
+  return !FREE_CATEGORIES.includes(category);
+};
+
+// ---------------------------------------------------------------------------
+// 3. GRANULAR FEATURE ACCESS LEVELS
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns 'full', 'limited', or 'locked' for the given feature.
+ *
+ * Feature rules for free users:
+ *   guides      - first 4 visible, rest locked            -> 'limited'
+ *   ai_chat     - 10 messages then locked                 -> 'limited' | 'locked'
+ *   share_cards - only "Minimal" template free             -> 'limited'
+ *   hairstyle   - 2 recommendations free, rest locked      -> 'limited'
+ *   supplements - 3 supplements free, rest locked           -> 'limited'
+ *   *           - anything else is locked                   -> 'locked'
+ *
+ * Pro users always get 'full'.
+ */
+export const getFeatureAccess = async (featureName) => {
+  if (isPro()) return 'full';
+
+  switch (featureName) {
+    case 'guides':
+      return 'limited';
+    case 'ai_chat': {
+      const msgs = await _getAIChatMessageCount();
+      return msgs < FREE_AI_CHAT_MESSAGES ? 'limited' : 'locked';
+    }
+    case 'share_cards':
+      return 'limited';
+    case 'hairstyle':
+      return 'limited';
+    case 'supplements':
+      return 'limited';
+    default:
+      return 'locked';
+  }
+};
+
+/**
+ * Returns the concrete free-tier limits for each feature so UI can render
+ * counts like "2 of 8 hairstyles" etc.
+ */
+export const getFeatureLimits = () => ({
+  guides: FREE_GUIDES_LIMIT,
+  ai_chat: FREE_AI_CHAT_MESSAGES,
+  hairstyle: FREE_HAIRSTYLE_RECOMMENDATIONS,
+  supplements: FREE_SUPPLEMENTS,
+  share_cards_free_template: FREE_SHARE_TEMPLATE,
+});
+
+// --- AI chat message tracking (internal) ---
+
+const _getAIChatMessageCount = async () => {
+  try {
+    const val = await AsyncStorage.getItem(AI_CHAT_MESSAGES_KEY);
+    return val ? parseInt(val, 10) : 0;
+  } catch {
+    return 0;
+  }
+};
+
+/**
+ * Increments the AI chat message count for free users.
+ * Returns the new count.
+ */
+export const incrementAIChatMessage = async () => {
+  const count = await _getAIChatMessageCount();
+  const next = count + 1;
+  await AsyncStorage.setItem(AI_CHAT_MESSAGES_KEY, String(next));
+  return next;
+};
+
+/**
+ * Returns remaining AI chat messages for free users. Pro gets Infinity.
+ */
+export const getAIChatMessagesRemaining = async () => {
+  if (isPro()) return Infinity;
+  const count = await _getAIChatMessageCount();
+  return Math.max(0, FREE_AI_CHAT_MESSAGES - count);
+};
+
+/**
+ * Returns true if the share-card template name is available for free users.
+ */
+export const isShareTemplateAvailable = (templateName) => {
+  if (isPro()) return true;
+  return templateName === FREE_SHARE_TEMPLATE;
+};
+
+/**
+ * Filters a list of items to what the free user can see based on feature.
+ * Pro users get the full list unchanged.
+ */
+export const applyFeatureLimit = (featureName, items) => {
+  if (isPro()) return items;
+  const limitMap = {
+    guides: FREE_GUIDES_LIMIT,
+    hairstyle: FREE_HAIRSTYLE_RECOMMENDATIONS,
+    supplements: FREE_SUPPLEMENTS,
+  };
+  const limit = limitMap[featureName];
+  if (limit != null && Array.isArray(items)) {
+    return items.slice(0, limit);
+  }
+  return items;
+};
+
+// ---------------------------------------------------------------------------
+// 4. TRIAL TRACKING
+// ---------------------------------------------------------------------------
+
+/**
+ * Marks that the user has consumed their free-trial opportunity (persisted).
+ */
+export const setTrialUsed = async () => {
+  await AsyncStorage.setItem(TRIAL_USED_KEY, 'true');
+  await AsyncStorage.setItem(TRIAL_START_KEY, String(Date.now()));
+  if (proState) {
+    proState.trialUsed = true;
+    proState.trialStart = Date.now();
+    await saveProState();
+  }
+};
+
+/**
+ * Returns the number of trial days remaining for an actively trialing user.
+ * Returns 0 if no trial is active or trial has expired.
+ */
+export const getTrialDaysRemaining = async () => {
+  // Prefer IAP-based check first (covers Google Play managed trials)
+  const iapDays = getTrialDaysLeft();
+  if (iapDays > 0) return iapDays;
+
+  // Fallback: locally-tracked trial start
+  try {
+    const startStr = await AsyncStorage.getItem(TRIAL_START_KEY);
+    if (!startStr) return 0;
+    const start = parseInt(startStr, 10);
+    const elapsed = Date.now() - start;
+    const trialMs = PRO_CONFIG.trialDays * 24 * 60 * 60 * 1000;
+    const remaining = trialMs - elapsed;
+    return Math.max(0, Math.ceil(remaining / (24 * 60 * 60 * 1000)));
+  } catch {
+    return 0;
+  }
+};
+
+/**
+ * Returns true if the user had a trial and it has expired.
+ */
+export const isTrialExpired = async () => {
+  const used = await AsyncStorage.getItem(TRIAL_USED_KEY);
+  if (used !== 'true') return false;
+  const remaining = await getTrialDaysRemaining();
+  return remaining <= 0 && !isPro();
+};
+
+// ---------------------------------------------------------------------------
+// 5. CONVERSION EVENT TRACKING (paywall analytics)
+// ---------------------------------------------------------------------------
+
+/**
+ * Internal helper: read the paywall-hits array from storage.
+ */
+const _getPaywallHits = async () => {
+  try {
+    const raw = await AsyncStorage.getItem(PAYWALL_HITS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+const _savePaywallHits = async (hits) => {
+  try {
+    await AsyncStorage.setItem(PAYWALL_HITS_KEY, JSON.stringify(hits));
+  } catch {}
+};
+
+/**
+ * Records that the user saw a paywall from a given source/feature.
+ * @param {string} source - identifier like 'scan', 'guides', 'ai_chat', etc.
+ */
+export const trackPaywallHit = async (source) => {
+  const hits = await _getPaywallHits();
+  hits.push({ source, timestamp: Date.now() });
+  await _savePaywallHits(hits);
+};
+
+/**
+ * Returns the total number of times the user has seen any paywall.
+ */
+export const getPaywallHitCount = async () => {
+  const hits = await _getPaywallHits();
+  return hits.length;
+};
+
+/**
+ * Returns the feature/source that the user has been blocked on the most.
+ * Returns null if no hits recorded.
+ */
+export const getMostBlockedFeature = async () => {
+  const hits = await _getPaywallHits();
+  if (hits.length === 0) return null;
+
+  const counts = {};
+  hits.forEach(({ source }) => {
+    counts[source] = (counts[source] || 0) + 1;
+  });
+
+  let maxSource = null;
+  let maxCount = 0;
+  Object.entries(counts).forEach(([source, count]) => {
+    if (count > maxCount) {
+      maxCount = count;
+      maxSource = source;
+    }
+  });
+  return maxSource;
+};
+
+// ---------------------------------------------------------------------------
+// 6. SMART OFFER / DISCOUNT SYSTEM
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns true if the user qualifies for a discount offer.
+ * Criteria: 3+ paywall hits (shows interest) and not already pro.
+ */
+export const shouldShowDiscount = async () => {
+  if (isPro()) return false;
+  const hitCount = await getPaywallHitCount();
+  return hitCount >= PAYWALL_HITS_FOR_DISCOUNT;
+};
+
+/**
+ * Creates (or retrieves) a time-limited discount offer.
+ * The offer window is 24 hours from first generation.
+ * Returns { discountPercent, expiresAt, code }.
+ */
+export const getDiscountOffer = async () => {
+  try {
+    const raw = await AsyncStorage.getItem(DISCOUNT_OFFER_KEY);
+    if (raw) {
+      const offer = JSON.parse(raw);
+      // Return existing offer even if expired so UI can show "expired" state
+      return offer;
+    }
+  } catch {}
+
+  // Generate a new offer
+  const offer = {
+    discountPercent: DISCOUNT_PERCENT,
+    expiresAt: Date.now() + DISCOUNT_WINDOW_HOURS * 60 * 60 * 1000,
+    code: `PRO${DISCOUNT_PERCENT}-${Date.now().toString(36).toUpperCase()}`,
+    createdAt: Date.now(),
+  };
+
+  try {
+    await AsyncStorage.setItem(DISCOUNT_OFFER_KEY, JSON.stringify(offer));
+  } catch {}
+
+  return offer;
+};
+
+/**
+ * Returns true if the current discount offer has expired.
+ */
+export const isOfferExpired = async () => {
+  try {
+    const raw = await AsyncStorage.getItem(DISCOUNT_OFFER_KEY);
+    if (!raw) return true; // no offer exists
+    const offer = JSON.parse(raw);
+    return Date.now() > offer.expiresAt;
+  } catch {
+    return true;
+  }
+};
+
+// ---------------------------------------------------------------------------
+// 7. SOCIAL UNLOCK / INVITE TRACKING
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the number of successful invites the user has made.
+ */
+export const getInviteCount = async () => {
+  try {
+    const val = await AsyncStorage.getItem(INVITE_COUNT_KEY);
+    return val ? parseInt(val, 10) : 0;
+  } catch {
+    return 0;
+  }
+};
+
+/**
+ * Records a new successful invite. Returns the updated count.
+ */
+export const addInvite = async () => {
+  const current = await getInviteCount();
+  const next = current + 1;
+  await AsyncStorage.setItem(INVITE_COUNT_KEY, String(next));
+  return next;
+};
+
+/**
+ * Returns true if the user has sent enough invites to unlock PRO via referrals.
+ */
+export const hasUnlockedViaInvites = async () => {
+  const count = await getInviteCount();
+  return count >= INVITES_NEEDED;
 };
