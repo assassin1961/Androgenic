@@ -44,28 +44,18 @@ echo -e "${GREEN}✓ Logged in as: $(eas whoami)${NC}"
 echo ""
 echo -e "${YELLOW}[2/6] Checking Apple credentials...${NC}"
 
-if [ -z "$APPLE_ID" ]; then
-    echo -e "${YELLOW}→ APPLE_ID not set.${NC}"
-    read -p "  Enter your Apple ID (email): " APPLE_ID
-    export APPLE_ID
-fi
+export APPLE_ID="${APPLE_ID:-adeelahmedrahman@gmail.com}"
+export APPLE_TEAM_ID="${APPLE_TEAM_ID:-GNUU5L66BM}"
 echo -e "${GREEN}✓ Apple ID: $APPLE_ID${NC}"
+echo -e "${GREEN}✓ Apple Team ID: $APPLE_TEAM_ID${NC}"
 
 if [ -z "$ASC_APP_ID" ]; then
     echo -e "${YELLOW}→ ASC_APP_ID not set.${NC}"
-    echo "  Find it at: https://appstoreconnect.apple.com → Your App → General → App Information"
+    echo "  Find it at: https://appstoreconnect.apple.com → Your App → URL (number after /app/)"
     read -p "  Enter your App Store Connect App ID: " ASC_APP_ID
     export ASC_APP_ID
 fi
 echo -e "${GREEN}✓ ASC App ID: $ASC_APP_ID${NC}"
-
-if [ -z "$APPLE_TEAM_ID" ]; then
-    echo -e "${YELLOW}→ APPLE_TEAM_ID not set.${NC}"
-    echo "  Find it at: https://developer.apple.com/account → Membership Details"
-    read -p "  Enter your Apple Team ID: " APPLE_TEAM_ID
-    export APPLE_TEAM_ID
-fi
-echo -e "${GREEN}✓ Apple Team ID: $APPLE_TEAM_ID${NC}"
 
 # ---------- Install deps ----------
 echo ""

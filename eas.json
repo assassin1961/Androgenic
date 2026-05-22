@@ -52,9 +52,9 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "${APPLE_ID}",
+        "appleId": "adeelahmedrahman@gmail.com",
         "ascAppId": "${ASC_APP_ID}",
-        "appleTeamId": "${APPLE_TEAM_ID}"
+        "appleTeamId": "GNUU5L66BM"
       },
       "android": {
         "serviceAccountKeyPath": "./google-services.json",
