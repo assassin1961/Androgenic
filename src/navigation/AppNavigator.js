@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -95,7 +95,8 @@ import TabBar from '../components/TabBar';
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
-  const [showOnboarding, setShowOnboarding] = useState(null); // null = loading, true = show, false = hide
+  const [showOnboarding, setShowOnboarding] = useState(null);
+  const navigationRef = useRef(null);
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -109,18 +110,23 @@ const AppNavigator = () => {
     checkOnboarding();
   }, []);
 
+  useEffect(() => {
+    if (Platform.OS === 'web' && navigationRef.current) {
+      window.__navRef = navigationRef.current;
+    }
+  }, [showOnboarding]);
+
   const handleOnboardingFinish = () => {
     setShowOnboarding(false);
   };
 
-  // Don't render anything until we know if onboarding should be shown
   if (showOnboarding === null) {
     return <View style={{ flex: 1, backgroundColor: '#000000' }} />;
   }
 
   return (
     <>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <Stack.Navigator
           initialRouteName="Home"
           screenOptions={{
