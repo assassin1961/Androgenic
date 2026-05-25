@@ -83,8 +83,8 @@ const NOTIFICATION_NAMES = [
 const COMPARISON_FEATURES = [
   { feature: 'Face Scans', free: '3 total', pro: 'Unlimited', icon: 'scan-outline' },
   { feature: 'Categories', free: '2 of 6', pro: 'All 6', icon: 'grid-outline' },
-  { feature: 'Guides', free: '4 basic', pro: '23+ premium', icon: 'book-outline' },
-  { feature: 'AI Chat', free: '10 messages', pro: 'Unlimited', icon: 'chatbubble-outline' },
+  { feature: 'Guides', free: '2 basic', pro: '23+ premium', icon: 'book-outline' },
+  { feature: 'AI Chat', free: '5 messages', pro: 'Unlimited', icon: 'chatbubble-outline' },
   { feature: 'Share Cards', free: '1 template', pro: '5 premium', icon: 'share-outline' },
   { feature: 'Progress Tracking', free: false, pro: true, icon: 'trending-up-outline' },
   { feature: 'Celebrity Match', free: false, pro: true, icon: 'star-outline' },
@@ -194,8 +194,8 @@ const PaywallScreen = ({ navigation, route }) => {
         const exitUsed = await AsyncStorage.getItem(EXIT_OFFER_USED_KEY);
         if (exitUsed === 'true') setExitOfferUsed(true);
 
-        // Offer timer: show after 2+ views
-        if (count >= 2) {
+        // Offer timer: show from first view
+        {
           let offerStart = await AsyncStorage.getItem(OFFER_START_KEY);
           if (!offerStart) {
             offerStart = String(Date.now());
@@ -370,8 +370,9 @@ const PaywallScreen = ({ navigation, route }) => {
   };
 
   const getUrgencyMessage = () => {
-    if (viewCount >= 5) return 'Last chance -- this offer won\'t appear again';
+    if (viewCount >= 5) return 'Last chance — this offer won\'t appear again';
     if (viewCount >= 3) return 'Special pricing unlocked for you';
+    if (viewCount >= 1) return 'Limited-time offer active — don\'t miss it';
     return null;
   };
 
@@ -545,9 +546,10 @@ const PaywallScreen = ({ navigation, route }) => {
                 <Text style={styles.bestValueText}>BEST VALUE</Text>
               </View>
               <Text style={styles.planDuration}>Yearly</Text>
+              <Text style={[styles.planPrice, styles.planStrikethrough]}>$259/yr</Text>
               <Text style={styles.planPrice}>$39.99</Text>
               <Text style={styles.planPeriod}>/year</Text>
-              <Text style={styles.planBreakdown}>$0.77/week</Text>
+              <Text style={styles.planBreakdown}>just $0.11/day</Text>
               <View style={styles.savePill}>
                 <Text style={styles.savePillText}>Save 85%</Text>
               </View>
@@ -592,7 +594,7 @@ const PaywallScreen = ({ navigation, route }) => {
               {PRO_CONFIG.trialDays}-day free trial, then {selectedPlanData.price}{selectedPlanData.period !== 'one-time' ? selectedPlanData.period : ''}
             </Text>
           )}
-          <Text style={styles.memberCount}>Join 12,000+ members</Text>
+          <Text style={styles.memberCount}>Join 47,000+ members</Text>
           <Text style={styles.cancelText}>Cancel anytime</Text>
         </Animated.View>
 
@@ -635,7 +637,7 @@ const PaywallScreen = ({ navigation, route }) => {
             {[1, 2, 3, 4, 5].map(i => (
               <Ionicons key={i} name="star" size={16} color="#D4AF37" />
             ))}
-            <Text style={styles.ratingText}>Rated 4.9 by 12,000+ users</Text>
+            <Text style={styles.ratingText}>Rated 4.9 by 47,000+ users</Text>
           </View>
         </Animated.View>
 
@@ -1132,6 +1134,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: '#FFFFFF',
+  },
+  planStrikethrough: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#555555',
+    textDecorationLine: 'line-through',
+    marginBottom: -2,
   },
   planPeriod: {
     fontSize: 11,

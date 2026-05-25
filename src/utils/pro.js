@@ -27,21 +27,21 @@ const INVITE_COUNT_KEY = 'androgenic_invite_count';
 const DISCOUNT_OFFER_KEY = 'androgenic_discount_offer';
 
 // --- Constants ---
-export const SCAN_LIMIT = 3;
+export const SCAN_LIMIT = 2;
 export const FREE_CATEGORIES = ['jawline', 'skin'];
 export const INVITES_NEEDED = 3;
 
-const FREE_GUIDES_LIMIT = 4;
-const FREE_AI_CHAT_MESSAGES = 10;
+const FREE_GUIDES_LIMIT = 2;
+const FREE_AI_CHAT_MESSAGES = 5;
 const FREE_HAIRSTYLE_RECOMMENDATIONS = 2;
 const FREE_SUPPLEMENTS = 3;
 const FREE_SHARE_TEMPLATE = 'Minimal';
 const DISCOUNT_PERCENT = 40;
 const DISCOUNT_WINDOW_HOURS = 24;
-const PAYWALL_HITS_FOR_DISCOUNT = 3;
+const PAYWALL_HITS_FOR_DISCOUNT = 2;
 
 export const PRO_CONFIG = {
-  freeScansPerDay: 3,
+  freeScansPerDay: 2,
   freeHistoryLimit: 3,
   freeTipsPerCategory: 1,
   trialDays: 3,
