@@ -3,18 +3,22 @@
 ## Quick Start
 
 ```bash
-# 1. Install EAS CLI (if not installed)
-npm install -g eas-cli@latest
-
-# 2. Login to Expo
-eas login
-
-# 3. Build + auto-submit to App Store Connect
 ./scripts/deploy-ios.sh
 ```
 
-That's it. The script handles everything. When prompted for ASC_APP_ID, enter
-your App Store Connect app ID (the number from the URL after `/app/`).
+That's it. The script auto-installs EAS CLI, logs you in, and builds + submits.
+No IDs to enter — everything is hardcoded in `eas.json`.
+
+For Android:
+```bash
+./scripts/deploy-android.sh
+```
+
+Or use npm:
+```bash
+npm run deploy:ios
+npm run deploy:android
+```
 
 ---
 

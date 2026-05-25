@@ -53,7 +53,6 @@
     "production": {
       "ios": {
         "appleId": "adeelahmedrahman@gmail.com",
-        "ascAppId": "${ASC_APP_ID}",
         "appleTeamId": "GNUU5L66BM"
       },
       "android": {
