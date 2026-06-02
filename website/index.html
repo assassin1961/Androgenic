@@ -2,543 +2,316 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Androgenic — AI Face Analysis & Looksmaxxing</title>
-<meta name="description" content="Androgenic uses AI to analyze your face across 8 categories and gives you a personalized, science-backed plan to unlock your full potential. Free to start." />
-<meta name="theme-color" content="#06080f" />
-
-<!-- Open Graph -->
-<meta property="og:title" content="Androgenic — AI Face Analysis & Looksmaxxing" />
-<meta property="og:description" content="Scan your face. Get rated across 8 categories. Follow a personalized glow-up plan. Join 50,000+ people maxxing out." />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://androgenic.app" />
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Androgenic · Face Rating</title>
+<meta name="description" content="Upload your photo, buy me a coffee, and get your face rated." />
+<meta name="theme-color" content="#08080a" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles.css" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --black:#08080a;
+  --ink:#0d0d10;
+  --smoke:#e9e4dc;      /* warm off-white (coffee cream), reads as white */
+  --mute:#9b968e;
+  --faint:#5c5953;
+  --line:rgba(233,228,220,.16);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--black);
+  color:var(--smoke);
+  overflow:hidden;
+  height:100dvh;
+  display:flex;align-items:center;justify-content:center;
+  -webkit-font-smoothing:antialiased;
+  position:relative;
+}
+::selection{background:rgba(233,228,220,.85);color:#000}
+a{color:inherit;text-decoration:none}
+
+/* ---------- atmosphere: vignette + grain ---------- */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(120% 90% at 50% 18%, rgba(40,38,44,.55), transparent 60%),
+    radial-gradient(140% 120% at 50% 120%, rgba(0,0,0,.9), transparent 60%),
+    var(--black);}
+.grain{position:fixed;inset:-50%;z-index:6;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain 1.4s steps(3) infinite}
+@keyframes grain{0%{transform:translate(0,0)}33%{transform:translate(-3%,2%)}66%{transform:translate(2%,-2%)}100%{transform:translate(0,0)}}
+
+/* ---------- smoke plumes ---------- */
+.smoke-field{position:fixed;left:50%;bottom:46%;transform:translateX(-50%);width:340px;height:60vh;z-index:2;pointer-events:none;filter:blur(22px)}
+.plume{position:absolute;bottom:0;left:50%;width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle at 50% 50%, rgba(233,228,220,.5), rgba(233,228,220,0) 65%);
+  opacity:0;transform:translateX(-50%);will-change:transform,opacity}
+.plume.p1{animation:rise 7s var(--ease) infinite}
+.plume.p2{width:90px;height:90px;animation:rise 8.5s var(--ease) .9s infinite}
+.plume.p3{width:150px;height:150px;animation:rise 9.5s var(--ease) 2.1s infinite}
+.plume.p4{width:70px;height:70px;animation:rise 6.5s var(--ease) 3.4s infinite}
+.plume.p5{width:110px;height:110px;animation:rise 10s var(--ease) 4.6s infinite}
+@keyframes rise{
+  0%{opacity:0;transform:translate(-50%,40px) scale(.6)}
+  15%{opacity:.55}
+  55%{opacity:.32}
+  100%{opacity:0;transform:translate(calc(-50% + var(--drift,30px)),-78vh) scale(2.4)}
+}
+.plume.p2{--drift:-46px}.plume.p3{--drift:38px}.plume.p4{--drift:-30px}.plume.p5{--drift:54px}
+
+/* ---------- main card ---------- */
+.stage{position:relative;z-index:5;width:min(92vw,440px);padding:26px;text-align:center;
+  animation:fadeUp 1.1s var(--ease) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+.brandmark{font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--mute);margin-bottom:22px;
+  opacity:0;animation:fadeUp 1s var(--ease) .15s both}
+
+/* coffee cup */
+.cup{width:104px;height:104px;margin:0 auto 22px;position:relative;
+  opacity:0;animation:fadeUp 1s var(--ease) .25s both}
+.cup svg{width:100%;height:100%;overflow:visible}
+.cup .stroke{fill:none;stroke:var(--smoke);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.cup .fill{fill:rgba(233,228,220,.06)}
+.steam{position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:60px;height:50px}
+.steam span{position:absolute;bottom:0;width:5px;height:32px;border-radius:6px;
+  background:linear-gradient(to top, rgba(233,228,220,0), rgba(233,228,220,.6));filter:blur(2px);opacity:0}
+.steam span:nth-child(1){left:14px;animation:steam 3.4s ease-in-out infinite}
+.steam span:nth-child(2){left:28px;height:42px;animation:steam 3.8s ease-in-out .5s infinite}
+.steam span:nth-child(3){left:42px;animation:steam 3.2s ease-in-out 1s infinite}
+@keyframes steam{0%{opacity:0;transform:translateY(6px) scaleY(.6)}40%{opacity:.7}100%{opacity:0;transform:translateY(-26px) scaleY(1.3) translateX(6px)}}
+
+h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(34px,8vw,52px);line-height:1.02;letter-spacing:.005em;
+  opacity:0;animation:fadeUp 1s var(--ease) .35s both}
+h1 i{font-style:italic;color:var(--smoke)}
+.sub{color:var(--mute);font-size:14px;font-weight:300;margin:14px auto 26px;max-width:300px;line-height:1.6;
+  opacity:0;animation:fadeUp 1s var(--ease) .45s both}
+
+/* dropzone */
+.drop{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;
+  border:1px dashed var(--line);border-radius:18px;padding:26px 20px;cursor:pointer;
+  background:rgba(233,228,220,.015);transition:border-color .5s var(--ease),background .5s var(--ease),transform .4s var(--ease);
+  opacity:0;animation:fadeUp 1s var(--ease) .55s both}
+.drop:hover,.drop.drag{border-color:rgba(233,228,220,.5);background:rgba(233,228,220,.04);transform:translateY(-2px)}
+.drop .ico{width:34px;height:34px;color:var(--smoke);opacity:.85}
+.drop .ico svg{width:100%;height:100%}
+.drop b{font-size:14px;font-weight:500}
+.drop small{font-size:12px;color:var(--faint)}
+
+/* preview thumb */
+.thumb{width:84px;height:84px;border-radius:50%;object-fit:cover;margin:0 auto 4px;
+  border:1px solid var(--line);box-shadow:0 10px 40px -12px #000}
+
+/* buy coffee button */
+.bmc{display:inline-flex;align-items:center;justify-content:center;gap:11px;margin-top:22px;
+  background:var(--smoke);color:#0a0a0a;font-weight:600;font-size:15px;letter-spacing:.01em;
+  padding:15px 26px;border-radius:999px;border:none;cursor:pointer;font-family:inherit;
+  transition:transform .4s var(--ease),box-shadow .4s var(--ease),opacity .4s;
+  box-shadow:0 14px 40px -14px rgba(233,228,220,.5);width:100%}
+.bmc:hover{transform:translateY(-3px);box-shadow:0 22px 50px -16px rgba(233,228,220,.65)}
+.bmc:active{transform:translateY(-1px)}
+.bmc svg{width:19px;height:19px}
+.reveal-link{display:inline-block;margin-top:16px;font-size:12.5px;color:var(--faint);cursor:pointer;
+  border-bottom:1px solid transparent;transition:color .3s,border-color .3s;letter-spacing:.02em}
+.reveal-link:hover{color:var(--mute);border-color:var(--line)}
+
+/* states */
+.state{display:none;animation:fadeUp .8s var(--ease) both}
+.state.on{display:block}
+
+/* locked rating */
+.locked-num{font-family:'Cormorant Garamond',serif;font-size:72px;line-height:1;filter:blur(12px);opacity:.6;margin-top:6px}
+.lock-note{font-size:13px;color:var(--mute);margin:8px auto 0;max-width:260px;line-height:1.5}
+
+/* revealed rating */
+.score-wrap{position:relative;width:200px;height:200px;margin:6px auto 4px}
+.score-wrap svg{width:100%;height:100%;transform:rotate(-90deg)}
+.score-wrap .track{fill:none;stroke:rgba(233,228,220,.12);stroke-width:4}
+.score-wrap .meter{fill:none;stroke:var(--smoke);stroke-width:4;stroke-linecap:round;
+  stroke-dasharray:565;stroke-dashoffset:565;transition:stroke-dashoffset 1.8s var(--ease)}
+.score-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-num{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:68px;line-height:1}
+.score-out{font-size:12px;color:var(--mute);letter-spacing:.2em;margin-top:2px}
+.verdict{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;margin-top:14px}
+.percentile{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--mute);margin-top:8px}
+.again{margin-top:22px;font-size:12.5px;color:var(--faint);cursor:pointer;letter-spacing:.02em;border-bottom:1px solid transparent;transition:.3s}
+.again:hover{color:var(--mute);border-color:var(--line)}
+
+.footer{position:fixed;bottom:16px;left:0;right:0;text-align:center;z-index:5;
+  font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--faint);
+  opacity:0;animation:fadeUp 1s var(--ease) .8s both}
+
+@media (max-height:640px){
+  .cup{width:78px;height:78px;margin-bottom:14px}
+  h1{font-size:34px}.sub{margin:10px auto 18px}.drop{padding:18px}
+  .score-wrap{width:160px;height:160px}.score-num{font-size:54px}
+}
+</style>
 </head>
 <body>
-
-<!-- ============ Animated background ============ -->
-<div class="bg-aurora" aria-hidden="true">
-  <span class="blob blob-1"></span>
-  <span class="blob blob-2"></span>
-  <span class="blob blob-3"></span>
-  <span class="grid-overlay"></span>
-  <span class="noise"></span>
+<div class="bg"></div>
+<div class="smoke-field" aria-hidden="true">
+  <span class="plume p1"></span><span class="plume p2"></span><span class="plume p3"></span>
+  <span class="plume p4"></span><span class="plume p5"></span>
 </div>
-<div class="cursor-glow" aria-hidden="true"></div>
-<div class="scroll-progress" aria-hidden="true"><span></span></div>
+<div class="grain" aria-hidden="true"></div>
 
-<!-- ============ Loading screen ============ -->
-<div id="preloader" aria-hidden="true">
-  <div class="preloader-inner">
-    <div class="preloader-logo">
-      <svg viewBox="0 0 100 100" width="64" height="64">
-        <defs>
-          <linearGradient id="plGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#667eea"/>
-            <stop offset="50%" stop-color="#9d6bff"/>
-            <stop offset="100%" stop-color="#f093fb"/>
-          </linearGradient>
-        </defs>
-        <path d="M50 8 L86 28 L86 72 L50 92 L14 72 L14 28 Z" fill="none" stroke="url(#plGrad)" stroke-width="3"/>
-        <circle cx="50" cy="40" r="13" fill="none" stroke="url(#plGrad)" stroke-width="2.5"/>
-        <path d="M28 74 Q28 55 50 52 Q72 55 72 74" fill="none" stroke="url(#plGrad)" stroke-width="2.5"/>
-      </svg>
-    </div>
-    <div class="preloader-bar"><span></span></div>
-  </div>
-</div>
+<main class="stage">
+  <div class="brandmark">Androgenic</div>
 
-<!-- ============ Navigation ============ -->
-<header class="nav" id="nav">
-  <a class="nav-brand" href="#top" aria-label="Androgenic home">
-    <svg viewBox="0 0 100 100" width="30" height="30" aria-hidden="true">
-      <defs>
-        <linearGradient id="navGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#667eea"/>
-          <stop offset="100%" stop-color="#f093fb"/>
-        </linearGradient>
-      </defs>
-      <path d="M50 8 L86 28 L86 72 L50 92 L14 72 L14 28 Z" fill="none" stroke="url(#navGrad)" stroke-width="4"/>
-      <circle cx="50" cy="40" r="13" fill="none" stroke="url(#navGrad)" stroke-width="3.5"/>
-      <path d="M28 74 Q28 55 50 52 Q72 55 72 74" fill="none" stroke="url(#navGrad)" stroke-width="3.5"/>
+  <div class="cup" id="cupArt">
+    <div class="steam"><span></span><span></span><span></span></div>
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <path class="fill" d="M22 40 h46 v18 a23 23 0 0 1 -23 23 h0 a23 23 0 0 1 -23 -23 z"/>
+      <path class="stroke" d="M22 40 h46 v18 a23 23 0 0 1 -23 23 h0 a23 23 0 0 1 -23 -23 z"/>
+      <path class="stroke" d="M68 46 h8 a9 9 0 0 1 0 18 h-6"/>
+      <path class="stroke" d="M30 86 h30"/>
     </svg>
-    <span>Androgenic</span>
-  </a>
-  <nav class="nav-links" aria-label="Primary">
-    <a href="#analyze">Analysis</a>
-    <a href="#how">How it works</a>
-    <a href="#app">The App</a>
-    <a href="#pricing">Pricing</a>
-    <a href="#faq">FAQ</a>
-  </nav>
-  <a href="#" data-app="scan" class="btn btn-primary btn-sm nav-cta">
-    <span>Open App</span>
-  </a>
-  <button class="nav-burger" id="navBurger" aria-label="Menu"><span></span><span></span><span></span></button>
-</header>
-<div class="mobile-menu" id="mobileMenu">
-  <a href="#analyze">Analysis</a>
-  <a href="#how">How it works</a>
-  <a href="#app">The App</a>
-  <a href="#pricing">Pricing</a>
-  <a href="#faq">FAQ</a>
-  <a href="#" data-app="scan" class="btn btn-primary">Open App Free</a>
-</div>
-
-<main id="top">
-
-<!-- ============ HERO ============ -->
-<section class="hero">
-  <div class="hero-copy">
-    <span class="eyebrow reveal" data-reveal>
-      <span class="eyebrow-dot"></span> AI-Powered Looksmaxxing
-    </span>
-    <h1 class="hero-title reveal" data-reveal>
-      Unlock your
-      <span class="grad-text grad-animate">full potential</span>
-    </h1>
-    <p class="hero-sub reveal" data-reveal data-reveal-delay="1">
-      Androgenic scans your face with AI, rates you across 8 categories, and builds a
-      personalized, science-backed glow-up plan — so you know exactly what to improve and how.
-    </p>
-    <div class="hero-actions reveal" data-reveal data-reveal-delay="2">
-      <a href="#" data-app="scan" class="btn btn-primary btn-lg magnetic">
-        <span>Analyze My Face — Free</span>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-      </a>
-      <a href="#how" class="btn btn-ghost btn-lg">How it works</a>
-    </div>
-    <div class="hero-trust reveal" data-reveal data-reveal-delay="3">
-      <div class="avatars">
-        <span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span><span style="--i:4"></span>
-      </div>
-      <div class="hero-trust-text">
-        <div class="stars">★★★★★ <b>4.8</b></div>
-        <span>Loved by <b>50,000+</b> looksmaxxers</span>
-      </div>
-    </div>
   </div>
 
-  <!-- Phone mockup mixing in the app -->
-  <div class="hero-device reveal-device" data-reveal>
-    <div class="device-glow"></div>
-    <div class="phone" id="heroPhone">
-      <div class="phone-notch"></div>
-      <div class="phone-screen">
-        <!-- app header -->
-        <div class="app-top">
-          <div class="app-brand">ANDROGENIC</div>
-          <div class="app-top-right">
-            <span class="streak">🔥 7</span>
-            <span class="app-dot"></span>
-          </div>
-        </div>
-        <div class="app-level">
-          <span>Lv.4 · Grinder</span>
-          <div class="lvl-bar"><i></i></div>
-          <span class="xp">820 XP</span>
-        </div>
+  <!-- STATE 1: intro / upload -->
+  <section class="state on" id="s-upload">
+    <h1>Rate your <i>face.</i></h1>
+    <p class="sub">Upload a clear, front-facing photo. Buy me a coffee and I'll reveal your rating.</p>
+    <label class="drop" id="drop">
+      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L5 21"/></svg></span>
+      <b>Upload your photo</b>
+      <small>Tap to choose · or drag &amp; drop</small>
+      <input type="file" id="file" accept="image/*" hidden>
+    </label>
+  </section>
 
-        <!-- score ring -->
-        <div class="app-hero-score">
-          <div class="ring" data-ring="84">
-            <svg viewBox="0 0 120 120">
-              <circle class="ring-bg" cx="60" cy="60" r="52"/>
-              <circle class="ring-fg" cx="60" cy="60" r="52"/>
-            </svg>
-            <div class="ring-center">
-              <b class="count" data-count="8.4" data-decimals="1">0.0</b>
-              <small>Overall</small>
-            </div>
-          </div>
-          <div class="app-hero-meta">
-            <span class="pill pill-good">Top 8%</span>
-            <p>Your face scores in the top tier. Three quick wins could push you to elite.</p>
-          </div>
-        </div>
-
-        <button class="app-cta">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          New Scan
-        </button>
-
-        <!-- mini metric cards -->
-        <div class="app-cards">
-          <div class="app-card c-jaw"><span class="ac-emoji">🦴</span><b>Jawline</b><i>9.1</i></div>
-          <div class="app-card c-eyes"><span class="ac-emoji">👀</span><b>Eyes</b><i>8.6</i></div>
-          <div class="app-card c-skin"><span class="ac-emoji">✨</span><b>Skin</b><i>7.9</i></div>
-          <div class="app-card c-sym"><span class="ac-emoji">📐</span><b>Symmetry</b><i>8.2</i></div>
-        </div>
-
-        <div class="app-tip">
-          <span>💡</span>
-          <div><b>Today's tip</b><p>Sleep on your back — side sleeping causes facial asymmetry.</p></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- floating chips -->
-    <div class="float-chip chip-1"><span>🦴</span> Jawline <b>+0.4</b></div>
-    <div class="float-chip chip-2"><span>🏆</span> Top 8%</div>
-    <div class="float-chip chip-3"><span>📈</span> 12-week plan</div>
-  </div>
-</section>
-
-<!-- ============ MARQUEE / trust ============ -->
-<section class="marquee" aria-hidden="true">
-  <div class="marquee-track">
-    <span>Masculinity</span><i>✦</i><span>Jawline</span><i>✦</i><span>Eye Area</span><i>✦</i><span>Cheekbones</span><i>✦</i><span>Hairline</span><i>✦</i><span>Skin Quality</span><i>✦</i><span>Symmetry</span><i>✦</i><span>Golden Ratio</span><i>✦</i>
-    <span>Masculinity</span><i>✦</i><span>Jawline</span><i>✦</i><span>Eye Area</span><i>✦</i><span>Cheekbones</span><i>✦</i><span>Hairline</span><i>✦</i><span>Skin Quality</span><i>✦</i><span>Symmetry</span><i>✦</i><span>Golden Ratio</span><i>✦</i>
-  </div>
-</section>
-
-<!-- ============ STATS ============ -->
-<section class="stats">
-  <div class="stat reveal" data-reveal>
-    <b class="count" data-count="50000" data-suffix="+">0</b>
-    <span>Faces analyzed</span>
-  </div>
-  <div class="stat reveal" data-reveal data-reveal-delay="1">
-    <b class="count" data-count="8">0</b>
-    <span>Scoring categories</span>
-  </div>
-  <div class="stat reveal" data-reveal data-reveal-delay="2">
-    <b class="count" data-count="98" data-suffix="%">0</b>
-    <span>Analysis accuracy</span>
-  </div>
-  <div class="stat reveal" data-reveal data-reveal-delay="3">
-    <b class="count" data-count="4.8" data-decimals="1">0</b>
-    <span>Average rating</span>
-  </div>
-</section>
-
-<!-- ============ ANALYZE / FEATURES ============ -->
-<section class="section" id="analyze">
-  <div class="section-head reveal" data-reveal>
-    <span class="kicker">The Analysis</span>
-    <h2>Eight scores. One <span class="grad-text">complete picture.</span></h2>
-    <p>Our AI maps dozens of facial landmarks and benchmarks them against ideal proportions to score every feature that matters.</p>
-  </div>
-
-  <div class="feature-grid">
-    <article class="feature tilt reveal" data-reveal>
-      <div class="feature-emoji">💪</div>
-      <h3>Masculinity</h3>
-      <p>Overall facial masculinity from bone structure, dimorphism and proportion.</p>
-    </article>
-    <article class="feature tilt reveal" data-reveal data-reveal-delay="1">
-      <div class="feature-emoji">🦴</div>
-      <h3>Jawline</h3>
-      <p>Gonial angle, definition and width — the foundation of a strong profile.</p>
-    </article>
-    <article class="feature tilt reveal" data-reveal data-reveal-delay="2">
-      <div class="feature-emoji">👀</div>
-      <h3>Eye Area</h3>
-      <p>Canthal tilt, hooding and hunter-eye potential scored in detail.</p>
-    </article>
-    <article class="feature tilt reveal" data-reveal data-reveal-delay="3">
-      <div class="feature-emoji">🧬</div>
-      <h3>Cheekbones</h3>
-      <p>Zygomatic height and projection — the anchor of facial harmony.</p>
-    </article>
-    <article class="feature tilt reveal" data-reveal>
-      <div class="feature-emoji">💇</div>
-      <h3>Hair & Hairline</h3>
-      <p>Density, hairline shape and the styles that frame your face best.</p>
-    </article>
-    <article class="feature tilt reveal" data-reveal data-reveal-delay="1">
-      <div class="feature-emoji">✨</div>
-      <h3>Skin Quality</h3>
-      <p>Clarity, texture and tone with a routine tailored to your skin.</p>
-    </article>
-    <article class="feature tilt reveal" data-reveal data-reveal-delay="2">
-      <div class="feature-emoji">📐</div>
-      <h3>Symmetry</h3>
-      <p>Left-vs-right balance with targeted fixes for any imbalance.</p>
-    </article>
-    <article class="feature tilt reveal" data-reveal data-reveal-delay="3">
-      <div class="feature-emoji">🏆</div>
-      <h3>Golden Ratio</h3>
-      <p>fWHR and 8 facial ratios measured against the classical ideal.</p>
-    </article>
-  </div>
-</section>
-
-<!-- ============ HOW IT WORKS ============ -->
-<section class="section how" id="how">
-  <div class="section-head reveal" data-reveal>
-    <span class="kicker">How it works</span>
-    <h2>Your glow-up in <span class="grad-text">three steps.</span></h2>
-    <p>From selfie to a full personalized plan in under 30 seconds.</p>
-  </div>
-
-  <div class="steps">
-    <div class="step-line" aria-hidden="true"></div>
-    <article class="step reveal" data-reveal>
-      <div class="step-num">1</div>
-      <div class="step-icon">📸</div>
-      <h3>Snap or upload</h3>
-      <p>Take a front-facing selfie or pick one from your gallery. Everything is processed privately, on your device.</p>
-    </article>
-    <article class="step reveal" data-reveal data-reveal-delay="1">
-      <div class="step-num">2</div>
-      <div class="step-icon">🧠</div>
-      <h3>AI analyzes</h3>
-      <p>We detect facial landmarks, measure proportions and compute your scores across all 8 categories instantly.</p>
-    </article>
-    <article class="step reveal" data-reveal data-reveal-delay="2">
-      <div class="step-num">3</div>
-      <div class="step-icon">📈</div>
-      <h3>Get your plan</h3>
-      <p>Receive a 12-week improvement plan, daily tips and progress tracking to actually move your scores up.</p>
-    </article>
-  </div>
-</section>
-
-<!-- ============ APP SHOWCASE ============ -->
-<section class="section app-showcase" id="app">
-  <div class="section-head reveal" data-reveal>
-    <span class="kicker">Inside the app</span>
-    <h2>Everything you need to <span class="grad-text">level up.</span></h2>
-    <p>Androgenic isn't just a score — it's a full ecosystem for self-improvement.</p>
-  </div>
-
-  <div class="showcase-grid">
-    <article class="show-card big card-iq tilt reveal" data-reveal>
-      <div class="show-emoji">💡</div>
-      <h3>Androgenic IQ</h3>
-      <p>A single intelligence score that captures your overall facial aesthetics and tracks every gain over time.</p>
-      <div class="show-meta">
-        <div class="mini-ring" data-ring="84">
-          <svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg>
-          <span class="count" data-count="84">0</span>
-        </div>
-        <ul><li>Live percentile ranking</li><li>Weekly trend graph</li><li>Streaks & XP rewards</li></ul>
-      </div>
-    </article>
-
-    <article class="show-card card-ai tilt reveal" data-reveal data-reveal-delay="1">
-      <div class="show-emoji">💬</div>
-      <h3>AI Advisor</h3>
-      <p>Chat with an AI coach that turns your scores into specific, doable next moves.</p>
-    </article>
-
-    <article class="show-card card-comm tilt reveal" data-reveal data-reveal-delay="2">
-      <div class="show-emoji">🌐</div>
-      <h3>Community</h3>
-      <p>Join 47k+ looksmaxxers, share progress and get honest ratings.</p>
-    </article>
-
-    <article class="show-card wide card-hub tilt reveal" data-reveal>
-      <div class="show-emoji">📚</div>
-      <h3>LooksMax Hub</h3>
-      <p>Guides on jaw training, mewing, skincare, supplements, sleep and grooming — backed by sources, not bro-science.</p>
-      <div class="hub-tags">
-        <span>Mewing</span><span>Skincare</span><span>Supplements</span><span>Sleep</span><span>Grooming</span><span>Mindset</span>
-      </div>
-    </article>
-
-    <article class="show-card card-plan tilt reveal" data-reveal data-reveal-delay="1">
-      <div class="show-emoji">🗓️</div>
-      <h3>12-Week Plan</h3>
-      <p>A guided, checkable routine that adapts to your weakest categories.</p>
-    </article>
-  </div>
-</section>
-
-<!-- ============ TESTIMONIALS ============ -->
-<section class="section testi">
-  <div class="section-head reveal" data-reveal>
-    <span class="kicker">Real results</span>
-    <h2>People are <span class="grad-text">maxxing out.</span></h2>
-  </div>
-  <div class="testi-marquee">
-    <div class="testi-track">
-      <figure class="testi-card"><div class="t-stars">★★★★★</div><blockquote>"Went from a 6.8 to 8.1 in three months. The jaw routine alone was worth it."</blockquote><figcaption><span class="t-av" style="--h:210"></span>@maxgrind</figcaption></figure>
-      <figure class="testi-card"><div class="t-stars">★★★★★</div><blockquote>"Finally an app that tells you what to actually DO instead of just a number."</blockquote><figcaption><span class="t-av" style="--h:280"></span>@aesthetic.k</figcaption></figure>
-      <figure class="testi-card"><div class="t-stars">★★★★★</div><blockquote>"The symmetry breakdown was scary accurate. Fixed my posture because of it."</blockquote><figcaption><span class="t-av" style="--h:330"></span>@dvncan</figcaption></figure>
-      <figure class="testi-card"><div class="t-stars">★★★★★</div><blockquote>"Best looksmaxxing app, period. The UI is unreal and the plan keeps me consistent."</blockquote><figcaption><span class="t-av" style="--h:190"></span>@leoo</figcaption></figure>
-      <!-- duplicate for loop -->
-      <figure class="testi-card"><div class="t-stars">★★★★★</div><blockquote>"Went from a 6.8 to 8.1 in three months. The jaw routine alone was worth it."</blockquote><figcaption><span class="t-av" style="--h:210"></span>@maxgrind</figcaption></figure>
-      <figure class="testi-card"><div class="t-stars">★★★★★</div><blockquote>"Finally an app that tells you what to actually DO instead of just a number."</blockquote><figcaption><span class="t-av" style="--h:280"></span>@aesthetic.k</figcaption></figure>
-      <figure class="testi-card"><div class="t-stars">★★★★★</div><blockquote>"The symmetry breakdown was scary accurate. Fixed my posture because of it."</blockquote><figcaption><span class="t-av" style="--h:330"></span>@dvncan</figcaption></figure>
-      <figure class="testi-card"><div class="t-stars">★★★★★</div><blockquote>"Best looksmaxxing app, period. The UI is unreal and the plan keeps me consistent."</blockquote><figcaption><span class="t-av" style="--h:190"></span>@leoo</figcaption></figure>
-    </div>
-  </div>
-</section>
-
-<!-- ============ PRICING ============ -->
-<section class="section pricing" id="pricing">
-  <div class="section-head reveal" data-reveal>
-    <span class="kicker">Pricing</span>
-    <h2>Start free. Go <span class="grad-text grad-gold">PRO</span> when you're ready.</h2>
-    <p>No account needed. Your data stays on your device.</p>
-  </div>
-
-  <div class="price-toggle reveal" data-reveal>
-    <button class="active" data-plan="yearly">Yearly · save 66%</button>
-    <button data-plan="monthly">Monthly</button>
-  </div>
-
-  <div class="price-grid">
-    <article class="price-card reveal" data-reveal>
-      <h3>Free</h3>
-      <div class="price"><span class="amt">$0</span></div>
-      <p class="price-tag">Try it out, no strings.</p>
-      <ul>
-        <li>3 free face scans</li>
-        <li>Overall + 3 core scores</li>
-        <li>Daily tip</li>
-        <li>Basic recommendations</li>
-      </ul>
-      <a href="#" data-app="scan" class="btn btn-ghost btn-block">Get started</a>
-    </article>
-
-    <article class="price-card featured reveal" data-reveal data-reveal-delay="1">
-      <div class="price-badge">Most popular</div>
-      <h3>PRO</h3>
-      <div class="price">
-        <span class="amt" data-yearly="$3.33" data-monthly="$9.99">$3.33</span>
-        <span class="per" data-yearly="/mo · billed yearly" data-monthly="/month">/mo · billed yearly</span>
-      </div>
-      <p class="price-tag">Everything, unlocked. 3-day free trial.</p>
-      <ul>
-        <li><b>Unlimited</b> scans</li>
-        <li>All <b>8</b> score categories</li>
-        <li>Golden ratio & fWHR analysis</li>
-        <li>Celebrity look-alike match</li>
-        <li>12-week improvement plan</li>
-        <li>Progress tracker & charts</li>
-        <li>AI Advisor + full LooksMax Hub</li>
-        <li>No watermarks on share cards</li>
-      </ul>
-      <a href="#" data-app="paywall" class="btn btn-primary btn-block magnetic">Start 3-day free trial</a>
-    </article>
-
-    <article class="price-card reveal" data-reveal data-reveal-delay="2">
-      <h3>Lifetime</h3>
-      <div class="price"><span class="amt">$79.99</span><span class="per">once</span></div>
-      <p class="price-tag">Pay once. Maxx forever.</p>
-      <ul>
-        <li>Everything in PRO</li>
-        <li>One payment, no renewals</li>
-        <li>All future features</li>
-        <li>Priority new models</li>
-      </ul>
-      <a href="#" data-app="paywall" class="btn btn-ghost btn-block">Buy lifetime</a>
-    </article>
-  </div>
-  <p class="price-fine">Cancel anytime · Subscriptions auto-renew · On-device privacy</p>
-</section>
-
-<!-- ============ FAQ ============ -->
-<section class="section faq" id="faq">
-  <div class="section-head reveal" data-reveal>
-    <span class="kicker">FAQ</span>
-    <h2>Good questions, <span class="grad-text">answered.</span></h2>
-  </div>
-  <div class="faq-list">
-    <details class="faq-item reveal" data-reveal>
-      <summary>Is my photo private?<span class="faq-plus"></span></summary>
-      <p>Yes. Analysis runs on-device and your photos are never uploaded to a server or shared. You can delete your history anytime.</p>
-    </details>
-    <details class="faq-item reveal" data-reveal>
-      <summary>How accurate is the analysis?<span class="faq-plus"></span></summary>
-      <p>Our model detects dozens of facial landmarks and benchmarks them against established proportion research, reaching ~98% consistency on clear, front-facing photos. Lighting and angle matter — the app guides you to the best shot.</p>
-    </details>
-    <details class="faq-item reveal" data-reveal>
-      <summary>Do I need an account?<span class="faq-plus"></span></summary>
-      <p>No. You can start scanning immediately. Everything is stored locally on your device.</p>
-    </details>
-    <details class="faq-item reveal" data-reveal>
-      <summary>What's the difference between Free and PRO?<span class="faq-plus"></span></summary>
-      <p>Free gives you 3 scans and your core scores. PRO unlocks unlimited scans, all 8 categories, ratio analysis, the 12-week plan, progress tracking, the AI Advisor and the full LooksMax Hub.</p>
-    </details>
-    <details class="faq-item reveal" data-reveal>
-      <summary>Can I really improve my scores?<span class="faq-plus"></span></summary>
-      <p>Absolutely. Skin, hair, body fat, posture, grooming and habits all move your scores — and they're exactly what your plan targets first. Track the gains week over week.</p>
-    </details>
-  </div>
-</section>
-
-<!-- ============ FINAL CTA ============ -->
-<section class="cta-final">
-  <div class="cta-glow"></div>
-  <div class="reveal" data-reveal>
-    <h2>Your best face is <span class="grad-text grad-animate">one scan away.</span></h2>
-    <p>Join 50,000+ people already maxxing out with Androgenic.</p>
-    <a href="#" data-app="scan" class="btn btn-primary btn-lg magnetic">
-      <span>Analyze My Face — Free</span>
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+  <!-- STATE 2: locked, needs coffee -->
+  <section class="state" id="s-locked">
+    <img class="thumb" id="thumb" alt="">
+    <div class="locked-num">?.?</div>
+    <p class="lock-note">Your rating is ready. Buy me a coffee to unlock it ☕</p>
+    <a class="bmc" id="bmcBtn" href="https://buymeacoffee.com/androgenic" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9h13v4a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h2a3 3 0 0 1 0 6h-2"/><path d="M7 3c0 1-1 1-1 2s1 1 1 2M11 3c0 1-1 1-1 2s1 1 1 2"/></svg>
+      Buy me a coffee
     </a>
-    <div class="store-badges">
-      <span class="store-badge">🍎 App Store</span>
-      <span class="store-badge">▶ Google Play</span>
-      <span class="store-badge">🌐 Web App</span>
-    </div>
-  </div>
-</section>
+    <span class="reveal-link" id="revealLink">I already bought one — reveal my rating</span>
+  </section>
 
+  <!-- STATE 3: revealed -->
+  <section class="state" id="s-result">
+    <div class="score-wrap">
+      <svg viewBox="0 0 200 200"><circle class="track" cx="100" cy="100" r="90"/><circle class="meter" id="meter" cx="100" cy="100" r="90"/></svg>
+      <div class="score-center"><span class="score-num" id="scoreNum">0.0</span><span class="score-out">OUT OF 10</span></div>
+    </div>
+    <div class="verdict" id="verdict">—</div>
+    <div class="percentile" id="percentile"></div>
+    <span class="again" id="again">↺ Rate another photo</span>
+  </section>
 </main>
 
-<!-- ============ FOOTER ============ -->
-<footer class="footer">
-  <div class="footer-top">
-    <div class="footer-brand">
-      <a class="nav-brand" href="#top">
-        <svg viewBox="0 0 100 100" width="28" height="28" aria-hidden="true">
-          <path d="M50 8 L86 28 L86 72 L50 92 L14 72 L14 28 Z" fill="none" stroke="url(#navGrad)" stroke-width="4"/>
-          <circle cx="50" cy="40" r="13" fill="none" stroke="url(#navGrad)" stroke-width="3.5"/>
-          <path d="M28 74 Q28 55 50 52 Q72 55 72 74" fill="none" stroke="url(#navGrad)" stroke-width="3.5"/>
-        </svg>
-        <span>Androgenic</span>
-      </a>
-      <p>AI face analysis & looksmaxxing. Unlock your full potential.</p>
-    </div>
-    <nav class="footer-cols">
-      <div><h4>Product</h4><a href="#analyze">Analysis</a><a href="#app">The App</a><a href="#pricing">Pricing</a></div>
-      <div><h4>Company</h4><a href="#">About</a><a href="#">Blog</a><a href="#">Contact</a></div>
-      <div><h4>Legal</h4><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Cookies</a></div>
-    </nav>
-  </div>
-  <div class="footer-bottom">
-    <span>© <span id="year"></span> Androgenic. All rights reserved.</span>
-    <span class="footer-dot">androgenic.app · androgenic.net</span>
-  </div>
-</footer>
+<div class="footer">buymeacoffee.com/androgenic</div>
 
-<!-- ============ FUNCTIONAL APP ============ -->
-<div id="androApp" class="app" aria-hidden="true">
-  <div class="app-frame">
-    <header id="appHeader" class="app-header"></header>
-    <div id="appMain" class="app-main"></div>
-    <nav id="appTabs" class="app-tabs"></nav>
-  </div>
-</div>
+<canvas id="cv" width="120" height="120" hidden></canvas>
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const file = $('#file'), drop = $('#drop'), thumb = $('#thumb');
+  const sUpload = $('#s-upload'), sLocked = $('#s-locked'), sResult = $('#s-result');
+  const show = el => { [sUpload, sLocked, sResult].forEach(s => s.classList.remove('on')); el.classList.add('on'); };
+  let pendingScore = null, boughtCoffee = false;
 
-<!-- analyzing overlay -->
-<div id="analyzeOverlay" class="analyze-overlay" aria-hidden="true"></div>
+  /* ---- deterministic-ish rating from the actual image ---- */
+  function rateImage(img) {
+    const cv = $('#cv'), ctx = cv.getContext('2d');
+    const W = cv.width, H = cv.height;
+    ctx.drawImage(img, 0, 0, W, H);
+    let data;
+    try { data = ctx.getImageData(0, 0, W, H).data; }
+    catch { return 7.0 + Math.random() * 2; }
+    let sum = 0, sumSq = 0, n = 0, symDiff = 0;
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 4;
+        const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+        sum += lum; sumSq += lum * lum; n++;
+        const mx = (y * W + (W - 1 - x)) * 4;
+        const lum2 = 0.299 * data[mx] + 0.587 * data[mx + 1] + 0.114 * data[mx + 2];
+        symDiff += Math.abs(lum - lum2);
+      }
+    }
+    const mean = sum / n;
+    const sd = Math.sqrt(sumSq / n - mean * mean);        // contrast
+    const sym = 1 - Math.min(1, (symDiff / n) / 90);       // 0..1 symmetry
+    const exposure = 1 - Math.min(1, Math.abs(mean - 128) / 128); // well-lit
+    const contrast = Math.min(1, sd / 70);
+    // flattering blend, lands ~6.4 – 9.5
+    let score = 6.2 + sym * 1.7 + exposure * 1.0 + contrast * 0.9;
+    score = Math.max(6.0, Math.min(9.6, score));
+    return Math.round(score * 10) / 10;
+  }
 
-<!-- modal layer (paywall / dialogs) -->
-<div id="modalLayer" class="modal-layer" aria-hidden="true"></div>
+  function verdictFor(s) {
+    if (s >= 9) return ['Devastating.', 'Top 1%'];
+    if (s >= 8.4) return ['Exceptional.', 'Top 5%'];
+    if (s >= 7.8) return ['Striking.', 'Top 10%'];
+    if (s >= 7) return ['Handsome.', 'Top 25%'];
+    if (s >= 6.4) return ['Promising.', 'Above average'];
+    return ['Strong base.', 'Above average'];
+  }
 
-<!-- toast -->
-<div id="toast" class="app-toast" role="status" aria-live="polite"></div>
+  function handleImage(f) {
+    if (!f || !f.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const url = e.target.result;            // data URL — reliable, same-origin
+      const img = new Image();
+      img.onload = () => {
+        thumb.src = url;
+        pendingScore = rateImage(img);
+        show(sLocked);
+      };
+      img.onerror = () => { thumb.src = url; pendingScore = 7.4; show(sLocked); };
+      img.src = url;
+    };
+    reader.readAsDataURL(f);
+  }
 
-<!-- hidden capture inputs -->
-<input type="file" id="fileInput" accept="image/*" hidden>
-<input type="file" id="cameraInput" accept="image/*" capture="user" hidden>
+  drop.addEventListener('click', () => file.click());
+  file.addEventListener('change', e => handleImage(e.target.files[0]));
+  ['dragover', 'dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
+  drop.addEventListener('drop', e => handleImage(e.dataTransfer.files[0]));
 
-<script src="script.js"></script>
-<script src="js/tips.js"></script>
-<script src="js/engine.js"></script>
-<script src="js/data.js"></script>
-<script src="js/pro.js"></script>
-<script src="js/guides.js"></script>
-<script src="js/app.js"></script>
+  // buying coffee opens the link; after returning, reveal becomes the primary action
+  $('#bmcBtn').addEventListener('click', () => {
+    boughtCoffee = true;
+    const link = $('#revealLink');
+    link.textContent = 'Reveal my rating →';
+    link.style.color = 'var(--smoke)';
+  });
+  $('#revealLink').addEventListener('click', reveal);
+  $('#again').addEventListener('click', () => { pendingScore = null; file.value = ''; show(sUpload); });
+
+  function reveal() {
+    if (pendingScore == null) return;
+    show(sResult);
+    const s = pendingScore;
+    const [v, pct] = verdictFor(s);
+    $('#verdict').textContent = v;
+    $('#percentile').textContent = pct;
+    const meter = $('#meter'), C = 565;
+    requestAnimationFrame(() => { meter.style.strokeDashoffset = C * (1 - s / 10); });
+    // count up
+    const numEl = $('#scoreNum'); const start = performance.now(), dur = 1500;
+    const tick = now => {
+      const p = Math.min((now - start) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      numEl.textContent = (s * eased).toFixed(1);
+      if (p < 1) requestAnimationFrame(tick); else numEl.textContent = s.toFixed(1);
+    };
+    requestAnimationFrame(tick);
+  }
+})();
+</script>
 </body>
 </html>
