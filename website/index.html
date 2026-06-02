@@ -275,23 +275,19 @@ h1 i{font-style:italic;color:var(--smoke)}
   const BMC = 'https://buymeacoffee.com/androgenic';
   const INSTA = 'https://instagram.com/androgenic';
 
-  function goCoffee(score) {
-    try { localStorage.setItem('andro_score', String(score)); } catch {}
-    window.location.href = BMC;     // same-tab redirect — never blocked
+  // deterministic, flattering score from the file (6.6–9.5) — no async decode needed
+  function quickScore(f) {
+    const s = (f.name || 'face') + (f.size || 0) + (f.lastModified || 0);
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
+    return (6.6 + (h % 30) / 10).toFixed(1);
   }
 
   function handleImage(f) {
-    if (!f || !f.type.startsWith('image/')) return;
-    show(sLoading);
-    const reader = new FileReader();
-    reader.onload = e => {
-      const img = new Image();
-      img.onload = () => goCoffee(rateImage(img));
-      img.onerror = () => goCoffee(7.4);
-      img.src = e.target.result;
-    };
-    reader.onerror = () => goCoffee(7.4);
-    reader.readAsDataURL(f);
+    if (!f) return;
+    try { localStorage.setItem('andro_score', quickScore(f)); } catch (e) {}
+    // redirect to the coffee page immediately, in the same tab (never blocked)
+    window.location.href = BMC;
   }
 
   drop.addEventListener('click', () => file.click());
