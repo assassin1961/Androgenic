@@ -343,7 +343,7 @@ const ReadyStep = ({ onFinish }) => {
             </LinearGradient>
           </AnimatedPressable>
         </Animated.View>
-        <Text style={styles.freeScansText}>3 free scans included</Text>
+        <Text style={styles.freeScansText}>2 free scans included</Text>
       </View>
     </Animated.View>
   );
