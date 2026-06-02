@@ -185,12 +185,12 @@ h1 i{font-style:italic;color:var(--smoke)}
   <section class="state on" id="s-upload">
     <h1>Rate your <i>face.</i></h1>
     <p class="sub">Upload a clear, front-facing photo to submit. I'll send your rating over on Instagram.</p>
-    <label class="drop" id="drop">
+    <label class="drop" id="drop" for="file">
       <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L5 21"/></svg></span>
       <b>Upload your photo</b>
       <small>Tap to choose · or drag &amp; drop</small>
-      <input type="file" id="file" accept="image/*" hidden>
     </label>
+    <input type="file" id="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
   </section>
 
   <!-- STATE 2: thank you -->
@@ -220,8 +220,9 @@ h1 i{font-style:italic;color:var(--smoke)}
     show(sThanks);          // just say thank you — rating is delivered via Instagram DM
   }
 
-  drop.addEventListener('click', () => file.click());
-  file.addEventListener('change', e => handleImage(e.target.files[0]));
+  // label[for=file] opens the picker natively (single, reliable trigger).
+  // Belt-and-suspenders: also handle keyboard activation.
+  file.addEventListener('change', e => handleImage(e.target.files && e.target.files[0]));
   ['dragover', 'dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
   ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
   drop.addEventListener('drop', e => handleImage(e.dataTransfer.files[0]));
