@@ -6,7 +6,7 @@ import {
 import Animated, {
   FadeInDown, FadeIn, FadeInUp, ZoomIn, SlideInRight,
   useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming,
-  withDelay, withSpring, Easing, interpolate, runOnJS,
+  Easing, interpolate,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -66,19 +66,6 @@ const TESTIMONIALS = [
 ];
 
 // ─── Social Proof Notifications ────────────────────────────────────
-const NOTIFICATION_NAMES = [
-  { name: 'Sarah', city: 'Toronto' },
-  { name: 'James', city: 'London' },
-  { name: 'Marcus', city: 'New York' },
-  { name: 'David', city: 'Sydney' },
-  { name: 'Ryan', city: 'Austin' },
-  { name: 'Chris', city: 'Miami' },
-  { name: 'Daniel', city: 'Chicago' },
-  { name: 'Matt', city: 'Berlin' },
-  { name: 'Tom', city: 'LA' },
-  { name: 'Ben', city: 'Seattle' },
-];
-
 // ─── Plan Comparison Table Data ────────────────────────────────────
 const COMPARISON_FEATURES = [
   { feature: 'Face Scans', free: '3 total', pro: 'Unlimited', icon: 'scan-outline' },
@@ -93,21 +80,6 @@ const COMPARISON_FEATURES = [
 // ─── Helpers ───────────────────────────────────────────────────────
 
 /** Generate a realistic-feeling subscriber count based on time of day */
-const getSubscriberCount = () => {
-  const hour = new Date().getHours();
-  // Base count varies by hour to feel realistic
-  const baseCounts = [
-    312, 287, 198, 145, 134, 156, 289, 478, 687, 834,
-    967, 1089, 1247, 1198, 1156, 1078, 1134, 1267, 1345, 1289,
-    1167, 987, 756, 534,
-  ];
-  const base = baseCounts[hour] || 800;
-  // Add a deterministic daily variance from the date
-  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
-  const variance = ((dayOfYear * 7 + 13) % 200) - 100;
-  return Math.max(400, base + variance);
-};
-
 /** Format seconds to HH:MM:SS */
 const formatCountdown = (totalSeconds) => {
   if (totalSeconds <= 0) return '00:00:00';
@@ -130,22 +102,16 @@ const PaywallScreen = ({ navigation, route }) => {
   const [viewCount, setViewCount] = useState(0);
   const [countdown, setCountdown] = useState(86400); // 24h in seconds
   const [showOfferBanner, setShowOfferBanner] = useState(false);
-  const [currentNotification, setCurrentNotification] = useState(null);
   const [exitModalVisible, setExitModalVisible] = useState(false);
   const [exitOfferUsed, setExitOfferUsed] = useState(false);
-  const [subscriberCount] = useState(getSubscriberCount());
   const exitOfferShownThisSession = useRef(false);
   const countdownIntervalRef = useRef(null);
-  const notificationIntervalRef = useRef(null);
   const cameFromScan = route?.params?.fromScan || false;
 
   // ─── Animations ────────────────────────────────────────────────
   const pulseScale = useSharedValue(1);
   const glowOpacity = useSharedValue(0.3);
   const shimmerTranslate = useSharedValue(-1);
-  const notificationOpacity = useSharedValue(0);
-  const notificationTranslateY = useSharedValue(20);
-
   useEffect(() => {
     // CTA pulse
     pulseScale.value = withRepeat(
@@ -228,38 +194,6 @@ const PaywallScreen = ({ navigation, route }) => {
     }, 1000);
     return () => clearInterval(countdownIntervalRef.current);
   }, [showOfferBanner]);
-
-  // ─── Rotating Social Proof Notifications ───────────────────────
-  useEffect(() => {
-    const showNotification = () => {
-      const person = NOTIFICATION_NAMES[Math.floor(Math.random() * NOTIFICATION_NAMES.length)];
-      const minutes = Math.floor(Math.random() * 12) + 1;
-      setCurrentNotification({ ...person, minutes });
-      notificationOpacity.value = withSequence(
-        withTiming(1, { duration: 400 }),
-        withDelay(3500, withTiming(0, { duration: 400 })),
-      );
-      notificationTranslateY.value = withSequence(
-        withSpring(0, { damping: 14, stiffness: 120 }),
-        withDelay(3500, withTiming(20, { duration: 300 })),
-      );
-    };
-
-    // First notification after 4 seconds
-    const initialTimeout = setTimeout(showNotification, 4000);
-    // Then every 8-12 seconds
-    notificationIntervalRef.current = setInterval(showNotification, 8000 + Math.random() * 4000);
-
-    return () => {
-      clearTimeout(initialTimeout);
-      clearInterval(notificationIntervalRef.current);
-    };
-  }, []);
-
-  const notificationStyle = useAnimatedStyle(() => ({
-    opacity: notificationOpacity.value,
-    transform: [{ translateY: notificationTranslateY.value }],
-  }));
 
   // ─── Exit Intent (Android back / close button) ────────────────
   useEffect(() => {
@@ -630,7 +564,7 @@ const PaywallScreen = ({ navigation, route }) => {
               ))}
             </View>
             <Text style={styles.subscriberText}>
-              <Text style={styles.subscriberBold}>{subscriberCount.toLocaleString()}</Text> people subscribed today
+              <Text style={styles.subscriberBold}>47,000+</Text> members worldwide
             </Text>
           </View>
           <View style={styles.ratingRow}>
@@ -765,21 +699,6 @@ const PaywallScreen = ({ navigation, route }) => {
 
         <View style={{ height: 40 }} />
       </ScrollView>
-
-      {/* ─── 4b. Floating Social Proof Notification ───────────── */}
-      {currentNotification && (
-        <Animated.View style={[styles.floatingNotification, notificationStyle]} pointerEvents="none">
-          <View style={styles.notifDot}>
-            <Text style={styles.notifDotText}>{currentNotification.name[0]}</Text>
-          </View>
-          <View style={styles.notifContent}>
-            <Text style={styles.notifText}>
-              <Text style={styles.notifName}>{currentNotification.name}</Text> from {currentNotification.city} just went PRO
-            </Text>
-            <Text style={styles.notifTime}>{currentNotification.minutes} min ago</Text>
-          </View>
-        </Animated.View>
-      )}
 
       {/* ─── 8. Exit Intent Modal ───────────────────────────────── */}
       <Modal
