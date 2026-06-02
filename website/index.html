@@ -75,8 +75,8 @@
     <a href="#pricing">Pricing</a>
     <a href="#faq">FAQ</a>
   </nav>
-  <a href="#pricing" class="btn btn-primary btn-sm nav-cta">
-    <span>Get Started</span>
+  <a href="#" data-app="scan" class="btn btn-primary btn-sm nav-cta">
+    <span>Open App</span>
   </a>
   <button class="nav-burger" id="navBurger" aria-label="Menu"><span></span><span></span><span></span></button>
 </header>
@@ -86,7 +86,7 @@
   <a href="#app">The App</a>
   <a href="#pricing">Pricing</a>
   <a href="#faq">FAQ</a>
-  <a href="#pricing" class="btn btn-primary">Get Started Free</a>
+  <a href="#" data-app="scan" class="btn btn-primary">Open App Free</a>
 </div>
 
 <main id="top">
@@ -106,7 +106,7 @@
       personalized, science-backed glow-up plan — so you know exactly what to improve and how.
     </p>
     <div class="hero-actions reveal" data-reveal data-reveal-delay="2">
-      <a href="#pricing" class="btn btn-primary btn-lg magnetic">
+      <a href="#" data-app="scan" class="btn btn-primary btn-lg magnetic">
         <span>Analyze My Face — Free</span>
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       </a>
@@ -395,7 +395,7 @@
         <li>Daily tip</li>
         <li>Basic recommendations</li>
       </ul>
-      <a href="#" class="btn btn-ghost btn-block">Get started</a>
+      <a href="#" data-app="scan" class="btn btn-ghost btn-block">Get started</a>
     </article>
 
     <article class="price-card featured reveal" data-reveal data-reveal-delay="1">
@@ -416,7 +416,7 @@
         <li>AI Advisor + full LooksMax Hub</li>
         <li>No watermarks on share cards</li>
       </ul>
-      <a href="#" class="btn btn-primary btn-block magnetic">Start 3-day free trial</a>
+      <a href="#" data-app="paywall" class="btn btn-primary btn-block magnetic">Start 3-day free trial</a>
     </article>
 
     <article class="price-card reveal" data-reveal data-reveal-delay="2">
@@ -429,7 +429,7 @@
         <li>All future features</li>
         <li>Priority new models</li>
       </ul>
-      <a href="#" class="btn btn-ghost btn-block">Buy lifetime</a>
+      <a href="#" data-app="paywall" class="btn btn-ghost btn-block">Buy lifetime</a>
     </article>
   </div>
   <p class="price-fine">Cancel anytime · Subscriptions auto-renew · On-device privacy</p>
@@ -471,7 +471,7 @@
   <div class="reveal" data-reveal>
     <h2>Your best face is <span class="grad-text grad-animate">one scan away.</span></h2>
     <p>Join 50,000+ people already maxxing out with Androgenic.</p>
-    <a href="#" class="btn btn-primary btn-lg magnetic">
+    <a href="#" data-app="scan" class="btn btn-primary btn-lg magnetic">
       <span>Analyze My Face — Free</span>
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
     </a>
@@ -511,6 +511,34 @@
   </div>
 </footer>
 
+<!-- ============ FUNCTIONAL APP ============ -->
+<div id="androApp" class="app" aria-hidden="true">
+  <div class="app-frame">
+    <header id="appHeader" class="app-header"></header>
+    <div id="appMain" class="app-main"></div>
+    <nav id="appTabs" class="app-tabs"></nav>
+  </div>
+</div>
+
+<!-- analyzing overlay -->
+<div id="analyzeOverlay" class="analyze-overlay" aria-hidden="true"></div>
+
+<!-- modal layer (paywall / dialogs) -->
+<div id="modalLayer" class="modal-layer" aria-hidden="true"></div>
+
+<!-- toast -->
+<div id="toast" class="app-toast" role="status" aria-live="polite"></div>
+
+<!-- hidden capture inputs -->
+<input type="file" id="fileInput" accept="image/*" hidden>
+<input type="file" id="cameraInput" accept="image/*" capture="user" hidden>
+
 <script src="script.js"></script>
+<script src="js/tips.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/data.js"></script>
+<script src="js/pro.js"></script>
+<script src="js/guides.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
