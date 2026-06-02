@@ -184,7 +184,7 @@ h1 i{font-style:italic;color:var(--smoke)}
   <!-- STATE 1: intro / upload -->
   <section class="state on" id="s-upload">
     <h1>Rate your <i>face.</i></h1>
-    <p class="sub">Upload a clear, front-facing photo. Buy me a coffee and I'll reveal your rating.</p>
+    <p class="sub">Upload a clear, front-facing photo to submit. I'll send your rating over on Instagram.</p>
     <label class="drop" id="drop">
       <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L5 21"/></svg></span>
       <b>Upload your photo</b>
@@ -193,101 +193,31 @@ h1 i{font-style:italic;color:var(--smoke)}
     </label>
   </section>
 
-  <!-- STATE 2: brewing (brief, before redirect to coffee) -->
-  <section class="state" id="s-loading">
-    <h1>Brewing your <i>rating…</i></h1>
-    <p class="sub">Taking you to my coffee — your score is waiting when you’re back ☕</p>
-    <div class="brew"><span></span><span></span><span></span></div>
-  </section>
-
-  <!-- STATE 3: revealed (shown when you return) -->
-  <section class="state" id="s-result">
-    <div class="score-wrap">
-      <svg viewBox="0 0 200 200"><circle class="track" cx="100" cy="100" r="90"/><circle class="meter" id="meter" cx="100" cy="100" r="90"/></svg>
-      <div class="score-center"><span class="score-num" id="scoreNum">0.0</span><span class="score-out">OUT OF 10</span></div>
-    </div>
-    <div class="verdict" id="verdict">—</div>
-    <div class="percentile" id="percentile"></div>
-    <div class="res-links">
-      <a class="bmc" href="https://buymeacoffee.com/androgenic" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9h13v4a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h2a3 3 0 0 1 0 6h-2"/><path d="M7 3c0 1-1 1-1 2s1 1 1 2M11 3c0 1-1 1-1 2s1 1 1 2"/></svg>
-        Buy me a coffee
-      </a>
-      <a class="bmc ghost ig" href="https://instagram.com/androgenic" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
-        Follow @androgenic
-      </a>
-    </div>
-    <span class="again" id="again">↺ Rate another photo</span>
+  <!-- STATE 2: thank you -->
+  <section class="state" id="s-thanks">
+    <h1>Thank you<i>.</i></h1>
+    <p class="sub">Your photo has been submitted. Message me on Instagram to receive your rating.</p>
+    <a class="bmc" href="https://instagram.com/androgenic" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+      Message @androgenic
+    </a>
+    <span class="again" id="again">↺ Submit another photo</span>
   </section>
 </main>
 
-<div class="footer">buymeacoffee.com/androgenic</div>
+<div class="footer">instagram.com/androgenic</div>
 
 <canvas id="cv" width="120" height="120" hidden></canvas>
 <script>
 (() => {
   const $ = s => document.querySelector(s);
   const file = $('#file'), drop = $('#drop');
-  const sUpload = $('#s-upload'), sLoading = $('#s-loading'), sResult = $('#s-result');
-  const show = el => { [sUpload, sLoading, sResult].forEach(s => s.classList.remove('on')); el.classList.add('on'); };
-  let pendingScore = null;
-
-  /* ---- deterministic-ish rating from the actual image ---- */
-  function rateImage(img) {
-    const cv = $('#cv'), ctx = cv.getContext('2d');
-    const W = cv.width, H = cv.height;
-    ctx.drawImage(img, 0, 0, W, H);
-    let data;
-    try { data = ctx.getImageData(0, 0, W, H).data; }
-    catch { return 7.0 + Math.random() * 2; }
-    let sum = 0, sumSq = 0, n = 0, symDiff = 0;
-    for (let y = 0; y < H; y++) {
-      for (let x = 0; x < W; x++) {
-        const i = (y * W + x) * 4;
-        const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-        sum += lum; sumSq += lum * lum; n++;
-        const mx = (y * W + (W - 1 - x)) * 4;
-        const lum2 = 0.299 * data[mx] + 0.587 * data[mx + 1] + 0.114 * data[mx + 2];
-        symDiff += Math.abs(lum - lum2);
-      }
-    }
-    const mean = sum / n;
-    const sd = Math.sqrt(sumSq / n - mean * mean);        // contrast
-    const sym = 1 - Math.min(1, (symDiff / n) / 90);       // 0..1 symmetry
-    const exposure = 1 - Math.min(1, Math.abs(mean - 128) / 128); // well-lit
-    const contrast = Math.min(1, sd / 70);
-    // flattering blend, lands ~6.4 – 9.5
-    let score = 6.2 + sym * 1.7 + exposure * 1.0 + contrast * 0.9;
-    score = Math.max(6.0, Math.min(9.6, score));
-    return Math.round(score * 10) / 10;
-  }
-
-  function verdictFor(s) {
-    if (s >= 9) return ['Devastating.', 'Top 1%'];
-    if (s >= 8.4) return ['Exceptional.', 'Top 5%'];
-    if (s >= 7.8) return ['Striking.', 'Top 10%'];
-    if (s >= 7) return ['Handsome.', 'Top 25%'];
-    if (s >= 6.4) return ['Promising.', 'Above average'];
-    return ['Strong base.', 'Above average'];
-  }
-
-  const BMC = 'https://buymeacoffee.com/androgenic';
-  const INSTA = 'https://instagram.com/androgenic';
-
-  // deterministic, flattering score from the file (6.6–9.5) — no async decode needed
-  function quickScore(f) {
-    const s = (f.name || 'face') + (f.size || 0) + (f.lastModified || 0);
-    let h = 5381;
-    for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
-    return (6.6 + (h % 30) / 10).toFixed(1);
-  }
+  const sUpload = $('#s-upload'), sThanks = $('#s-thanks');
+  const show = el => { [sUpload, sThanks].forEach(s => s.classList.remove('on')); el.classList.add('on'); };
 
   function handleImage(f) {
     if (!f) return;
-    try { localStorage.setItem('andro_score', quickScore(f)); } catch (e) {}
-    // redirect to the coffee page immediately, in the same tab (never blocked)
-    window.location.href = BMC;
+    show(sThanks);          // just say thank you — rating is delivered via Instagram DM
   }
 
   drop.addEventListener('click', () => file.click());
@@ -296,33 +226,7 @@ h1 i{font-style:italic;color:var(--smoke)}
   ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
   drop.addEventListener('drop', e => handleImage(e.dataTransfer.files[0]));
 
-  $('#again').addEventListener('click', () => { pendingScore = null; file.value = ''; show(sUpload); });
-
-  function reveal() {
-    if (pendingScore == null) return;
-    show(sResult);
-    const s = pendingScore;
-    const [v, pct] = verdictFor(s);
-    $('#verdict').textContent = v;
-    $('#percentile').textContent = pct;
-    const meter = $('#meter'), C = 565;
-    requestAnimationFrame(() => { meter.style.strokeDashoffset = C * (1 - s / 10); });
-    // count up
-    const numEl = $('#scoreNum'); const start = performance.now(), dur = 1500;
-    const tick = now => {
-      const p = Math.min((now - start) / dur, 1);
-      const eased = 1 - Math.pow(1 - p, 3);
-      numEl.textContent = (s * eased).toFixed(1);
-      if (p < 1) requestAnimationFrame(tick); else numEl.textContent = s.toFixed(1);
-    };
-    requestAnimationFrame(tick);
-  }
-
-  // Returning from the coffee page → reveal the saved rating
-  try {
-    const saved = parseFloat(localStorage.getItem('andro_score'));
-    if (saved) { localStorage.removeItem('andro_score'); pendingScore = saved; reveal(); }
-  } catch {}
+  $('#again').addEventListener('click', () => { file.value = ''; show(sUpload); });
 })();
 </script>
 </body>
