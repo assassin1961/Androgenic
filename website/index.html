@@ -148,7 +148,7 @@ h1 i{font-style:italic;color:var(--smoke)}
 .score-out{font-size:12px;color:var(--mute);letter-spacing:.2em;margin-top:2px}
 .verdict{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;margin-top:14px}
 .percentile{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--mute);margin-top:8px}
-.again{margin-top:22px;font-size:12.5px;color:var(--faint);cursor:pointer;letter-spacing:.02em;border-bottom:1px solid transparent;transition:.3s}
+.again{display:inline-block;margin-top:22px;font-size:12.5px;color:var(--faint);cursor:pointer;letter-spacing:.02em;border-bottom:1px solid transparent;transition:.3s}
 .again:hover{color:var(--mute);border-color:var(--line)}
 
 .footer{position:fixed;bottom:16px;left:0;right:0;text-align:center;z-index:5;
@@ -203,7 +203,7 @@ h1 i{font-style:italic;color:var(--smoke)}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
       Message @androgenic
     </a>
-    <span class="again" id="again">↺ Submit another photo</span>
+    <a class="again snap" href="https://www.snapchat.com/add/androgenic" target="_blank" rel="noopener">Add me on Snapchat @androgenic</a>
   </section>
 </main>
 
@@ -228,8 +228,6 @@ h1 i{font-style:italic;color:var(--smoke)}
   ['dragover', 'dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
   ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
   drop.addEventListener('drop', e => handleImage(e.dataTransfer.files[0]));
-
-  $('#again').addEventListener('click', () => { file.value = ''; show(sUpload); });
 })();
 </script>
 </body>
