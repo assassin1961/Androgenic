@@ -101,6 +101,8 @@ h1 i{font-style:italic;color:var(--smoke)}
 .drop .ico svg{width:100%;height:100%}
 .drop b{font-size:14px;font-weight:500}
 .drop small{font-size:12px;color:var(--faint)}
+/* transparent file input laid over the whole card = the actual tap target */
+.file-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0;font-size:0;z-index:2}
 
 /* preview thumb */
 .thumb{width:84px;height:84px;border-radius:50%;object-fit:cover;margin:0 auto 4px;
@@ -185,12 +187,12 @@ h1 i{font-style:italic;color:var(--smoke)}
   <section class="state on" id="s-upload">
     <h1>Rate your <i>face.</i></h1>
     <p class="sub">Upload a clear, front-facing photo to submit. I'll send your rating over on Instagram.</p>
-    <label class="drop" id="drop" for="file">
+    <div class="drop" id="drop">
       <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L5 21"/></svg></span>
       <b>Upload your photo</b>
       <small>Tap to choose · or drag &amp; drop</small>
-    </label>
-    <input type="file" id="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
+      <input type="file" id="file" accept="image/*" class="file-input" aria-label="Upload your photo">
+    </div>
   </section>
 
   <!-- STATE 2: thank you -->
