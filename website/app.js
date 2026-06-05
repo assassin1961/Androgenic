@@ -184,12 +184,24 @@
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = 'Please enter a valid email.'; return; }
     if (phone.replace(/[^0-9]/g,'').length < 7) { err.textContent = 'Please enter a valid phone number.'; return; }
     const btn = $('#ap-submit'); btn.disabled = true; btn.textContent = 'Submitting…';
-    try {
-      const res = await fetch('https://formsubmit.co/ajax/' + APPLY_EMAIL, { method:'POST', headers:{ 'Content-Type':'application/json', Accept:'application/json' },
-        body: JSON.stringify({ Name:name, Email:email, Phone:phone, Link:link||'—', Job:j.title, Company:j.co, Location:j.loc, Original:j.url||'—', _subject:`New application: ${j.title} @ ${j.co}`, _template:'table', _captcha:'false' }) });
-      if (!res.ok) throw 0;
-      applied[id] = true; persist(); successScreen(j); render();
-    } catch { err.textContent = 'Could not send right now. Please try again, or email ' + APPLY_EMAIL + '.'; btn.disabled = false; btn.innerHTML = svg(ic.bolt,16) + ' Submit application'; }
+    // Reliable delivery: a real FormSubmit POST (triggers the one-time activation
+    // email, then delivers every application to the inbox). _next returns here.
+    applied[id] = true; persist();
+    const f = document.createElement('form');
+    f.method = 'POST'; f.action = 'https://formsubmit.co/' + APPLY_EMAIL; f.style.display = 'none';
+    const add = (k, v) => { const i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = v; f.appendChild(i); };
+    add('Name', name); add('Email', email); add('Phone', phone); add('CV / Link', link || '—');
+    add('Job', j.title); add('Company', j.co); add('Location', j.loc); add('Original posting', j.url || '—');
+    add('_subject', `New application: ${j.title} @ ${j.co}`);
+    add('_template', 'table'); add('_captcha', 'false');
+    add('_next', location.origin + location.pathname + location.search + '#applied=' + encodeURIComponent(id));
+    document.body.appendChild(f);
+    f.submit();
+  }
+  function appliedReturn(){
+    const m = $('#modal');
+    m.innerHTML = `<div class="modal"><div class="applied-ok"><div class="check">${svg(ic.check,36)}</div><h3>Application sent! ✅</h3><p>Your application was submitted successfully. Good luck! 🤞</p><div class="modal-foot" style="justify-content:center;padding-top:18px"><button class="btn btn-primary" data-close>Done</button></div></div></div>`;
+    m.classList.add('open'); m.setAttribute('aria-hidden','false');
   }
 
   /* ---------------- refresh ---------------- */
@@ -199,8 +211,9 @@
     $('#refreshBtn').classList.add('spinning');
     if (isRefresh) $('#refreshBar').classList.add('on'); else skeleton();
     const live = await fetchLive();
-    if (live && live.jobs.length) { JOBS = live.jobs.filter(j => j.title && j.co); SOURCE = live.source; LIVE = true; }
-    else { JOBS = SEED; SOURCE = ''; LIVE = false; if (!isRefresh) toast('Showing sample jobs (couldn\'t reach live listings)'); }
+    const blocked = j => /brazil|brasil/i.test(`${j.loc} ${j.co} ${j.title}`);
+    if (live && live.jobs.length) { JOBS = live.jobs.filter(j => j.title && j.co && !blocked(j)); SOURCE = live.source; LIVE = true; }
+    else { JOBS = SEED.filter(j => !blocked(j)); SOURCE = ''; LIVE = false; if (!isRefresh) toast('Showing sample jobs (couldn\'t reach live listings)'); }
     if (!JOBS.find(j => j.id === state.selected)) state.selected = JOBS[0] && JOBS[0].id;
     buildChips(JOBS); render();
     $('#refreshBtn').classList.remove('spinning');
@@ -253,5 +266,7 @@
 
   /* ---------------- boot ---------------- */
   renderChips();
-  loadJobs(false);
+  loadJobs(false).then(() => {
+    if (/[#&]applied=/.test(location.hash)) { history.replaceState(null, '', location.pathname + location.search); appliedReturn(); }
+  });
 })();
