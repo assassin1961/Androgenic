@@ -3,220 +3,204 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Androgenic · Choose</title>
-<meta name="description" content="Red pill or blue pill. Make your choice." />
-<meta name="theme-color" content="#04060a" />
+<title>Androgenic · Get Access</title>
+<meta name="description" content="Drop your number and email to get access to Androgenic." />
+<meta name="theme-color" content="#06080f" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@700;800&display=swap" rel="stylesheet" />
 <style>
 :root{
-  --black:#04060a;
-  --neon:#00ff6a;
-  --neon-dim:#0a9d4a;
-  --text:#bdf5cf;
-  --mute:#5f8f72;
-  --faint:#3c5a48;
-  --red:#ff2b3b;
-  --blue:#2f7bff;
-  --line:rgba(0,255,106,.14);
+  --bg:#06080f;
+  --card:rgba(255,255,255,.04);
+  --stroke:rgba(255,255,255,.10);
+  --stroke-2:rgba(255,255,255,.18);
+  --text:#f4f6fb;
+  --mute:#9aa3b8;
+  --faint:#5c6478;
+  --blue:#667eea; --purple:#9d6bff; --pink:#f093fb; --green:#00d26a;
+  --grad:linear-gradient(135deg,#667eea 0%,#9d6bff 50%,#f093fb 100%);
+  --grad-h:linear-gradient(90deg,#667eea,#f093fb);
   --ease:cubic-bezier(.22,1,.36,1);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{
-  font-family:'Share Tech Mono','Courier New',monospace;
-  background:var(--black);
-  color:var(--text);
-  overflow:hidden;
-  height:100dvh;
-  display:flex;align-items:center;justify-content:center;
-  -webkit-font-smoothing:antialiased;
-  position:relative;
+  font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100dvh;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;position:relative;-webkit-font-smoothing:antialiased;padding:24px;
 }
-::selection{background:var(--neon);color:#000}
-a{color:inherit;text-decoration:none}
+::selection{background:rgba(157,107,255,.4);color:#fff}
 
-/* ---------- matrix code rain ---------- */
-#matrix{position:fixed;inset:0;z-index:1;opacity:.55}
-
-/* ---------- atmosphere: vignette + grain + smoke ---------- */
-.bg{position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:
-    radial-gradient(120% 90% at 50% 20%, rgba(0,60,30,.45), transparent 60%),
-    radial-gradient(140% 120% at 50% 120%, rgba(0,0,0,.92), transparent 60%),
-    var(--black);}
-.grain{position:fixed;inset:-50%;z-index:6;pointer-events:none;opacity:.05;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+/* ---------- looksmax aurora background ---------- */
+.aurora{position:fixed;inset:0;z-index:-2;overflow:hidden;background:
+  radial-gradient(1000px 700px at 80% -10%, rgba(124,92,255,.16), transparent 60%),
+  radial-gradient(900px 600px at 0% 110%, rgba(45,123,246,.14), transparent 55%), var(--bg)}
+.blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;will-change:transform}
+.b1{width:48vw;height:48vw;background:radial-gradient(circle,#5a4bff,transparent 65%);top:-12%;left:-10%;animation:drift1 24s var(--ease) infinite alternate}
+.b2{width:42vw;height:42vw;background:radial-gradient(circle,#f093fb,transparent 65%);bottom:-14%;right:-10%;opacity:.4;animation:drift2 28s var(--ease) infinite alternate}
+.b3{width:38vw;height:38vw;background:radial-gradient(circle,#2d7bf6,transparent 65%);top:40%;left:35%;opacity:.32;animation:drift3 22s var(--ease) infinite alternate}
+@keyframes drift1{to{transform:translate(14%,18%) scale(1.15)}}
+@keyframes drift2{to{transform:translate(-12%,-12%) scale(1.1)}}
+@keyframes drift3{to{transform:translate(10%,-16%) scale(1.2)}}
+.grain{position:fixed;inset:-50%;z-index:-1;pointer-events:none;opacity:.03;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   animation:grain 1.4s steps(3) infinite}
-@keyframes grain{0%{transform:translate(0,0)}33%{transform:translate(-3%,2%)}66%{transform:translate(2%,-2%)}100%{transform:translate(0,0)}}
+@keyframes grain{0%{transform:translate(0,0)}50%{transform:translate(-2%,2%)}100%{transform:translate(0,0)}}
 
-.smoke-field{position:fixed;left:50%;bottom:30%;transform:translateX(-50%);width:80vw;max-width:520px;height:70vh;z-index:2;pointer-events:none;filter:blur(26px)}
-.plume{position:absolute;bottom:0;left:50%;width:140px;height:140px;border-radius:50%;
-  background:radial-gradient(circle at 50% 50%, rgba(0,255,106,.16), rgba(0,255,106,0) 65%);
-  opacity:0;transform:translateX(-50%);will-change:transform,opacity}
-.plume.p1{animation:rise 9s var(--ease) infinite}
-.plume.p2{width:100px;height:100px;animation:rise 11s var(--ease) 1.4s infinite;--drift:-60px}
-.plume.p3{width:170px;height:170px;animation:rise 12s var(--ease) 3s infinite;--drift:50px}
-.plume.p4{width:90px;height:90px;animation:rise 8s var(--ease) 4.5s infinite;--drift:-40px}
-@keyframes rise{
-  0%{opacity:0;transform:translate(-50%,40px) scale(.6)}
-  18%{opacity:.5}
-  60%{opacity:.28}
-  100%{opacity:0;transform:translate(calc(-50% + var(--drift,40px)),-70vh) scale(2.4)}
-}
+/* ---------- card ---------- */
+.card{position:relative;z-index:1;width:100%;max-width:430px;
+  background:var(--card);border:1px solid var(--stroke);border-radius:26px;
+  backdrop-filter:blur(18px);padding:36px 30px 30px;text-align:center;
+  box-shadow:0 40px 100px -30px rgba(0,0,0,.8);animation:pop 1s var(--ease) both}
+@keyframes pop{from{opacity:0;transform:translateY(22px) scale(.98)}to{opacity:1;transform:none}}
 
-/* ---------- stage ---------- */
-.stage{position:relative;z-index:5;width:min(94vw,560px);padding:24px;text-align:center;
-  animation:fadeUp 1s var(--ease) both}
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.logo{display:inline-flex;align-items:center;gap:9px;margin-bottom:24px}
+.logo svg{filter:drop-shadow(0 4px 12px rgba(124,92,255,.55))}
+.logo span{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;letter-spacing:-.02em}
 
-.brandmark{font-size:12px;letter-spacing:.5em;text-transform:uppercase;color:var(--neon);
-  text-shadow:0 0 12px rgba(0,255,106,.6);margin-bottom:26px;opacity:0;animation:fadeUp 1s var(--ease) .1s both}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--mute);
+  padding:6px 13px;border:1px solid var(--stroke-2);border-radius:999px;background:var(--card);margin-bottom:18px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(0,210,106,.6);animation:ping 2s infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(0,210,106,.5)}70%{box-shadow:0 0 0 7px rgba(0,210,106,0)}100%{box-shadow:0 0 0 0 rgba(0,210,106,0)}}
 
-.quote{font-size:14px;color:var(--mute);max-width:430px;margin:0 auto 8px;line-height:1.7;
-  opacity:0;animation:fadeUp 1s var(--ease) .25s both}
-.quote .by{display:block;margin-top:8px;color:var(--faint);font-size:12px;letter-spacing:.2em;text-transform:uppercase}
+h1{font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(28px,7vw,36px);line-height:1.08;letter-spacing:-.03em}
+h1 .g{background:linear-gradient(90deg,#667eea,#9d6bff,#f093fb,#9d6bff,#667eea);background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 6s linear infinite}
+@keyframes shimmer{to{background-position:300% 0}}
+.sub{color:var(--mute);font-size:14.5px;line-height:1.6;margin:14px auto 26px;max-width:330px}
 
-h1{font-family:'VT323',monospace;font-weight:400;font-size:clamp(44px,11vw,82px);line-height:1;letter-spacing:.01em;
-  color:var(--text);text-shadow:0 0 26px rgba(0,255,106,.35);margin:18px 0 6px;
-  opacity:0;animation:fadeUp 1s var(--ease) .35s both}
-h1 .g{color:var(--neon);text-shadow:0 0 26px rgba(0,255,106,.7)}
-.sub{color:var(--mute);font-size:13.5px;letter-spacing:.04em;margin:6px auto 30px;max-width:380px;line-height:1.6;
-  opacity:0;animation:fadeUp 1s var(--ease) .45s both}
+/* ---------- form ---------- */
+form{display:flex;flex-direction:column;gap:14px;text-align:left}
+.field{position:relative}
+.field input{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--stroke);border-radius:14px;
+  color:var(--text);font-family:inherit;font-size:15px;padding:18px 16px 8px;outline:none;
+  transition:border-color .3s var(--ease),background .3s,box-shadow .3s}
+.field input:focus{border-color:var(--purple);background:rgba(124,92,255,.06);box-shadow:0 0 0 4px rgba(124,92,255,.12)}
+.field label{position:absolute;left:16px;top:15px;color:var(--faint);font-size:15px;pointer-events:none;
+  transition:transform .25s var(--ease),color .25s,font-size .25s;transform-origin:left top}
+.field input:focus + label,
+.field input:not(:placeholder-shown) + label{transform:translateY(-9px) scale(.74);color:var(--purple)}
+.hp{position:absolute;left:-9999px;opacity:0}
 
-/* ---------- pills ---------- */
-.pills{display:flex;gap:clamp(22px,9vw,60px);justify-content:center;align-items:flex-start;
-  opacity:0;animation:fadeUp 1s var(--ease) .55s both}
-.pill{background:none;border:none;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:14px;
-  padding:6px;transition:transform .4s var(--ease)}
-.pill:hover{transform:translateY(-6px)}
-.pill:active{transform:translateY(-2px) scale(.98)}
-.cap{position:relative;width:108px;height:42px;border-radius:999px;transition:box-shadow .4s var(--ease),filter .4s}
-.cap::before{content:"";position:absolute;left:9px;top:7px;width:34px;height:12px;border-radius:999px;
-  background:rgba(255,255,255,.55);filter:blur(2px);opacity:.7}
-.cap::after{content:"";position:absolute;inset:0;border-radius:999px;border:1px solid rgba(255,255,255,.25)}
-.pill.red .cap{background:linear-gradient(135deg,#ff5a64,#c20011);box-shadow:0 0 30px -4px rgba(255,43,59,.7)}
-.pill.blue .cap{background:linear-gradient(135deg,#5a9bff,#0b3ec7);box-shadow:0 0 30px -4px rgba(47,123,255,.7)}
-.pill.red:hover .cap{box-shadow:0 0 46px 2px rgba(255,43,59,.95)}
-.pill.blue:hover .cap{box-shadow:0 0 46px 2px rgba(47,123,255,.95)}
-.lbl{font-size:13px;letter-spacing:.34em;text-transform:uppercase;color:var(--mute);transition:color .3s,text-shadow .3s}
-.pill.red:hover .lbl{color:#ff7a84;text-shadow:0 0 12px rgba(255,43,59,.6)}
-.pill.blue:hover .lbl{color:#7aa8ff;text-shadow:0 0 12px rgba(47,123,255,.6)}
+.btn{position:relative;margin-top:6px;border:none;cursor:pointer;border-radius:14px;overflow:hidden;
+  background:var(--grad);background-size:200% 200%;color:#fff;font-family:inherit;font-weight:700;font-size:16px;
+  padding:16px;box-shadow:0 14px 34px -12px rgba(124,92,255,.75);
+  transition:transform .3s var(--ease),box-shadow .3s,opacity .3s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 20px 44px -12px rgba(124,92,255,.9)}
+.btn:active{transform:translateY(0)}
+.btn[disabled]{opacity:.7;cursor:default;transform:none}
+.btn::after{content:"";position:absolute;top:0;left:-120%;width:60%;height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);
+  transform:skewX(-18deg);animation:sheen 4.5s ease-in-out infinite}
+@keyframes sheen{0%,60%{left:-120%}80%,100%{left:130%}}
+.btn .spin{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;
+  margin:0 auto;animation:spin .7s linear infinite}
+.btn.loading .txt{display:none}.btn.loading .spin{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* ---------- states ---------- */
-.state{display:none}
-.state.on{display:block;animation:fadeUp .8s var(--ease) both}
+.formnote{font-size:11.5px;color:var(--faint);margin-top:14px;line-height:1.5}
+.err{color:#ff6b78;font-size:13px;margin-top:10px;min-height:0}
 
-/* noted screen */
-.noted-mark{font-size:42px;color:var(--neon);text-shadow:0 0 26px rgba(0,255,106,.7);margin-bottom:10px;
-  animation:flick 2.4s steps(2) infinite}
-@keyframes flick{0%,97%,100%{opacity:1}98%{opacity:.4}}
-.flavor{color:var(--mute);font-size:14px;line-height:1.7;max-width:400px;margin:8px auto 0}
-.flavor .pillword{color:var(--text)}
+/* ---------- success ---------- */
+.success{display:none}
+.success.on{display:block;animation:pop .6s var(--ease) both}
+.check{width:74px;height:74px;border-radius:50%;margin:6px auto 18px;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,210,106,.12);border:1px solid rgba(0,210,106,.4)}
+.check svg{width:34px;height:34px;stroke:var(--green);stroke-width:3;fill:none;
+  stroke-dasharray:40;stroke-dashoffset:40;animation:draw .6s .15s var(--ease) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.success h2{font-family:'Sora',sans-serif;font-size:26px;font-weight:800}
+.success p{color:var(--mute);font-size:14.5px;margin-top:10px;line-height:1.6}
 
-/* snapchat button */
-.snap{display:inline-flex;align-items:center;justify-content:center;gap:11px;margin-top:28px;
-  background:var(--neon);color:#012;font-weight:400;font-size:16px;letter-spacing:.06em;font-family:inherit;
-  padding:15px 28px;border-radius:999px;border:none;cursor:pointer;width:100%;max-width:340px;
-  text-shadow:none;box-shadow:0 0 34px -6px rgba(0,255,106,.8);transition:transform .4s var(--ease),box-shadow .4s var(--ease)}
-.snap:hover{transform:translateY(-3px);box-shadow:0 0 52px -4px rgba(0,255,106,1)}
-.snap svg{width:20px;height:20px}
-.snap small{display:block}
-
-.footer{position:fixed;bottom:16px;left:0;right:0;text-align:center;z-index:5;
-  font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--faint);
-  opacity:0;animation:fadeUp 1s var(--ease) .8s both}
-
-@media (max-width:380px){
-  .pills{gap:26px}
-  .cap{width:92px;height:38px}
-}
+.state.off{display:none}
 </style>
 </head>
 <body>
-<canvas id="matrix"></canvas>
-<div class="bg"></div>
-<div class="smoke-field" aria-hidden="true">
-  <span class="plume p1"></span><span class="plume p2"></span><span class="plume p3"></span><span class="plume p4"></span>
-</div>
+<div class="aurora" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
 <div class="grain" aria-hidden="true"></div>
 
-<main class="stage">
-  <div class="brandmark">Androgenic</div>
+<main class="card">
+  <div class="logo">
+    <svg viewBox="0 0 100 100" width="28" height="28" aria-hidden="true">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#667eea"/><stop offset="100%" stop-color="#f093fb"/></linearGradient></defs>
+      <path d="M50 8 L86 28 L86 72 L50 92 L14 72 L14 28 Z" fill="none" stroke="url(#g)" stroke-width="4"/>
+      <circle cx="50" cy="40" r="13" fill="none" stroke="url(#g)" stroke-width="3.5"/>
+      <path d="M28 74 Q28 55 50 52 Q72 55 72 74" fill="none" stroke="url(#g)" stroke-width="3.5"/>
+    </svg>
+    <span>Androgenic</span>
+  </div>
 
-  <!-- STATE 1: the choice -->
-  <section class="state on" id="s-choose">
-    <p class="quote">“This is your last chance. After this, there is no turning back.”<span class="by">— Morpheus</span></p>
-    <h1>Red pill <span class="g">or</span> blue pill?</h1>
-    <p class="sub">Take the blue pill — the story ends. Take the red pill — you stay in Wonderland, and I show you how deep the rabbit hole goes.</p>
-    <div class="pills">
-      <button class="pill red" data-pill="red"><span class="cap"></span><span class="lbl">Red pill</span></button>
-      <button class="pill blue" data-pill="blue"><span class="cap"></span><span class="lbl">Blue pill</span></button>
-    </div>
-  </section>
+  <!-- FORM STATE -->
+  <div class="state" id="s-form">
+    <span class="eyebrow"><span class="dot"></span> Early access</span>
+    <h1>Start your <span class="g">glow-up.</span></h1>
+    <p class="sub">Drop your number and email — we’ll get you access to Androgenic and your personalized looksmax plan.</p>
 
-  <!-- STATE 2: noted -->
-  <section class="state" id="s-noted">
-    <div class="noted-mark">&gt;_</div>
-    <h1>Choice <span class="g">noted.</span></h1>
-    <p class="flavor" id="flavor"></p>
-    <a class="snap" href="https://www.snapchat.com/add/androgenic" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3a5.5 5.5 0 0 1 5.5 5.5c0 1.9.3 3.4 1.4 4.4.6.55.2 1.5-.7 1.6-1.1.1-1.7-.5-2.3-.5-.7 0-1 .9-1.9 1.3-.6.27-1.2-.2-1.7-.2s-1.1.47-1.7.2c-.9-.4-1.2-1.3-1.9-1.3-.6 0-1.2.6-2.3.5-.9-.1-1.3-1.05-.7-1.6 1.1-1 1.4-2.5 1.4-4.4A5.5 5.5 0 0 1 12 3z"/></svg>
-      Add me on Snapchat @androgenic
-    </a>
-  </section>
+    <form id="form" novalidate>
+      <input class="hp" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="field">
+        <input id="email" type="email" name="email" required placeholder=" " inputmode="email" autocomplete="email">
+        <label for="email">Email address</label>
+      </div>
+      <div class="field">
+        <input id="phone" type="tel" name="phone" required placeholder=" " inputmode="tel" autocomplete="tel">
+        <label for="phone">Phone number</label>
+      </div>
+      <button class="btn" id="submit" type="submit"><span class="txt">Get my access →</span><span class="spin"></span></button>
+      <div class="err" id="err"></div>
+    </form>
+    <p class="formnote">We’ll only use these to contact you about Androgenic. No spam.</p>
+  </div>
+
+  <!-- SUCCESS STATE -->
+  <div class="success" id="s-success">
+    <div class="check"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
+    <h2>You’re in.</h2>
+    <p>Thanks — your details are on the way to us. We’ll reach out soon to get you started.</p>
+  </div>
 </main>
-
-<div class="footer">follow the white rabbit</div>
 
 <script>
 (() => {
   const $ = s => document.querySelector(s);
+  const form = $('#form'), btn = $('#submit'), err = $('#err');
+  const ENDPOINT = 'https://formsubmit.co/ajax/androgenic@yahoo.com';
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  /* ----- matrix code rain ----- */
-  const cv = $('#matrix'), ctx = cv.getContext('2d');
-  const GLYPHS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノﾊﾋﾌﾍﾎ0123456789ABCDEFZ:."=*+-<>'.split('');
-  let cols, drops, font = 16;
-  function resize() {
-    cv.width = innerWidth; cv.height = innerHeight;
-    font = innerWidth < 480 ? 14 : 16;
-    cols = Math.floor(cv.width / font);
-    drops = Array(cols).fill(0).map(() => Math.random() * -50);
-  }
-  resize();
-  addEventListener('resize', resize);
-  function draw() {
-    ctx.fillStyle = 'rgba(4,6,10,0.08)';
-    ctx.fillRect(0, 0, cv.width, cv.height);
-    ctx.font = font + "px 'Share Tech Mono', monospace";
-    for (let i = 0; i < cols; i++) {
-      const ch = GLYPHS[(Math.random() * GLYPHS.length) | 0];
-      const x = i * font, y = drops[i] * font;
-      ctx.fillStyle = 'rgba(190,255,210,0.9)';        // bright leading glyph
-      ctx.fillText(ch, x, y);
-      ctx.fillStyle = 'rgba(0,255,106,0.45)';          // green trail
-      ctx.fillText(GLYPHS[(Math.random() * GLYPHS.length) | 0], x, y - font);
-      if (y > cv.height && Math.random() > 0.975) drops[i] = 0;
-      drops[i]++;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    err.textContent = '';
+    const email = $('#email').value.trim();
+    const phone = $('#phone').value.trim();
+    if (!emailRe.test(email)) { err.textContent = 'Please enter a valid email address.'; return; }
+    if (phone.replace(/[^0-9]/g, '').length < 7) { err.textContent = 'Please enter a valid phone number.'; return; }
+    if (form._honey.value) return; // bot trap
+
+    btn.classList.add('loading'); btn.disabled = true;
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          email, phone,
+          _subject: 'New Androgenic signup',
+          _template: 'table',
+          _captcha: 'false'
+        })
+      });
+      if (!res.ok) throw new Error('bad status');
+      succeed();
+    } catch (ex) {
+      btn.classList.remove('loading'); btn.disabled = false;
+      err.textContent = 'Could not send right now. Please try again, or email androgenic@yahoo.com.';
     }
-  }
-  let last = 0;
-  (function loop(t) { if (t - last > 55) { draw(); last = t; } requestAnimationFrame(loop); })(0);
-
-  /* ----- the choice ----- */
-  const FLAVOR = {
-    red:  'You took the <span class="pillword">red pill</span>. Welcome to the real world — there’s no going back now.',
-    blue: 'You took the <span class="pillword">blue pill</span>. The story ends, you wake up and believe whatever you want to believe.'
-  };
-  const sChoose = $('#s-choose'), sNoted = $('#s-noted');
-  document.querySelectorAll('[data-pill]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      $('#flavor').innerHTML = FLAVOR[btn.dataset.pill] || '';
-      sChoose.classList.remove('on');
-      sNoted.classList.add('on');
-    });
   });
+
+  function succeed() {
+    $('#s-form').classList.add('off');
+    $('#s-success').classList.add('on');
+  }
 })();
 </script>
 </body>
