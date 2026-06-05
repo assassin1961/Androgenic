@@ -4,45 +4,53 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
 <title>Androgenic Jobs — Swipe to apply</title>
-<meta name="description" content="Swipe right to auto-apply, left to skip. Minimal Tinder-style job board." />
+<meta name="description" content="Swipe right to auto-apply, left to skip. Search and filter live jobs." />
 <meta name="theme-color" content="#070809" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Sora:wght@700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="bar">
     <a class="brand" href="#"><span class="brand-mark">◆</span> Androgenic</a>
     <div class="bar-right">
-      <button class="ipill" id="refreshBtn" title="Refresh">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></svg>
-      </button>
-      <button class="ipill" id="appliedBtn" title="Applied"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><b id="appliedCount">0</b></button>
-      <button class="ipill" id="profileBtn" title="Your profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 12 0v1"/></svg></button>
+      <button class="ipill" id="refreshBtn" title="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></svg></button>
+      <button class="ipill" id="appliedBtn" title="Applied"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><b id="appliedCount">0</b></button>
+      <button class="ipill" id="profileBtn" title="Your profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 12 0v1"/></svg></button>
     </div>
   </header>
+
+  <div class="controls">
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="q" placeholder="Search title, company or skill" autocomplete="off">
+      <button class="clear" id="clearBtn" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </label>
+    <div class="chips" id="chips"></div>
+  </div>
 
   <main class="stage">
     <div class="deck" id="deck"></div>
     <div class="empty" id="empty" hidden>
-      <div class="big">🎉</div>
-      <b>That's everyone for now</b>
-      <p>You've seen all the latest roles.</p>
+      <div class="big">🔍</div>
+      <b id="emptyTitle">No matches</b>
+      <p id="emptyMsg">Try clearing filters or refreshing.</p>
       <button class="btn btn-primary" id="reloadBtn">Refresh jobs</button>
     </div>
     <div class="actions" id="actions">
-      <button class="act nope" id="btnNope" title="Skip (←)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-      <button class="act undo" id="btnUndo" title="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3.5 13a9 9 0 1 0 2.6-7.6L3 8"/></svg></button>
+      <button class="act nope" id="btnNope" title="Skip (←)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      <button class="act undo" id="btnUndo" title="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3.5 13a9 9 0 1 0 2.6-7.6L3 8"/></svg></button>
       <button class="act like" id="btnLike" title="Apply (→)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg></button>
     </div>
     <div class="hint" id="hint">Swipe right to apply · left to skip</div>
   </main>
 
+  <div class="celebrate" id="celebrate" aria-hidden="true"></div>
   <div class="sheet" id="appliedSheet" aria-hidden="true"></div>
   <div class="modal-layer" id="modal" aria-hidden="true"></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <iframe name="sink" id="sink" title="apply sink" style="position:absolute;width:0;height:0;border:0;left:-9999px" aria-hidden="true"></iframe>
+  <iframe name="sink" id="sink" title="apply" style="position:absolute;width:0;height:0;border:0;left:-9999px" aria-hidden="true"></iframe>
   <script src="app.js"></script>
 </body>
 </html>
