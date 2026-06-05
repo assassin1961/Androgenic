@@ -163,7 +163,7 @@
     m.innerHTML = `<div class="modal">
       <div class="modal-head"><div><h3>Easy apply — ${esc(j.title)}</h3><p>${esc(j.co)} · ${esc(j.loc)}</p></div><button class="modal-x" data-close>${svg(ic.x,22)}</button></div>
       <form id="applyForm" class="modal-body" data-id="${esc(j.id)}">
-        <div class="easy-note">${svg(ic.bolt,15)} One-tap apply — your details go straight to the recruiter.</div>
+        <div class="easy-note">${svg(ic.bolt,15)} ${j.url ? "We'll open the employer's posting and send your details too." : 'Your details go straight to the recruiter.'}</div>
         <div class="frow"><label>Full name</label><input id="ap-name" autocomplete="name" placeholder="Your name" required></div>
         <div class="frow two"><div><label>Email</label><input id="ap-email" type="email" autocomplete="email" placeholder="you@email.com" required></div>
           <div><label>Phone</label><input id="ap-phone" type="tel" autocomplete="tel" placeholder="+…" required></div></div>
@@ -184,9 +184,10 @@
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = 'Please enter a valid email.'; return; }
     if (phone.replace(/[^0-9]/g,'').length < 7) { err.textContent = 'Please enter a valid phone number.'; return; }
     const btn = $('#ap-submit'); btn.disabled = true; btn.textContent = 'Submitting…';
-    // Reliable delivery: a real FormSubmit POST (triggers the one-time activation
-    // email, then delivers every application to the inbox). _next returns here.
     applied[id] = true; persist();
+    // 1) Open the employer's original posting (where they receive the application)
+    if (j.url) window.open(j.url, '_blank', 'noopener');
+    // 2) Email a copy to the board owner via FormSubmit (reliable form POST; _next returns here)
     const f = document.createElement('form');
     f.method = 'POST'; f.action = 'https://formsubmit.co/' + APPLY_EMAIL; f.style.display = 'none';
     const add = (k, v) => { const i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = v; f.appendChild(i); };
