@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Androgenic Jobs — UAE &amp; Pakistan</title>
-<meta name="description" content="Androgenic Job Board — find jobs across the UAE and Pakistan. Easy apply in seconds." />
+<title>Androgenic Jobs — Live remote roles</title>
+<meta name="description" content="Androgenic Job Board — live remote jobs worldwide. Easy apply in seconds. Swipe up to refresh." />
 <meta name="theme-color" content="#070809" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div class="refresh-bar" id="refreshBar"><span class="spin"></span> Refreshing…</div>
   <header class="topbar">
     <div class="bar">
       <a class="brand" href="#"><span class="brand-mark">◆</span> Androgenic<span class="brand-sub">Jobs</span></a>
@@ -22,10 +23,13 @@
         </label>
         <label class="field loc">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <input id="loc" placeholder="City — Dubai, Karachi…" autocomplete="off">
+          <input id="loc" placeholder="Country / region (USA, Europe…)" autocomplete="off">
         </label>
         <button class="btn btn-primary" id="searchBtn">Search</button>
       </div>
+      <button class="icon-pill" id="refreshBtn" title="Refresh jobs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></svg>
+      </button>
       <button class="saved-toggle" id="savedToggle" title="Saved jobs">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
         <span>Saved <b id="savedCount">0</b></span>
@@ -36,8 +40,9 @@
 
   <main class="layout">
     <section class="list-col">
-      <div class="list-head"><span id="resultCount">—</span><span class="sort">UAE &amp; Pakistan</span></div>
+      <div class="list-head"><span id="resultCount">—</span><span class="sort">Live jobs</span></div>
       <div id="list" class="list"></div>
+      <div class="swipe-hint" id="swipeHint">↓ pull down to refresh</div>
     </section>
     <section class="detail-col" id="detail"></section>
   </main>

@@ -218,3 +218,17 @@ input,textarea{font-family:inherit}
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.09),transparent);transform:translateX(-100%);animation:shimmer 1.3s infinite}
 @keyframes shimmer{to{transform:translateX(100%)}}
 .apply svg{margin-left:2px}
+
+/* refresh control + swipe */
+.icon-pill{display:flex;align-items:center;justify-content:center;width:46px;height:46px;border:1px solid var(--line);
+  border-radius:12px;background:var(--card);color:var(--mute);flex-shrink:0;transition:.2s var(--ease)}
+.icon-pill svg{width:19px;height:19px;transition:transform .5s var(--ease)}
+.icon-pill:hover{border-color:var(--accent);color:#fff}
+.icon-pill.spinning svg{animation:spin360 .8s linear infinite}
+@keyframes spin360{to{transform:rotate(360deg)}}
+.refresh-bar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:center;gap:8px;
+  height:0;overflow:hidden;background:var(--accent);color:#fff;font-size:13px;font-weight:600;transition:height .25s var(--ease)}
+.refresh-bar.on{height:34px}
+.refresh-bar .spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin360 .7s linear infinite}
+.swipe-hint{text-align:center;color:var(--faint);font-size:12px;padding:18px 0 4px;opacity:.8}
+@media(hover:hover) and (min-width:901px){ .swipe-hint{display:none} }
