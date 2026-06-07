@@ -2,55 +2,70 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-<title>Androgenic Jobs — Swipe to apply</title>
-<meta name="description" content="Swipe right to auto-apply, left to skip. Search and filter live jobs." />
-<meta name="theme-color" content="#070809" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Androgenic — Research Peptides</title>
+<meta name="description" content="Premium research peptides. Order by email." />
+<meta name="theme-color" content="#08080a" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Sora:wght@700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="bar">
-    <a class="brand" href="#"><span class="brand-mark">◆</span> Androgenic</a>
-    <div class="bar-right">
-      <button class="ipill" id="refreshBtn" title="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></svg></button>
-      <button class="ipill" id="appliedBtn" title="Applied"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><b id="appliedCount">0</b></button>
-      <button class="ipill" id="profileBtn" title="Your profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 12 0v1"/></svg></button>
-    </div>
-  </header>
+<div class="bg" aria-hidden="true"></div>
+<div class="smoke-field" aria-hidden="true"><span class="plume p1"></span><span class="plume p2"></span><span class="plume p3"></span><span class="plume p4"></span></div>
+<div class="grain" aria-hidden="true"></div>
 
-  <div class="controls">
-    <label class="search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      <input id="q" placeholder="Search title, company or skill" autocomplete="off">
-      <button class="clear" id="clearBtn" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-    </label>
-    <div class="chips" id="chips"></div>
+<header class="nav">
+  <a class="brand" href="#top"><span class="brand-mark">⬡</span> Androgenic</a>
+  <button class="cart-btn" id="cartBtn" aria-label="View order">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+    <b id="cartCount">0</b>
+  </button>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="vial" aria-hidden="true">
+      <div class="vapor"><span></span><span></span><span></span></div>
+      <svg viewBox="0 0 60 100"><defs></defs>
+        <path class="st" d="M22 8 h16 M24 8 v22 l-10 44 a8 8 0 0 0 8 10 h16 a8 8 0 0 0 8 -10 l-10 -44 v-22"/>
+        <path class="fl" d="M18.7 58 h22.6 l6 26 a8 8 0 0 1 -8 10 h-18.6 a8 8 0 0 1 -8 -10 z"/>
+      </svg>
+    </div>
+    <span class="kicker">Research-grade · ≥99% purity</span>
+    <h1>Research <i>Peptides.</i></h1>
+    <p class="sub">A curated lab catalogue. Place your order by email and we'll confirm availability, pricing and payment.</p>
+    <a href="#catalogue" class="scrolldown">View catalogue ↓</a>
+  </section>
+
+  <section class="catalogue" id="catalogue">
+    <div class="cat-head"><h2>Catalogue</h2><span>Lyophilised · vacuum-sealed</span></div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <footer class="foot">
+    <p class="disc">For laboratory and research purposes only. Not for human consumption, diagnostic, or therapeutic use. By ordering you confirm you are a qualified researcher.</p>
+    <p class="foot-order">Orders &amp; enquiries — <a href="mailto:androgenic@yahoo.com">androgenic@yahoo.com</a></p>
+    <p class="copy">© <span id="yr"></span> Androgenic Research</p>
+  </footer>
+</main>
+
+<!-- order drawer -->
+<div class="drawer-scrim" id="scrim" aria-hidden="true"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head"><h3>Your order</h3><button class="x" data-close><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-foot">
+    <div class="total-row"><span>Estimated total</span><b id="total">$0</b></div>
+    <button class="btn-cream btn-block" id="checkoutBtn" disabled>Place order by email</button>
+    <p class="mini">Final pricing &amp; payment confirmed by email reply.</p>
   </div>
+</aside>
 
-  <main class="stage">
-    <div class="deck" id="deck"></div>
-    <div class="empty" id="empty" hidden>
-      <div class="big">🔍</div>
-      <b id="emptyTitle">No matches</b>
-      <p id="emptyMsg">Try clearing filters or refreshing.</p>
-      <button class="btn btn-primary" id="reloadBtn">Refresh jobs</button>
-    </div>
-    <div class="actions" id="actions">
-      <button class="act nope" id="btnNope" title="Skip (←)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-      <button class="act undo" id="btnUndo" title="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3.5 13a9 9 0 1 0 2.6-7.6L3 8"/></svg></button>
-      <button class="act like" id="btnLike" title="Apply (→)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg></button>
-    </div>
-    <div class="hint" id="hint">Swipe right to apply · left to skip</div>
-  </main>
-
-  <div class="celebrate" id="celebrate" aria-hidden="true"></div>
-  <div class="sheet" id="appliedSheet" aria-hidden="true"></div>
-  <div class="modal-layer" id="modal" aria-hidden="true"></div>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <iframe name="sink" id="sink" title="apply" style="position:absolute;width:0;height:0;border:0;left:-9999px" aria-hidden="true"></iframe>
-  <script src="app.js"></script>
+<div class="modal-layer" id="modal" aria-hidden="true"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<iframe name="sink" id="sink" title="order" style="position:absolute;width:0;height:0;border:0;left:-9999px" aria-hidden="true"></iframe>
+<script src="app.js"></script>
 </body>
 </html>
