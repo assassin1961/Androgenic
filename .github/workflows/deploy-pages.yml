@@ -1,0 +1,75 @@
+name: Deploy website to GitHub Pages
+
+on:
+  push:
+    branches:
+      - claude/androgenic-website-redesign-5FaLU
+    paths:
+      - "website/**"
+      - ".github/workflows/deploy-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: pages-ghbranch
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Publish website/ to gh-pages branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          cp -r website /tmp/site
+          touch /tmp/site/.nojekyll
+          cd /tmp/site
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Deploy website (${GITHUB_SHA::7})"
+          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
+
+      - name: Enable GitHub Pages (gh-pages branch / root)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/pages"
+          auth="Authorization: Bearer ${GITHUB_TOKEN}"
+          acc="Accept: application/vnd.github+json"
+          body='{"source":{"branch":"gh-pages","path":"/"}}'
+          # Create the Pages site; if it already exists, update its source.
+          code=$(curl -s -o /tmp/resp.json -w "%{http_code}" -X POST -H "$auth" -H "$acc" "$api" -d "$body" || true)
+          echo "POST /pages -> $code"
+          if [ "$code" = "409" ] || [ "$code" = "422" ]; then
+            code=$(curl -s -o /tmp/resp.json -w "%{http_code}" -X PUT -H "$auth" -H "$acc" "$api" -d "$body" || true)
+            echo "PUT /pages -> $code"
+          fi
+          cat /tmp/resp.json || true
+          echo ""
+          echo "If the calls above returned 403, enable Pages once in Settings → Pages → Source: 'Deploy from a branch' → gh-pages / root."
+
+      - name: Print site URL
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          url=$(curl -s -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages" | grep -o '"html_url":[^,]*' | head -1 | cut -d'"' -f4)
+          owner_lc=$(echo "${GITHUB_REPOSITORY%%/*}" | tr 'A-Z' 'a-z')
+          repo_name="${GITHUB_REPOSITORY##*/}"
+          echo "Pages URL (API): ${url:-not-yet-available}"
+          echo "Expected URL: https://${owner_lc}.github.io/${repo_name}/"
+          {
+            echo "### 🌐 Website deployed"
+            echo ""
+            echo "**Live URL:** ${url:-https://${owner_lc}.github.io/${repo_name}/}"
+          } >> "$GITHUB_STEP_SUMMARY"
