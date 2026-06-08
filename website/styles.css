@@ -166,3 +166,14 @@ input,textarea{font-family:inherit}
 .toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,160%);z-index:80;background:var(--smoke);color:#0a0a0a;
   padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 20px 50px -20px #000;transition:transform .35s var(--ease);max-width:90vw}
 .toast.show{transform:translate(-50%,0)}
+
+/* order fallback (Instagram / in-app browsers) */
+.ob-email{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(233,228,220,.04);
+  border:1px solid var(--line);border-radius:11px;padding:11px 14px;margin-bottom:12px}
+.ob-email span{font-family:'Inter',sans-serif;font-size:14px;color:var(--smoke);word-break:break-all}
+.ob-mini{font-size:12px;font-weight:600;color:var(--gold);border:1px solid var(--line-2);border-radius:999px;padding:6px 12px;white-space:nowrap}
+.ob-mini:hover{background:rgba(201,169,106,.12)}
+.ob-text{width:100%;min-height:150px;border:1px solid var(--line-2);border-radius:12px;padding:12px 13px;font-size:12.5px;
+  line-height:1.55;background:#0b0b0e;color:var(--mute);resize:vertical;outline:none;font-family:'Inter',sans-serif}
+.ob-hint{font-size:12px;color:var(--faint);line-height:1.6;margin-top:14px}
+.ob-hint b{color:var(--mute)}
