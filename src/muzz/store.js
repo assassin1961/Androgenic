@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DEFAULT_ME, SOCIAL_SEED, PEOPLE } from './data';
+import * as api from './api';
 
 const KEY = '@muzz_state_v1';
 
@@ -67,6 +68,7 @@ export function MuzzProvider({ children }) {
 
   const completeOnboarding = useCallback((mePatch) => {
     update((s) => ({ ...s, onboarded: true, me: { ...s.me, ...mePatch, butterflyTrained: true } }));
+    api.mirror(() => api.saveProfile({ ...DEFAULT_ME, ...mePatch }));
   }, [update]);
 
   const likePerson = useCallback((personId, { mutual = true } = {}) => {
@@ -85,6 +87,7 @@ export function MuzzProvider({ children }) {
       const likesInWindow = windowExpired ? 1 : s.likesInWindow + 1;
       return { ...s, feedback, matches, chats, seen, likeWindowStart, likesInWindow };
     });
+    api.mirror(() => api.swipe(personId, 'like'));
   }, [update]);
 
   // Likes remaining in the current 12h window (Infinity on Gold)
@@ -120,6 +123,21 @@ export function MuzzProvider({ children }) {
       feedback: { ...s.feedback, [personId]: 'passed' },
       seen: s.seen.includes(personId) ? s.seen : [...s.seen, personId],
     }));
+    api.mirror(() => api.swipe(personId, 'pass'));
+  }, [update]);
+
+  // Rewind (Gold): undo the last like/pass so the card returns to the deck
+  const undoSwipe = useCallback((personId) => {
+    update((s) => {
+      const feedback = { ...s.feedback };
+      delete feedback[personId];
+      return {
+        ...s,
+        feedback,
+        matches: s.matches.filter((id) => id !== personId),
+        seen: s.seen.filter((id) => id !== personId),
+      };
+    });
   }, [update]);
 
   const markSeen = useCallback((personId) => {
@@ -132,6 +150,13 @@ export function MuzzProvider({ children }) {
       ...s,
       chats: { ...s.chats, [personId]: [...(s.chats[personId] || []), msg] },
     }));
+    if (sender === 'me') {
+      api.mirror(async () => {
+        const { matches: serverMatches } = await api.matches();
+        const m = serverMatches.find((x) => api.toLocalId(x.person.id) === personId);
+        if (m) await api.sendMessage(m.matchId, text);
+      });
+    }
     return msg;
   }, [update]);
 
@@ -144,16 +169,17 @@ export function MuzzProvider({ children }) {
 
   const addPost = useCallback((post) => {
     update((s) => ({ ...s, posts: [post, ...s.posts] }));
+    api.mirror(() => api.createPost(post.text, post.tag, post.id));
   }, [update]);
 
   const resetAll = useCallback(() => persist(initialState), [persist]);
 
   const value = useMemo(() => ({
     ...state, hydrated,
-    setMe, completeOnboarding, likePerson, passPerson, markSeen,
+    setMe, completeOnboarding, likePerson, passPerson, undoSwipe, markSeen,
     sendMessage, togglePostLike, addPost, update, resetAll,
     likesRemaining, useInstantChat,
-  }), [state, hydrated, setMe, completeOnboarding, likePerson, passPerson, markSeen, sendMessage, togglePostLike, addPost, update, resetAll, likesRemaining, useInstantChat]);
+  }), [state, hydrated, setMe, completeOnboarding, likePerson, passPerson, undoSwipe, markSeen, sendMessage, togglePostLike, addPost, update, resetAll, likesRemaining, useInstantChat]);
 
   return <MuzzContext.Provider value={value}>{children}</MuzzContext.Provider>;
 }

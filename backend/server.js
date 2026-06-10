@@ -51,6 +51,10 @@ const scanRoutes = require('./routes/scans');
 const userdataRoutes = require('./routes/userdata');
 const forumRoutes = require('./routes/forum');
 const chatRoutes = require('./routes/chat');
+const datingRoutes = require('./routes/dating');
+const { seedDating } = require('./seed-dating');
+
+seedDating();
 
 app.use('/api/auth', authRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
@@ -58,6 +62,7 @@ app.use('/api/scans', scanRoutes);
 app.use('/api/userdata', userdataRoutes);
 app.use('/api/forum', forumRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/dating', datingRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

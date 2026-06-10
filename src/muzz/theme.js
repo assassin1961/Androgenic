@@ -125,3 +125,10 @@ export function gradFor(seed = '') {
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
   return PHOTO_GRADS[h % PHOTO_GRADS.length];
 }
+
+// Nth "photo" for a profile — used by the card photo pager.
+export function gradVariantFor(seed = '', idx = 0) {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  return PHOTO_GRADS[(h + idx * 3) % PHOTO_GRADS.length];
+}

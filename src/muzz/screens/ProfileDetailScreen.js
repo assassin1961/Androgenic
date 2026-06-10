@@ -36,7 +36,7 @@ export default function ProfileDetailScreen({ route, navigation }) {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 130 }} showsVerticalScrollIndicator={false}>
         {/* Hero photo */}
-        <PhotoTile seed={person.id} name={person.name} rounded={0} style={{ height: width * 1.15 }}>
+        <PhotoTile seed={person.id} name={person.name} rounded={0} silhouette={320} style={{ height: width * 1.15 }}>
           <LinearGradient colors={['rgba(0,0,0,0.25)', 'transparent', 'transparent', 'rgba(20,16,26,0.85)']} style={StyleSheet.absoluteFill} />
           <Pressable onPress={() => navigation.goBack()} style={[styles.back, { top: insets.top + 8 }]}>
             <Ionicons name="chevron-back" size={26} color="#fff" />
@@ -60,6 +60,8 @@ export default function ProfileDetailScreen({ route, navigation }) {
           </View>
         </PhotoTile>
 
+        {/* Rounded content sheet overlapping the hero */}
+        <View style={styles.sheet}>
         {/* Butterfly insight */}
         <Animated.View entering={FadeInDown} style={styles.insight}>
           <View style={styles.insightHead}>
@@ -128,6 +130,7 @@ export default function ProfileDetailScreen({ route, navigation }) {
           <Ionicons name="flag-outline" size={16} color={M.textMuted} />
           <Text style={styles.reportText}>Report or block</Text>
         </Pressable>
+        </View>
       </ScrollView>
 
       {/* Action bar */}
@@ -181,6 +184,10 @@ const styles = StyleSheet.create({
   onlineText: { color: '#fff', fontWeight: '700', fontSize: 11 },
   heroMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
   heroMetaText: { color: '#fff', fontWeight: '600', fontSize: 14, marginLeft: 5 },
+  sheet: {
+    marginTop: -26, borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    backgroundColor: M.bg, paddingTop: 8,
+  },
   insight: { margin: SPACE.xl, marginBottom: 4, backgroundColor: M.butterflySoft, borderRadius: RADIUS.lg, padding: 18 },
   insightHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   bfBadge: { width: 26, height: 26, borderRadius: 13, backgroundColor: M.butterfly, alignItems: 'center', justifyContent: 'center' },

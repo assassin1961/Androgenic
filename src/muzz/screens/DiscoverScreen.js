@@ -7,7 +7,7 @@ import Animated, {
   FadeIn, useSharedValue, useAnimatedStyle, withTiming, withSpring,
   interpolate, runOnJS, Easing,
 } from 'react-native-reanimated';
-import { M, GRAD, RADIUS, SPACE, SHADOW, TYPE } from '../theme';
+import { M, GRAD, RADIUS, SPACE, SHADOW, TYPE, gradVariantFor } from '../theme';
 import { useMuzz } from '../store';
 import { rankMatches } from '../butterfly';
 import { PhotoTile, Verified } from '../components/ui';
@@ -25,8 +25,10 @@ export default function DiscoverScreen({ navigation }) {
   const muzz = useMuzz();
   const {
     me, feedback, matches, butterflyAuto,
-    likePerson, passPerson, likesRemaining, useInstantChat,
+    likePerson, passPerson, undoSwipe, likesRemaining, useInstantChat,
   } = muzz;
+  const [photoIdx, setPhotoIdx] = React.useState(0);
+  const [lastSwiped, setLastSwiped] = React.useState(null);
 
   const stack = useMemo(
     () => rankMatches(me, feedback).filter(
@@ -40,6 +42,8 @@ export default function DiscoverScreen({ navigation }) {
   const tx = useSharedValue(0);
 
   const commit = useCallback((dir, personId, score) => {
+    setLastSwiped(personId);
+    setPhotoIdx(0);
     if (dir > 0) {
       likePerson(personId, { mutual: true });
       navigation.navigate('MuzzMatchReveal', { personId, score });
@@ -48,6 +52,18 @@ export default function DiscoverScreen({ navigation }) {
     }
     tx.value = 0;
   }, [likePerson, passPerson, navigation]);
+
+  const rewind = () => {
+    if (!lastSwiped) return;
+    if (!me.gold) {
+      H.warn();
+      navigation.navigate('MuzzGold');
+      return;
+    }
+    H.press();
+    undoSwipe(lastSwiped);
+    setLastSwiped(null);
+  };
 
   const swipe = (dir) => {
     if (!top) return;
@@ -127,17 +143,26 @@ export default function DiscoverScreen({ navigation }) {
               </Animated.View>
             )}
             <Animated.View key={top.person.id} style={[styles.cardWrap, cardStyle]}>
-              <Pressable style={{ flex: 1 }} onPress={() => { H.tap(); navigation.navigate('MuzzProfileDetail', { personId: top.person.id }); }}>
-                <Card m={top} />
-              </Pressable>
+              <Card m={top} photoIdx={photoIdx} />
+              {/* photo pager tap zones: left = prev photo, right = next, centre = profile */}
+              <View style={StyleSheet.absoluteFill}>
+                <View style={{ flex: 1, flexDirection: 'row' }}>
+                  <Pressable style={{ flex: 1 }} onPress={() => { H.select(); setPhotoIdx((i) => Math.max(0, i - 1)); }} />
+                  <Pressable style={{ flex: 1.2 }} onPress={() => { H.tap(); navigation.navigate('MuzzProfileDetail', { personId: top.person.id }); }} />
+                  <Pressable style={{ flex: 1 }} onPress={() => { H.select(); setPhotoIdx((i) => Math.min(2, i + 1)); }} />
+                </View>
+              </View>
             </Animated.View>
           </>
         )}
       </View>
 
-      {/* Muzz-style circular action buttons */}
+      {/* Muzz-style circular action buttons: rewind · pass · instant · like */}
       {top && (
         <View style={styles.actions}>
+          <Pressable onPress={rewind} style={[styles.actBtn, styles.rewindBtn, !lastSwiped && { opacity: 0.4 }]}>
+            <Ionicons name="arrow-undo" size={22} color={M.gold} />
+          </Pressable>
           <Pressable onPress={() => swipe(-1)} style={[styles.actBtn, styles.passBtn]}>
             <Ionicons name="close" size={32} color="#B9B6C3" />
           </Pressable>
@@ -158,14 +183,23 @@ export default function DiscoverScreen({ navigation }) {
   );
 }
 
-function Card({ m }) {
+function Card({ m, photoIdx = 0 }) {
   const p = m.person;
   return (
-    <PhotoTile seed={p.id} name={p.name} rounded={RADIUS.xl} style={styles.card}>
+    <PhotoTile
+      seed={p.id} name={p.name} rounded={RADIUS.xl} style={styles.card}
+      gradient={gradVariantFor(p.id, photoIdx)} silhouette={300}
+    >
       <LinearGradient
         colors={['rgba(0,0,0,0.12)', 'transparent', 'transparent', 'rgba(13,10,18,0.88)']}
         style={StyleSheet.absoluteFill}
       />
+      {/* photo pager dots */}
+      <View style={styles.pager}>
+        {[0, 1, 2].map((i) => (
+          <View key={i} style={[styles.pagerSeg, i === photoIdx && styles.pagerSegOn]} />
+        ))}
+      </View>
       {p.online && (
         <View style={styles.onlinePill}>
           <View style={styles.onlineDot} />
@@ -226,14 +260,20 @@ const styles = StyleSheet.create({
   deck: { flex: 1, marginHorizontal: SPACE.lg, marginBottom: 6 },
   cardWrap: { ...StyleSheet.absoluteFillObject },
   card: { flex: 1, ...SHADOW.card },
+  pager: {
+    position: 'absolute', top: 8, left: 14, right: 14,
+    flexDirection: 'row', gap: 5,
+  },
+  pagerSeg: { flex: 1, height: 3.5, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.35)' },
+  pagerSegOn: { backgroundColor: '#fff' },
   onlinePill: {
-    position: 'absolute', top: 14, left: 14, flexDirection: 'row', alignItems: 'center', gap: 5,
+    position: 'absolute', top: 20, left: 14, flexDirection: 'row', alignItems: 'center', gap: 5,
     backgroundColor: 'rgba(13,10,18,0.45)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: RADIUS.pill,
   },
   onlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: M.online },
   onlineText: { color: '#fff', fontWeight: '700', fontSize: 12 },
   aiBadge: {
-    position: 'absolute', top: 14, right: 14, flexDirection: 'row', alignItems: 'center', gap: 4,
+    position: 'absolute', top: 20, right: 14, flexDirection: 'row', alignItems: 'center', gap: 4,
     backgroundColor: 'rgba(139,92,246,0.92)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: RADIUS.pill,
   },
   aiBadgeText: { color: '#fff', fontWeight: '900', fontSize: 13 },
@@ -253,6 +293,7 @@ const styles = StyleSheet.create({
     paddingTop: 12, paddingBottom: 4,
   },
   actBtn: { alignItems: 'center', justifyContent: 'center', ...SHADOW.soft },
+  rewindBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#fff', borderWidth: 1, borderColor: M.border },
   passBtn: { width: 62, height: 62, borderRadius: 31, backgroundColor: '#fff', borderWidth: 1, borderColor: M.border },
   instantBtn: { width: 52, height: 52, borderRadius: 26, backgroundColor: M.gold, ...SHADOW.card },
   likeBtn: { width: 70, height: 70, borderRadius: 35, backgroundColor: M.primary, ...SHADOW.primary },

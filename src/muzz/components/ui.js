@@ -6,13 +6,19 @@ import { M, GRAD, RADIUS, SHADOW, gradFor } from '../theme';
 import * as H from '../haptics';
 
 // ── Photo placeholder: initial on a deterministic gradient ───────────
-export function PhotoTile({ seed = '', name = '', style, rounded = RADIUS.lg, gradient, children, dim = false }) {
+// Pass `silhouette` (an icon size) to render a soft person silhouette
+// instead of the initial — used for large "photo" surfaces like cards.
+export function PhotoTile({ seed = '', name = '', style, rounded = RADIUS.lg, gradient, children, dim = false, silhouette }) {
   const g = gradient || gradFor(seed || name);
   const initial = (name || '?').trim().charAt(0).toUpperCase();
   return (
     <View style={[{ borderRadius: rounded, overflow: 'hidden', backgroundColor: g[1] }, style]}>
       <LinearGradient colors={g} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-      {!children && (
+      {silhouette ? (
+        <View style={styles.silhouette}>
+          <Ionicons name="person" size={silhouette} color="rgba(255,255,255,0.22)" />
+        </View>
+      ) : !children && (
         <View style={styles.center}>
           <Text style={styles.initial}>{initial}</Text>
         </View>
@@ -100,6 +106,7 @@ export function Chip({ label, icon, active, onPress, color = M.primary }) {
 
 const styles = StyleSheet.create({
   center: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
+  silhouette: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'flex-end', overflow: 'hidden' },
   initial: { color: 'rgba(255,255,255,0.92)', fontWeight: '800', fontSize: 22 },
   dot: {
     position: 'absolute', right: -1, bottom: -1, backgroundColor: M.online,
