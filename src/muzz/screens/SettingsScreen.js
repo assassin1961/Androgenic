@@ -17,11 +17,22 @@ const SECTIONS = [
     ],
   },
   {
+    title: 'Religious filters',
+    rows: [
+      { icon: 'moon-outline', label: 'Sect', value: 'Any' },
+      { icon: 'time-outline', label: 'Prayer level', value: 'Any' },
+      { icon: 'earth-outline', label: 'Ethnicity', value: 'Any' },
+      { icon: 'restaurant-outline', label: 'Halal diet', value: 'Any' },
+      { icon: 'school-outline', label: 'Education & career', gold: true },
+    ],
+  },
+  {
     title: 'Privacy & Safety',
     rows: [
-      { icon: 'shield-checkmark-outline', label: 'Chaperone by default', plain: true },
-      { icon: 'lock-closed-outline', label: 'Photo privacy', value: 'Matches only' },
-      { icon: 'eye-off-outline', label: 'Incognito mode', gold: true },
+      { icon: 'shield-checkmark-outline', label: 'Wali / chaperone by default', plain: true },
+      { icon: 'image-outline', label: 'Blur my photos until we match', plain: true },
+      { icon: 'camera-outline', label: 'Block screenshots', plain: true, def: true },
+      { icon: 'eye-off-outline', label: 'Invisible mode', gold: true },
       { icon: 'hand-left-outline', label: 'Blocked members', value: '0' },
     ],
   },
@@ -89,7 +100,7 @@ export default function SettingsScreen({ navigation }) {
             </View>
           </View>
         ))}
-        <Text style={styles.version}>Muzz·ai · v1.0.0</Text>
+        <Text style={styles.version}>Butterfly · v1.0.0</Text>
       </ScrollView>
     </View>
   );

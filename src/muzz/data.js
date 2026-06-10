@@ -31,6 +31,15 @@ export const INTENTIONS = [
   'Marriage', 'Long-term', 'Still figuring it out', 'New friends',
 ];
 
+// Religious profile fields — core to Muzz's matching
+export const SECTS = ['Sunni', 'Shia', 'Other', 'Prefer not to say'];
+export const PRAYER_LEVELS = ['Always prays', 'Usually prays', 'Sometimes prays', 'Never prays', 'Prefer not to say'];
+export const HALAL_DIET = ['Always halal', 'Mostly halal', 'Sometimes', 'No'];
+export const ETHNICITIES = [
+  'Arab', 'South Asian', 'Turkish', 'African', 'Persian', 'South East Asian',
+  'White / Caucasian', 'Mixed', 'Other',
+];
+
 // ── Discoverable people ──────────────────────────────────────────────
 export const PEOPLE = [
   {
@@ -44,6 +53,7 @@ export const PEOPLE = [
       { q: 'My ideal first date', a: 'A walk through a gallery then dessert somewhere cosy.' },
       { q: 'I geek out on', a: 'Typography and obscure coffee brewing methods.' },
     ],
+    sect: 'Sunni', prayerLevel: 'Usually prays', ethnicity: 'Arab', halalDiet: 'Always halal',
     height: `5'6"`, languages: ['English', 'Arabic'],
   },
   {
@@ -57,6 +67,7 @@ export const PEOPLE = [
       { q: 'The way to win me over is', a: 'Bring snacks and make me laugh. That simple.' },
       { q: 'A life goal of mine', a: 'To work with Doctors Without Borders one day.' },
     ],
+    sect: 'Sunni', prayerLevel: 'Sometimes prays', ethnicity: 'African', halalDiet: 'Mostly halal',
     height: `5'4"`, languages: ['English', 'French'],
   },
   {
@@ -70,6 +81,7 @@ export const PEOPLE = [
       { q: 'Together we could', a: 'Hike the Lake District then argue about the best tea.' },
       { q: 'A cause I care about', a: 'Sustainable cities and green architecture.' },
     ],
+    sect: 'Sunni', prayerLevel: 'Always prays', ethnicity: 'South Asian', halalDiet: 'Always halal',
     height: `5'7"`, languages: ['English', 'Urdu'],
   },
   {
@@ -83,6 +95,7 @@ export const PEOPLE = [
       { q: 'My simple pleasures', a: 'Friday night takeaway and a perfectly organised playlist.' },
       { q: 'Green flags I look for', a: 'Kindness to waiters and replies to texts.' },
     ],
+    sect: 'Other', prayerLevel: 'Sometimes prays', ethnicity: 'Turkish', halalDiet: 'Mostly halal',
     height: `5'5"`, languages: ['English', 'Turkish'],
   },
   {
@@ -96,6 +109,7 @@ export const PEOPLE = [
       { q: 'A cause I care about', a: 'Teaching kids art at the local community centre.' },
       { q: 'The way to win me over is', a: 'Genuine conversation and a shared love of poetry.' },
     ],
+    sect: 'Shia', prayerLevel: 'Always prays', ethnicity: 'Persian', halalDiet: 'Always halal',
     height: `5'3"`, languages: ['English', 'Arabic', 'Farsi'],
   },
   {
@@ -109,6 +123,7 @@ export const PEOPLE = [
       { q: 'I geek out on', a: 'Clean code, mechanical keyboards, and indie games.' },
       { q: 'Together we could', a: 'Build a startup or at least a really good blanket fort.' },
     ],
+    sect: 'Sunni', prayerLevel: 'Usually prays', ethnicity: 'Mixed', halalDiet: 'Mostly halal',
     height: `5'6"`, languages: ['English'],
   },
   {
@@ -122,6 +137,7 @@ export const PEOPLE = [
       { q: 'A life goal of mine', a: 'To open a free weekend school for kids in my area.' },
       { q: 'My simple pleasures', a: 'A good book, rain on the window, and a strong cup of chai.' },
     ],
+    sect: 'Sunni', prayerLevel: 'Always prays', ethnicity: 'Arab', halalDiet: 'Always halal',
     height: `5'5"`, languages: ['English', 'Arabic'],
   },
   {
@@ -135,6 +151,7 @@ export const PEOPLE = [
       { q: 'Green flags I look for', a: 'Goes to the gym AND for dessert after. Balance.' },
       { q: 'My ideal first date', a: 'Bouldering then the best burger in town.' },
     ],
+    sect: 'Sunni', prayerLevel: 'Sometimes prays', ethnicity: 'Mixed', halalDiet: 'Mostly halal',
     height: `5'8"`, languages: ['English', 'Spanish'],
   },
   {
@@ -148,6 +165,7 @@ export const PEOPLE = [
       { q: 'I geek out on', a: 'True crime podcasts and Oxford commas.' },
       { q: 'Together we could', a: 'Road-trip the coast with a questionable playlist.' },
     ],
+    sect: 'Prefer not to say', prayerLevel: 'Sometimes prays', ethnicity: 'Arab', halalDiet: 'Sometimes',
     height: `5'5"`, languages: ['English', 'Italian'],
   },
   {
@@ -161,6 +179,7 @@ export const PEOPLE = [
       { q: 'The way to win me over is', a: 'Eat my cooking and mean the compliment.' },
       { q: 'A cause I care about', a: 'Free dental camps back home every summer.' },
     ],
+    sect: 'Sunni', prayerLevel: 'Always prays', ethnicity: 'South Asian', halalDiet: 'Always halal',
     height: `5'4"`, languages: ['English', 'Gujarati'],
   },
 ];
@@ -212,6 +231,10 @@ export const DEFAULT_ME = {
   interests: [], values: [], intention: 'Marriage',
   languages: ['English'],
   prompts: [],
+  sect: 'Sunni', prayerLevel: 'Usually prays', ethnicity: 'Other', halalDiet: 'Mostly halal',
+  waliEnabled: false,
+  photoPrivacy: false,
+  selfieVerified: false,
   butterflyTrained: false,
   gold: false,
 };

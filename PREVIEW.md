@@ -1,24 +1,21 @@
-# Androgenic v2.0 — App Preview
+# Butterfly — App Preview
 
-## Home Screen
-| Top | Scrolled |
-|-----|----------|
-| ![](.preview/preview-home.png) | ![](.preview/preview-home-scroll.png) |
+Runtime-verified screenshots from the production web build (zero console errors).
 
-## Routine & Leaderboard
-| Daily Routine | Leaderboard |
-|---------------|-------------|
-| ![](.preview/preview-routine.png) | ![](.preview/preview-ranks.png) |
+## Onboarding & AI Butterfly Home
+| Onboarding | Butterfly home |
+|------------|----------------|
+| ![](.preview/muzz-onboarding.png) | ![](.preview/muzz-butterfly-home.png) |
 
-## Profile & Guides
-| Profile | Guides |
-|---------|--------|
-| ![](.preview/preview-profile.png) | ![](.preview/preview-guides.png) |
+## Auto-Match Reveal & Matches
+| AI pick reveal | Matches |
+|----------------|---------|
+| ![](.preview/muzz-reveal.png) | ![](.preview/muzz-matches.png) |
 
-## Guides (Scrolled) & Glow-Up Simulator
-| More Guides | Glow-Up Simulator |
-|-------------|-------------------|
-| ![](.preview/preview-guides-scroll.png) | ![](.preview/preview-paywall.png) |
+## Social Feed & Profile
+| Social | Profile |
+|--------|---------|
+| ![](.preview/muzz-social.png) | ![](.preview/muzz-profile.png) |
 
-## Analysis Categories
-![](.preview/preview-paywall-mid.png)
+## Gold Paywall
+![](.preview/muzz-gold.png)

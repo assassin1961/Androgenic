@@ -39,6 +39,23 @@ export function scoreMatch(me, person, feedback = {}) {
     score += 5;
   }
 
+  // Deen compatibility — sect, prayer level, halal practice
+  if (me.sect && person.sect && me.sect !== 'Prefer not to say' && person.sect === me.sect) {
+    score += 8;
+    reasons.push(`Both ${person.sect}`);
+  }
+  if (me.prayerLevel && person.prayerLevel) {
+    const levels = ['Never prays', 'Sometimes prays', 'Usually prays', 'Always prays'];
+    const a = levels.indexOf(me.prayerLevel), b = levels.indexOf(person.prayerLevel);
+    if (a >= 0 && b >= 0) {
+      const gap = Math.abs(a - b);
+      if (gap === 0) { score += 7; reasons.push(`Matched in practice — ${person.prayerLevel.toLowerCase()}`); }
+      else if (gap === 1) score += 3;
+      else score -= 4;
+    }
+  }
+  if (me.halalDiet === 'Always halal' && person.halalDiet === 'Always halal') { score += 3; }
+
   // Proximity
   if (person.distance <= 5) { score += 8; reasons.push(`Only ${person.distance} miles away`); }
   else if (person.distance <= 12) { score += 4; reasons.push(`Close by in ${person.city}`); }

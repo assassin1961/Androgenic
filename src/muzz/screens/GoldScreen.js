@@ -13,19 +13,22 @@ import * as H from '../haptics';
 const { width } = Dimensions.get('window');
 
 const PERKS = [
-  ['sparkles', 'Priority butterfly picks', 'Get first dibs on the highest-compatibility matches each day'],
+  ['infinite', 'Unlimited likes', 'No more 5 likes per 12 hours — like everyone you want'],
   ['eye', 'See who likes you', 'Match instantly with everyone who already likes you'],
-  ['infinite', 'Unlimited auto-matches', 'No daily cap — the butterfly works around the clock'],
-  ['flame', 'Monthly boosts', 'Be the top profile in your area for 30 minutes'],
-  ['star', '5 Super Likes a day', 'Stand out and 3x your chances of matching'],
-  ['shield-checkmark', 'Advanced filters', 'Filter by intention, values, height, languages & more'],
-  ['rocket', 'Travel mode', 'Match in any city before you arrive'],
+  ['flash', 'Daily free Instant Chat', 'Skip matching and message someone directly every day'],
+  ['chatbubbles', '5 extra chat slots', 'Keep more conversations going at once'],
+  ['flame', '2 free weekly boosts', 'Be the top profile in your area for 30 minutes'],
+  ['refresh', 'Rematch', 'Bring back expired matches for a second chance'],
+  ['options', 'Advanced filters', 'Filter by prayer level, sect, ethnicity, education & more'],
+  ['sparkles', 'Priority butterfly picks', 'Your AI matchmaker works around the clock for you'],
+  ['ribbon', 'VIP badge', 'Stand out with a gold badge on your profile'],
+  ['eye-off', 'Invisible mode', 'Browse privately — only people you like can see you'],
 ];
 
 const PLANS = [
-  { id: '1m', label: '1 month', price: '£14.99', per: '/mo', save: null },
-  { id: '6m', label: '6 months', price: '£8.33', per: '/mo', save: 'Save 44%', best: true },
-  { id: '12m', label: '12 months', price: '£6.25', per: '/mo', save: 'Save 58%' },
+  { id: '1m', label: '1 month', price: '£29.99', per: '/mo', save: null },
+  { id: '3m', label: '3 months', price: '£16.66', per: '/mo', save: 'Save 44%', best: true },
+  { id: '12m', label: '12 months', price: '£9.99', per: '/mo', save: 'Save 67%' },
 ];
 
 export default function GoldScreen({ navigation }) {
@@ -47,7 +50,7 @@ export default function GoldScreen({ navigation }) {
           <Butterfly size={110} colorA="#FFD86B" colorB="#F5B400" />
           <LinearGradient colors={GRAD.gold} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.goldTag}>
             <Ionicons name="diamond" size={16} color="#fff" />
-            <Text style={styles.goldTagText}>MUZZ GOLD</Text>
+            <Text style={styles.goldTagText}>BUTTERFLY GOLD</Text>
           </LinearGradient>
           <Text style={styles.heroTitle}>Find your one,{'\n'}faster</Text>
           <Text style={styles.heroSub}>Supercharge your butterfly and stand out</Text>

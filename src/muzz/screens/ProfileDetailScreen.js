@@ -15,13 +15,18 @@ const { width } = Dimensions.get('window');
 export default function ProfileDetailScreen({ route, navigation }) {
   const insets = useSafeAreaInsets();
   const { personId } = route.params;
-  const { me, matches, feedback, likePerson, passPerson } = useMuzz();
+  const { me, matches, feedback, likePerson, passPerson, likesRemaining } = useMuzz();
   const person = getPerson(personId);
   if (!person) return null;
   const isMatch = matches.includes(personId);
   const compat = scoreMatch(me, person, feedback);
 
   const onLike = () => {
+    if (likesRemaining() <= 0) {
+      H.tap();
+      navigation.navigate('MuzzGold');
+      return;
+    }
     likePerson(personId, { mutual: true });
     navigation.replace('MuzzMatchReveal', { personId, score: compat.score });
   };
@@ -83,6 +88,16 @@ export default function ProfileDetailScreen({ route, navigation }) {
             <Fact icon="heart-circle" label="Intent" value={person.intention} />
             <Fact icon="language" label="Speaks" value={person.languages.join(', ')} />
             <Fact icon="business" label="City" value={person.city} />
+          </View>
+        </Section>
+
+        {/* Deen — core to Muzz */}
+        <Section title="Deen">
+          <View style={styles.facts}>
+            <Fact icon="moon" label="Sect" value={person.sect} />
+            <Fact icon="time" label="Prayer" value={person.prayerLevel} />
+            <Fact icon="restaurant" label="Halal diet" value={person.halalDiet} />
+            <Fact icon="earth" label="Ethnicity" value={person.ethnicity} />
           </View>
         </Section>
 

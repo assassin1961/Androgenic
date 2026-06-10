@@ -21,7 +21,10 @@ const { width } = Dimensions.get('window');
 export default function ButterflyScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const muzz = useMuzz();
-  const { me, feedback, seen, butterflyAuto, likePerson, passPerson, markSeen, update, superLikes } = muzz;
+  const {
+    me, feedback, seen, butterflyAuto, likePerson, passPerson, markSeen, update,
+    superLikes, likesRemaining, useInstantChat,
+  } = muzz;
 
   const [phase, setPhase] = useState('idle'); // idle | searching | reveal
   const [pick, setPick] = useState(null);
@@ -51,12 +54,30 @@ export default function ButterflyScreen({ navigation }) {
 
   const onLike = (superLike = false) => {
     if (!pick) return;
+    if (likesRemaining() <= 0) {
+      H.warn();
+      navigation.navigate('MuzzGold');
+      return;
+    }
     likePerson(pick.person.id, { mutual: true });
     if (superLike && superLikes > 0) update((s) => ({ ...s, superLikes: s.superLikes - 1 }));
     H.success();
     navigation.navigate('MuzzMatchReveal', { personId: pick.person.id, score: pick.score });
     setPhase('idle');
     setPick(null);
+  };
+
+  const onInstantChat = () => {
+    if (!pick) return;
+    if (useInstantChat(pick.person.id)) {
+      H.success();
+      navigation.navigate('MuzzChat', { personId: pick.person.id });
+      setPhase('idle');
+      setPick(null);
+    } else {
+      H.warn();
+      navigation.navigate('MuzzGold');
+    }
   };
 
   const onPass = () => {
@@ -189,7 +210,21 @@ export default function ButterflyScreen({ navigation }) {
                 <Ionicons name="heart" size={30} color="#fff" />
               </Pressable>
             </View>
-            <Pressable onPress={fly} style={{ alignSelf: 'center', marginTop: 16 }}>
+
+            {/* Instant Chat — Muzz signature: skip matching, chat right away */}
+            <Pressable onPress={onInstantChat} style={styles.instantBtn}>
+              <Ionicons name="flash" size={16} color={M.gold} />
+              <Text style={styles.instantText}>
+                Instant Chat{me.gold ? '' : ' · 1 free today'}
+              </Text>
+            </Pressable>
+
+            {!me.gold && (
+              <Text style={styles.likesLeft}>
+                {likesRemaining()} of 5 free likes left · resets every 12h
+              </Text>
+            )}
+            <Pressable onPress={fly} style={{ alignSelf: 'center', marginTop: 10 }}>
               <Text style={styles.linkText}>Not feeling it? Show me another →</Text>
             </Pressable>
           </Animated.View>
@@ -320,6 +355,13 @@ const styles = StyleSheet.create({
   reasonRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
   reasonText: { ...TYPE.body, flex: 1, fontWeight: '600' },
   actions: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 18, marginTop: 22 },
+  instantBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
+    alignSelf: 'center', marginTop: 16, paddingHorizontal: 18, paddingVertical: 11,
+    borderRadius: RADIUS.pill, backgroundColor: '#FFF7E0', borderWidth: 1, borderColor: '#F6E4A8',
+  },
+  instantText: { color: '#8A6D00', fontWeight: '800', fontSize: 13.5 },
+  likesLeft: { ...TYPE.caption, color: M.textMuted, textAlign: 'center', marginTop: 12 },
   actBtn: { alignItems: 'center', justifyContent: 'center', ...SHADOW.soft },
   passBtn: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#fff', borderWidth: 1.5, borderColor: M.border },
   superBtn: { width: 52, height: 52, borderRadius: 26, backgroundColor: M.blue },

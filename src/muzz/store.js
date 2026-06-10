@@ -21,7 +21,16 @@ const initialState = {
   superLikes: 3,
   boosts: 1,
   lastPickTs: 0,
+  // Free-tier limits (mirrors real Muzz: 5 likes / 12h, 1 instant chat / day)
+  likeWindowStart: 0,
+  likesInWindow: 0,
+  instantChatDay: '',
+  instantChatsUsed: 0,
 };
+
+export const FREE_LIKES_PER_WINDOW = 5;
+export const LIKE_WINDOW_MS = 12 * 3600000;
+export const FREE_INSTANT_CHATS_PER_DAY = 1;
 
 export function MuzzProvider({ children }) {
   const [state, setState] = useState(initialState);
@@ -69,8 +78,40 @@ export function MuzzProvider({ children }) {
         ? { ...s.chats, [personId]: [] }
         : s.chats;
       const seen = s.seen.includes(personId) ? s.seen : [...s.seen, personId];
-      return { ...s, feedback, matches, chats, seen };
+      // Track the rolling 12h like window (free tier)
+      const now = Date.now();
+      const windowExpired = now - s.likeWindowStart > LIKE_WINDOW_MS;
+      const likeWindowStart = windowExpired ? now : s.likeWindowStart;
+      const likesInWindow = windowExpired ? 1 : s.likesInWindow + 1;
+      return { ...s, feedback, matches, chats, seen, likeWindowStart, likesInWindow };
     });
+  }, [update]);
+
+  // Likes remaining in the current 12h window (Infinity on Gold)
+  const likesRemaining = useCallback(() => {
+    if (state.me.gold) return Infinity;
+    if (Date.now() - state.likeWindowStart > LIKE_WINDOW_MS) return FREE_LIKES_PER_WINDOW;
+    return Math.max(0, FREE_LIKES_PER_WINDOW - state.likesInWindow);
+  }, [state.me.gold, state.likeWindowStart, state.likesInWindow]);
+
+  // Instant Chat: skip matching, open a chat directly. 1 free per day.
+  const useInstantChat = useCallback((personId) => {
+    const today = new Date().toDateString();
+    let allowed = false;
+    update((s) => {
+      const used = s.instantChatDay === today ? s.instantChatsUsed : 0;
+      allowed = s.me.gold || used < FREE_INSTANT_CHATS_PER_DAY;
+      if (!allowed) return s;
+      return {
+        ...s,
+        instantChatDay: today,
+        instantChatsUsed: used + 1,
+        matches: s.matches.includes(personId) ? s.matches : [...s.matches, personId],
+        chats: s.chats[personId] ? s.chats : { ...s.chats, [personId]: [] },
+        seen: s.seen.includes(personId) ? s.seen : [...s.seen, personId],
+      };
+    });
+    return allowed;
   }, [update]);
 
   const passPerson = useCallback((personId) => {
@@ -111,7 +152,8 @@ export function MuzzProvider({ children }) {
     ...state, hydrated,
     setMe, completeOnboarding, likePerson, passPerson, markSeen,
     sendMessage, togglePostLike, addPost, update, resetAll,
-  }), [state, hydrated, setMe, completeOnboarding, likePerson, passPerson, markSeen, sendMessage, togglePostLike, addPost, update, resetAll]);
+    likesRemaining, useInstantChat,
+  }), [state, hydrated, setMe, completeOnboarding, likePerson, passPerson, markSeen, sendMessage, togglePostLike, addPost, update, resetAll, likesRemaining, useInstantChat]);
 
   return <MuzzContext.Provider value={value}>{children}</MuzzContext.Provider>;
 }
