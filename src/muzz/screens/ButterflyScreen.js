@@ -92,9 +92,16 @@ export default function ButterflyScreen({ navigation }) {
     <View style={styles.container}>
       <LinearGradient colors={['#FBF7FF', '#FFFFFF']} style={StyleSheet.absoluteFill} />
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <View>
-          <Text style={styles.brand}>Butterfly</Text>
-          <Text style={styles.subBrand}>Your AI matchmaker</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {navigation.canGoBack() && (
+            <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
+              <Ionicons name="chevron-back" size={28} color={M.text} />
+            </Pressable>
+          )}
+          <View>
+            <Text style={styles.brand}>Butterfly picks</Text>
+            <Text style={styles.subBrand}>Your AI matchmaker</Text>
+          </View>
         </View>
         <Pressable onPress={() => navigation.navigate('MuzzGold')} style={styles.goldBtn}>
           <Ionicons name="diamond" size={14} color={M.gold} />
@@ -316,7 +323,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end',
     paddingHorizontal: SPACE.xl, paddingBottom: 12,
   },
-  brand: { fontSize: 28, fontWeight: '900', color: M.text, letterSpacing: -0.6 },
+  backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', marginRight: 4, marginLeft: -8 },
+  brand: { fontSize: 26, fontWeight: '900', color: M.text, letterSpacing: -0.6 },
   subBrand: { ...TYPE.caption, color: M.butterfly, marginTop: 1 },
   goldBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#FFF7E0', paddingHorizontal: 12, paddingVertical: 7, borderRadius: RADIUS.pill, borderWidth: 1, borderColor: '#F6E4A8' },
   goldText: { color: '#B8860B', fontWeight: '800', fontSize: 13 },

@@ -18,7 +18,7 @@ export default function MatchesScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const muzz = useMuzz();
   const { me, matches, likedYou, feedback, likePerson } = muzz;
-  const [tab, setTab] = useState('matches');
+  const [tab, setTab] = useState('likes');
 
   const matchPeople = useMemo(() => matches.map(getPerson).filter(Boolean), [matches]);
   const likedYouPeople = useMemo(
@@ -29,7 +29,7 @@ export default function MatchesScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <Text style={styles.title}>Matches</Text>
+        <Text style={styles.title}>Likes You</Text>
         <Pressable onPress={() => navigation.navigate('MuzzGold')} style={styles.goldBtn}>
           <Ionicons name="flame" size={15} color={M.primary} />
           <Text style={styles.goldText}>Boost</Text>
@@ -37,8 +37,8 @@ export default function MatchesScreen({ navigation }) {
       </View>
 
       <View style={styles.tabs}>
-        <Tab label={`Matches`} count={matchPeople.length} active={tab === 'matches'} onPress={() => setTab('matches')} />
         <Tab label={`Likes you`} count={likedYouPeople.length} active={tab === 'likes'} onPress={() => setTab('likes')} />
+        <Tab label={`Matches`} count={matchPeople.length} active={tab === 'matches'} onPress={() => setTab('matches')} />
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
@@ -48,7 +48,7 @@ export default function MatchesScreen({ navigation }) {
               icon="heart"
               title="No matches yet"
               sub="Let your butterfly fly — it's already found people for you."
-              cta="Open Butterfly" onPress={() => navigation.navigate('MuzzTabs', { screen: 'Butterfly' })}
+              cta="See Butterfly picks" onPress={() => navigation.navigate('MuzzButterflyPicks')}
             />
           ) : (
             <View style={styles.list}>

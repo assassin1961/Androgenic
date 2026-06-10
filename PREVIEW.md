@@ -2,20 +2,22 @@
 
 Runtime-verified screenshots from the production web build (zero console errors).
 
-## Onboarding & AI Butterfly Home
-| Onboarding | Butterfly home |
-|------------|----------------|
-| ![](.preview/muzz-onboarding.png) | ![](.preview/muzz-butterfly-home.png) |
+## Discover (card stack) & Likes You
+| Discover | Likes You |
+|----------|-----------|
+| ![](.preview/muzz-discover.png) | ![](.preview/muzz-likes-you.png) |
 
-## Auto-Match Reveal & Matches
-| AI pick reveal | Matches |
-|----------------|---------|
-| ![](.preview/muzz-reveal.png) | ![](.preview/muzz-matches.png) |
+## AI Butterfly Picks & Auto-Match Reveal
+| AI picks | Reveal |
+|----------|--------|
+| ![](.preview/muzz-ai-picks.png) | ![](.preview/muzz-reveal.png) |
 
 ## Social Feed & Profile
 | Social | Profile |
 |--------|---------|
 | ![](.preview/muzz-social.png) | ![](.preview/muzz-profile.png) |
 
-## Gold Paywall
-![](.preview/muzz-gold.png)
+## Onboarding & Gold Paywall
+| Onboarding | Gold |
+|------------|------|
+| ![](.preview/muzz-onboarding.png) | ![](.preview/muzz-gold.png) |

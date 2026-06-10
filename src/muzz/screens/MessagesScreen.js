@@ -38,7 +38,7 @@ export default function MessagesScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <Text style={styles.title}>Messages</Text>
+        <Text style={styles.title}>Chats</Text>
         <Ionicons name="search" size={24} color={M.text} />
       </View>
 

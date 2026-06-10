@@ -4,11 +4,11 @@
 
 export const M = {
   // Brand
-  primary: '#F5325B',        // Muzz signature pink-red
-  primaryDark: '#D81E47',
-  primaryLight: '#FF6E8E',
-  primarySoft: '#FFE7EC',    // tint backgrounds / chips
-  primaryGlow: 'rgba(245,50,91,0.30)',
+  primary: '#FB406C',        // Muzz signature hot pink
+  primaryDark: '#E22B57',
+  primaryLight: '#FF7BA0',
+  primarySoft: '#FFE9EF',    // tint backgrounds / chips
+  primaryGlow: 'rgba(251,64,108,0.30)',
 
   // Butterfly accent (AI feature)
   butterfly: '#8B5CF6',
@@ -51,8 +51,8 @@ export const M = {
 };
 
 export const GRAD = {
-  primary: ['#FF5C7C', '#F5325B', '#E11D48'],
-  primarySoft: ['#FF8FA8', '#F5325B'],
+  primary: ['#FF6B93', '#FB406C', '#E22B57'],
+  primarySoft: ['#FF8FA8', '#FB406C'],
   butterfly: ['#A78BFA', '#8B5CF6', '#7C3AED'],
   butterflyPink: ['#C084FC', '#F5325B'],
   gold: ['#FFD86B', '#F5B400'],
@@ -81,7 +81,7 @@ export const SHADOW = {
     elevation: 3,
   },
   primary: {
-    shadowColor: '#F5325B',
+    shadowColor: '#FB406C',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.35,
     shadowRadius: 18,

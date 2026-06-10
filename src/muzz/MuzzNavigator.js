@@ -4,15 +4,15 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path, Circle } from 'react-native-svg';
 
-import { M, GRAD, SHADOW } from './theme';
+import { M } from './theme';
 import { MuzzProvider, useMuzz } from './store';
 import * as H from './haptics';
 
 import OnboardingScreen from './screens/OnboardingScreen';
+import DiscoverScreen from './screens/DiscoverScreen';
 import ButterflyScreen from './screens/ButterflyScreen';
 import ExploreScreen from './screens/ExploreScreen';
 import MatchesScreen from './screens/MatchesScreen';
@@ -41,11 +41,12 @@ function ButterflyGlyph({ color = '#fff', size = 26 }) {
   );
 }
 
+// Muzz-style flat tab bar: 5 even tabs, pink active state, no center FAB.
 const TABS = [
-  { key: 'Butterfly', icon: 'butterfly', label: 'Butterfly' },
-  { key: 'Matches', icon: 'heart', label: 'Matches' },
-  { key: 'Social', icon: 'planet', label: 'Social' },
-  { key: 'Messages', icon: 'chatbubble', label: 'Chats' },
+  { key: 'Discover', icon: 'glyph', label: 'Discover' },
+  { key: 'LikesYou', icon: 'heart', label: 'Likes You' },
+  { key: 'Social', icon: 'people', label: 'Social' },
+  { key: 'Messages', icon: 'chatbubble-ellipses', label: 'Chats' },
   { key: 'Profile', icon: 'person', label: 'Profile' },
 ];
 
@@ -55,24 +56,18 @@ function TabBar({ active, onChange, badges }) {
     <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
       {TABS.map((t) => {
         const isActive = active === t.key;
-        const isCenter = t.key === 'Butterfly';
-        if (isCenter) {
-          return (
-            <Pressable key={t.key} onPress={() => { H.tap(); onChange(t.key); }} style={styles.centerWrap}>
-              <LinearGradient colors={GRAD.butterfly} style={[styles.centerBtn, isActive && SHADOW.butterfly]}>
-                <ButterflyGlyph color="#fff" size={28} />
-              </LinearGradient>
-              <Text style={[styles.tabLabel, { color: isActive ? M.butterfly : M.textMuted }]}>{t.label}</Text>
-            </Pressable>
-          );
-        }
+        const color = isActive ? M.primary : M.textMuted;
         return (
           <Pressable key={t.key} onPress={() => { H.tap(); onChange(t.key); }} style={styles.tab}>
             <View>
-              <Ionicons name={isActive ? t.icon : `${t.icon}-outline`} size={25} color={isActive ? M.primary : M.textMuted} />
+              {t.icon === 'glyph' ? (
+                <ButterflyGlyph color={color} size={25} />
+              ) : (
+                <Ionicons name={isActive ? t.icon : `${t.icon}-outline`} size={25} color={color} />
+              )}
               {badges[t.key] > 0 && <View style={styles.badge}><Text style={styles.badgeText}>{badges[t.key] > 9 ? '9+' : badges[t.key]}</Text></View>}
             </View>
-            <Text style={[styles.tabLabel, { color: isActive ? M.primary : M.textMuted }]}>{t.label}</Text>
+            <Text style={[styles.tabLabel, { color }]}>{t.label}</Text>
           </Pressable>
         );
       })}
@@ -81,13 +76,13 @@ function TabBar({ active, onChange, badges }) {
 }
 
 function MuzzTabs({ navigation, route }) {
-  const [active, setActive] = useState(route?.params?.screen || 'Butterfly');
+  const [active, setActive] = useState(route?.params?.screen || 'Discover');
   const { matches, chats, likedYou } = useMuzz();
 
   const unreadChats = matches.filter((id) => (chats[id] || []).some((m) => m.sender !== 'me' && !m.read)).length;
   const newMatchCount = matches.filter((id) => !(chats[id] || []).length).length;
   const badges = {
-    Matches: likedYou.filter((id) => !matches.includes(id)).length,
+    LikesYou: likedYou.filter((id) => !matches.includes(id)).length,
     Messages: unreadChats + newMatchCount,
   };
 
@@ -95,8 +90,8 @@ function MuzzTabs({ navigation, route }) {
   return (
     <View style={{ flex: 1, backgroundColor: M.bg }}>
       <View style={{ flex: 1 }}>
-        {active === 'Butterfly' && <ButterflyScreen {...screenProps} />}
-        {active === 'Matches' && <MatchesScreen {...screenProps} />}
+        {active === 'Discover' && <DiscoverScreen {...screenProps} />}
+        {active === 'LikesYou' && <MatchesScreen {...screenProps} />}
         {active === 'Social' && <SocialScreen {...screenProps} />}
         {active === 'Messages' && <MessagesScreen {...screenProps} />}
         {active === 'Profile' && <ProfileScreen {...screenProps} />}
@@ -117,6 +112,7 @@ function Root() {
         ) : (
           <>
             <Stack.Screen name="MuzzTabs" component={MuzzTabs} />
+            <Stack.Screen name="MuzzButterflyPicks" component={ButterflyScreen} />
             <Stack.Screen name="MuzzExplore" component={ExploreScreen} />
             <Stack.Screen name="MuzzChat" component={ChatScreen} />
             <Stack.Screen name="MuzzProfileDetail" component={ProfileDetailScreen} />
@@ -150,8 +146,6 @@ const styles = StyleSheet.create({
     ...Platform.select({ web: { boxShadow: '0 -2px 16px rgba(0,0,0,0.05)' } }),
   },
   tab: { flex: 1, alignItems: 'center', gap: 3 },
-  centerWrap: { flex: 1, alignItems: 'center', marginTop: -22 },
-  centerBtn: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', borderWidth: 4, borderColor: M.bg },
   tabLabel: { fontSize: 10.5, fontWeight: '700' },
   badge: { position: 'absolute', top: -5, right: -9, minWidth: 17, height: 17, borderRadius: 9, backgroundColor: M.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 1.5, borderColor: M.bg },
   badgeText: { color: '#fff', fontWeight: '800', fontSize: 9.5 },
