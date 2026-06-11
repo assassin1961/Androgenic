@@ -7,12 +7,17 @@ A highly interactive, single-page portfolio showcasing luxury homes sold across
 
 **Highlights**
 
+- 12 bespoke "blue-hour" architectural illustrations — one per sold home, each
+  accurate to its story (Margalla Hills, infinity pool, colonial verandas, orchard…)
+- Hand-drawn SVG panoramas: Faisal Mosque dusk skyline (hero) and
+  Badshahi Mosque / Minar-e-Pakistan night skyline (contact)
 - Cinematic preloader, custom cursor, magnetic buttons, scroll-progress bar
 - Hero with staggered headline reveal, parallax background and animated counters
 - Filterable sold-homes gallery (city + plot size) with animated transitions
 - Story lightbox for every home, auto-playing testimonial slider, marquee of addresses
-- Fully responsive, and degrades gracefully if CDNs/photos are unreachable
-  (elegant gold line-art villas swap in automatically)
+- WhatsApp lead-capture button, fully responsive, zero external image dependencies
+- SEO-ready: JSON-LD RealEstateAgent structured data, Open Graph & Twitter cards,
+  canonical URL, sitemap.xml, robots.txt, SVG favicon
 
 ## Run it
 
@@ -33,7 +38,7 @@ folder `/portfolio` (or copy this folder to the repo root of a `gh-pages` branch
 ### About
 ![About](.preview/02-about.png)
 
-### Sold Portfolio (with offline fallback art — real visitors see photographs)
+### Sold Portfolio — bespoke illustration per home
 ![Portfolio](.preview/03-portfolio.png)
 
 ### Filtered — Lahore

@@ -13,84 +13,84 @@ const PROPERTIES = [
     title: "The Margalla View Manor",
     loc: "F-7/2, Islamabad", city: "islamabad", size: "kanal", sizeLabel: "2 Kanal",
     beds: 7, baths: 8, area: "10,890 sq ft", year: 2025, price: "PKR 38 Crore",
-    img: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=1600&auto=format&fit=crop",
+    img: "assets/villas/01-margalla-manor.svg",
     desc: "A landmark double-kanal estate beneath the Margalla Hills — imported Italian marble, a glass-walled drawing room, and a heated infinity pool overlooking Sector F-7's greenest avenue."
   },
   {
     title: "Villa Serena",
     loc: "DHA Phase 2, Islamabad", city: "islamabad", size: "kanal", sizeLabel: "1 Kanal",
     beds: 6, baths: 7, area: "5,400 sq ft", year: 2025, price: "PKR 14.5 Crore",
-    img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1600&auto=format&fit=crop",
+    img: "assets/villas/02-villa-serena.svg",
     desc: "Contemporary 1 Kanal masterpiece with a floating staircase, home cinema, and a landscaped courtyard that brings golden-hour light into every room. Sold above asking in eleven days."
   },
   {
     title: "The Enclave Residence",
     loc: "Bahria Enclave, Islamabad", city: "islamabad", size: "10-marla", sizeLabel: "10 Marla",
     beds: 5, baths: 6, area: "3,250 sq ft", year: 2024, price: "PKR 5.8 Crore",
-    img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1600&auto=format&fit=crop",
+    img: "assets/villas/03-enclave-residence.svg",
     desc: "A designer 10 Marla with double-height lounge, smart-home automation throughout, and a rooftop terrace framing the Enclave's signature hills."
   },
   {
     title: "Casa Blanca E-11",
     loc: "E-11/3, Islamabad", city: "islamabad", size: "5-marla", sizeLabel: "5 Marla",
     beds: 4, baths: 4, area: "2,100 sq ft", year: 2024, price: "PKR 3.2 Crore",
-    img: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=80&w=1600&auto=format&fit=crop",
+    img: "assets/villas/04-casa-blanca.svg",
     desc: "Proof that 5 Marla can feel limitless — white-render façade, Spanish porcelain floors, and a sunken lounge a young diplomat couple fell for at first viewing."
   },
   {
     title: "Gulberg Greens Farmhouse",
     loc: "Gulberg Greens, Islamabad", city: "islamabad", size: "kanal", sizeLabel: "4 Kanal",
     beds: 6, baths: 7, area: "9,000 sq ft", year: 2023, price: "PKR 22 Crore",
-    img: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1600&auto=format&fit=crop",
+    img: "assets/villas/05-gulberg-farmhouse.svg",
     desc: "A resort-style farmhouse estate — orchard of forty fruit trees, guest annexe, and an open-plan living pavilion built for three generations under one roof."
   },
   {
     title: "The Hilltop Modern",
     loc: "B-17 Multi Gardens, Islamabad", city: "islamabad", size: "10-marla", sizeLabel: "10 Marla",
     beds: 5, baths: 5, area: "3,100 sq ft", year: 2023, price: "PKR 3.9 Crore",
-    img: "https://images.unsplash.com/photo-1605146769289-440113cc3d00?q=80&w=1600&auto=format&fit=crop",
+    img: "assets/villas/06-hilltop-modern.svg",
     desc: "Sharp modernist lines and full-height glazing on B-17's highest street — sold to an overseas family entirely over video walkthroughs."
   },
   {
     title: "Phase 6 Palazzo",
     loc: "DHA Phase 6, Lahore", city: "lahore", size: "kanal", sizeLabel: "1 Kanal",
     beds: 6, baths: 7, area: "5,800 sq ft", year: 2025, price: "PKR 13 Crore",
-    img: "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?q=80&w=1600&auto=format&fit=crop",
+    img: "assets/villas/07-phase6-palazzo.svg",
     desc: "Classical façade, contemporary heart. Twin kitchens, a cigar lounge, and Lahore's most photographed front elevation of 2025."
   },
   {
     title: "The Gulberg Heritage House",
     loc: "Gulberg III, Lahore", city: "lahore", size: "kanal", sizeLabel: "2 Kanal",
     beds: 7, baths: 8, area: "11,200 sq ft", year: 2024, price: "PKR 34 Crore",
-    img: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1600&auto=format&fit=crop",
+    img: "assets/villas/08-gulberg-heritage.svg",
     desc: "A storied Gulberg address reimagined — original 1970s bones restored around a new glass atrium, pool pavilion, and staff wing. A legacy sale handled in complete discretion."
   },
   {
     title: "Bahria Orchard Villa",
     loc: "Bahria Town Sector C, Lahore", city: "lahore", size: "10-marla", sizeLabel: "10 Marla",
     beds: 5, baths: 6, area: "3,400 sq ft", year: 2024, price: "PKR 4.65 Crore",
-    img: "https://images.unsplash.com/photo-1572120360610-d971b9d7767c?q=80&w=1600&auto=format&fit=crop",
+    img: "assets/villas/09-bahria-orchard.svg",
     desc: "Crisp white contemporary with a courtyard olive tree at its centre. Listed at 4 crore by others — closed at 4.65 after a two-week bidding strategy."
   },
   {
     title: "Model Town Estate",
     loc: "Model Town Block C, Lahore", city: "lahore", size: "kanal", sizeLabel: "1 Kanal",
     beds: 6, baths: 6, area: "6,100 sq ft", year: 2023, price: "PKR 16 Crore",
-    img: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1600&auto=format&fit=crop",
+    img: "assets/villas/10-model-town.svg",
     desc: "One of Model Town's coveted corner kanals — mature gardens, colonial verandas, and a library that smells of old Lahore. Passed to its next custodian family."
   },
   {
     title: "Lake City Linear House",
     loc: "Lake City M-3, Lahore", city: "lahore", size: "10-marla", sizeLabel: "10 Marla",
     beds: 5, baths: 5, area: "3,300 sq ft", year: 2025, price: "PKR 4.2 Crore",
-    img: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?q=80&w=1600&auto=format&fit=crop",
+    img: "assets/villas/11-lake-city.svg",
     desc: "Long, low and luminous — a golf-course-facing modern with cedar screens and a double-height gallery that sold at first open house."
   },
   {
     title: "The Phase 5 Courtyard",
     loc: "DHA Phase 5, Lahore", city: "lahore", size: "5-marla", sizeLabel: "5 Marla",
     beds: 3, baths: 4, area: "1,950 sq ft", year: 2024, price: "PKR 2.85 Crore",
-    img: "https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?q=80&w=1600&auto=format&fit=crop",
+    img: "assets/villas/12-phase5-courtyard.svg",
     desc: "A jewel-box 5 Marla wrapped around a private courtyard — terrazzo floors, brass details, and the highest per-marla price on its street that year."
   }
 ];
