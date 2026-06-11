@@ -1,27 +1,40 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { M, GRAD, RADIUS, SHADOW, gradFor } from '../theme';
+import { mediaUrl } from '../api';
 import * as H from '../haptics';
 
-// ── Photo placeholder: initial on a deterministic gradient ───────────
-// Pass `silhouette` (an icon size) to render a soft person silhouette
-// instead of the initial — used for large "photo" surfaces like cards.
-export function PhotoTile({ seed = '', name = '', style, rounded = RADIUS.lg, gradient, children, dim = false, silhouette }) {
+// ── Photo surface ────────────────────────────────────────────────────
+// Renders a real image when `uri` is given, otherwise a deterministic
+// gradient with a soft person silhouette (`silhouette`) or initial.
+export function PhotoTile({ seed = '', name = '', style, rounded = RADIUS.lg, gradient, children, dim = false, silhouette, uri }) {
   const g = gradient || gradFor(seed || name);
   const initial = (name || '?').trim().charAt(0).toUpperCase();
+  const src = uri ? mediaUrl(uri) : null;
   return (
     <View style={[{ borderRadius: rounded, overflow: 'hidden', backgroundColor: g[1] }, style]}>
-      <LinearGradient colors={g} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-      {silhouette ? (
-        <View style={styles.silhouette}>
-          <Ionicons name="person" size={silhouette} color="rgba(255,255,255,0.22)" />
-        </View>
-      ) : !children && (
-        <View style={styles.center}>
-          <Text style={styles.initial}>{initial}</Text>
-        </View>
+      {src ? (
+        <Image source={{ uri: src }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+      ) : (
+        <>
+          <LinearGradient colors={g} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+          {/* soft mesh accent for depth */}
+          <LinearGradient
+            colors={['rgba(255,255,255,0.18)', 'transparent', 'rgba(0,0,0,0.10)']}
+            start={{ x: 1, y: 0 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill}
+          />
+          {silhouette ? (
+            <View style={styles.silhouette}>
+              <Ionicons name="person" size={silhouette} color="rgba(255,255,255,0.20)" />
+            </View>
+          ) : !children && (
+            <View style={styles.center}>
+              <Text style={styles.initial}>{initial}</Text>
+            </View>
+          )}
+        </>
       )}
       {dim && <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.18)' }]} />}
       {children}
@@ -30,12 +43,13 @@ export function PhotoTile({ seed = '', name = '', style, rounded = RADIUS.lg, gr
 }
 
 // ── Round avatar ─────────────────────────────────────────────────────
-export function Avatar({ name = '', seed, size = 44, ring, online }) {
+export function Avatar({ name = '', seed, size = 44, ring, online, uri }) {
   return (
     <View>
       <PhotoTile
         seed={seed || name}
         name={name}
+        uri={uri}
         rounded={size / 2}
         style={[{ width: size, height: size }, ring && { borderWidth: 2.5, borderColor: ring }]}
       />

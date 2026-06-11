@@ -1,8 +1,29 @@
 const express = require('express');
+const path = require('path');
+const multer = require('multer');
+const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
 const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
+
+// ── Photo uploads (shared multer config with scans) ──────────────────
+const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, '..', 'uploads');
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+  filename: (req, file, cb) => cb(null, `${uuidv4()}${path.extname(file.originalname) || '.jpg'}`),
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ok = ['.jpg', '.jpeg', '.png', '.webp'].includes(path.extname(file.originalname).toLowerCase());
+    cb(ok ? null : new Error('Only jpg, png, webp images allowed'), ok);
+  },
+});
+
+const photosFor = (userId) =>
+  db.prepare('SELECT id, url, position FROM dating_photos WHERE user_id = ? ORDER BY position ASC, id ASC').all(userId);
 
 const FREE_LIKES_PER_WINDOW = 5;
 const LIKE_WINDOW_MS = 12 * 3600000;
@@ -34,6 +55,7 @@ const parseProfile = (row) => row && ({
   verified: !!row.selfie_verified,
   gold: !!row.is_gold,
   online: !!row.online,
+  photos: photosFor(row.user_id).map((p) => p.url),
 });
 
 const getProfile = (userId) =>
@@ -188,14 +210,19 @@ router.get('/discover', authenticate, (req, res) => {
       WHERE p.user_id != ?
         AND p.gender != ?
         AND p.user_id NOT IN (SELECT target_id FROM dating_swipes WHERE user_id = ?)
-    `).all(req.userId, me.gender, req.userId);
+        AND p.user_id NOT IN (SELECT blocked_id FROM dating_blocks WHERE user_id = ?)
+    `).all(req.userId, me.gender, req.userId, req.userId);
     const ranked = rows
       .map(parseProfile)
       .map((person) => ({ person, ...scoreMatch(me, person) }))
       .sort((x, y) => y.score - x.score);
+    const lim = getLimits(req.userId);
     res.json({
       candidates: ranked,
       likesRemaining: me.gold ? -1 : likesRemaining(req.userId, false),
+      boostActive: lim.boost_until > Date.now(),
+      boostUntil: lim.boost_until,
+      superLikes: me.gold ? -1 : lim.super_likes,
     });
   } catch (err) {
     console.error('Discover error:', err);
@@ -476,6 +503,122 @@ router.post('/social/posts/:id/comments', authenticate, (req, res) => {
     res.status(201).json({ id: r.lastInsertRowid });
   } catch (err) {
     console.error('Create comment error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ── Photos ───────────────────────────────────────────────────────────
+
+// POST /api/dating/photos — multipart "image" → adds a profile photo
+router.post('/photos', authenticate, upload.single('image'), (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Image file required' });
+    const url = `/uploads/${req.file.filename}`;
+    const pos = db.prepare('SELECT COALESCE(MAX(position), -1) + 1 AS p FROM dating_photos WHERE user_id = ?').get(req.userId).p;
+    const r = db.prepare('INSERT INTO dating_photos (user_id, url, position) VALUES (?, ?, ?)').run(req.userId, url, pos);
+    res.status(201).json({ id: r.lastInsertRowid, url, photos: photosFor(req.userId) });
+  } catch (err) {
+    console.error('Photo upload error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// DELETE /api/dating/photos/:id
+router.delete('/photos/:id', authenticate, (req, res) => {
+  try {
+    db.prepare('DELETE FROM dating_photos WHERE id = ? AND user_id = ?').run(req.params.id, req.userId);
+    res.json({ photos: photosFor(req.userId) });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ── Message reactions ────────────────────────────────────────────────
+
+// POST /api/dating/messages/:id/react { emoji }  (empty emoji clears)
+router.post('/messages/:id/react', authenticate, (req, res) => {
+  try {
+    const { emoji } = req.body || {};
+    const msg = db.prepare('SELECT * FROM dating_messages WHERE id = ?').get(req.params.id);
+    if (!msg) return res.status(404).json({ error: 'Message not found' });
+    const m = db.prepare('SELECT * FROM dating_matches WHERE id = ?').get(msg.match_id);
+    if (!m || (m.user_a !== req.userId && m.user_b !== req.userId)) {
+      return res.status(403).json({ error: 'Not your conversation' });
+    }
+    if (!emoji) {
+      db.prepare('DELETE FROM dating_reactions WHERE message_id = ? AND user_id = ?').run(req.params.id, req.userId);
+    } else {
+      db.prepare(`
+        INSERT INTO dating_reactions (message_id, user_id, emoji) VALUES (?, ?, ?)
+        ON CONFLICT(message_id, user_id) DO UPDATE SET emoji = excluded.emoji
+      `).run(req.params.id, req.userId, emoji);
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('React error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ── Boost · Super Like · Roses ───────────────────────────────────────
+
+// POST /api/dating/boost — activate a 30-minute boost
+router.post('/boost', authenticate, (req, res) => {
+  try {
+    const until = Date.now() + 30 * 60000;
+    getLimits(req.userId);
+    db.prepare('UPDATE dating_limits SET boost_until = ? WHERE user_id = ?').run(until, req.userId);
+    res.json({ boostUntil: until });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /api/dating/super-like { targetId, note }
+router.post('/super-like', authenticate, (req, res) => {
+  try {
+    const { targetId, note } = req.body || {};
+    if (!targetId) return res.status(400).json({ error: 'targetId required' });
+    const me = getProfile(req.userId);
+    const lim = getLimits(req.userId);
+    if (!me.gold && lim.super_likes <= 0) {
+      return res.status(429).json({ error: 'Out of Super Likes', upgradeRequired: true });
+    }
+    if (!me.gold) {
+      db.prepare('UPDATE dating_limits SET super_likes = super_likes - 1 WHERE user_id = ?').run(req.userId);
+    }
+    db.prepare(`
+      INSERT INTO dating_swipes (user_id, target_id, action, is_super, note) VALUES (?, ?, 'like', 1, ?)
+      ON CONFLICT(user_id, target_id) DO UPDATE SET action = 'like', is_super = 1, note = excluded.note
+    `).run(req.userId, targetId, note || null);
+    // Super likes are very likely to match in the demo (bots always match)
+    const targetIsBot = db.prepare('SELECT is_bot FROM dating_profiles WHERE user_id = ?').get(targetId);
+    const theirLike = db.prepare("SELECT 1 FROM dating_swipes WHERE user_id = ? AND target_id = ? AND action = 'like'").get(targetId, req.userId);
+    let match = null;
+    if (theirLike || (targetIsBot && targetIsBot.is_bot)) match = createMatch(req.userId, targetId, 'super');
+    res.json({ match: !!match, matchId: match ? match.id : null, superLikesLeft: me.gold ? -1 : Math.max(0, lim.super_likes - 1) });
+  } catch (err) {
+    console.error('Super like error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ── Safety: block & report ───────────────────────────────────────────
+
+// POST /api/dating/block { targetId, reason }
+router.post('/block', authenticate, (req, res) => {
+  try {
+    const { targetId, reason } = req.body || {};
+    if (!targetId) return res.status(400).json({ error: 'targetId required' });
+    db.prepare(`
+      INSERT INTO dating_blocks (user_id, blocked_id, reason) VALUES (?, ?, ?)
+      ON CONFLICT(user_id, blocked_id) DO UPDATE SET reason = excluded.reason
+    `).run(req.userId, targetId, reason || null);
+    // Remove any match between the two
+    db.prepare('DELETE FROM dating_matches WHERE (user_a = ? AND user_b = ?) OR (user_a = ? AND user_b = ?)')
+      .run(req.userId, targetId, targetId, req.userId);
+    res.json({ ok: true });
+  } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
 });

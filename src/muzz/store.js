@@ -20,8 +20,20 @@ const initialState = {
   postLikes: {},       // local like toggles for social posts
   butterflyAuto: true, // auto-match toggle
   superLikes: 3,
+  roses: 1,
   boosts: 1,
+  boostUntil: 0,
   lastPickTs: 0,
+  reactions: {},   // { 'personId:msgId': '❤️' }
+  filters: {
+    maxDistance: 50,
+    ageMin: 22,
+    ageMax: 35,
+    sect: 'Any',
+    prayerLevel: 'Any',
+    ethnicity: 'Any',
+    verifiedOnly: false,
+  },
   // Free-tier limits (mirrors real Muzz: 5 likes / 12h, 1 instant chat / day)
   likeWindowStart: 0,
   likesInWindow: 0,
@@ -160,6 +172,54 @@ export function MuzzProvider({ children }) {
     return msg;
   }, [update]);
 
+  const addPhoto = useCallback((uri) => {
+    update((s) => ({ ...s, me: { ...s.me, photos: [...(s.me.photos || []), uri] } }));
+  }, [update]);
+
+  const removePhoto = useCallback((uri) => {
+    update((s) => ({ ...s, me: { ...s.me, photos: (s.me.photos || []).filter((p) => p !== uri) } }));
+  }, [update]);
+
+  const setFilters = useCallback((patch) => {
+    update((s) => ({ ...s, filters: { ...s.filters, ...patch } }));
+  }, [update]);
+
+  const reactToMessage = useCallback((personId, msgId, emoji) => {
+    const key = `${personId}:${msgId}`;
+    update((s) => {
+      const reactions = { ...s.reactions };
+      if (!emoji || reactions[key] === emoji) delete reactions[key];
+      else reactions[key] = emoji;
+      return { ...s, reactions };
+    });
+    api.mirror(async () => {
+      const { matches: sm } = await api.matches();
+      const m = sm.find((x) => api.toLocalId(x.person.id) === personId);
+      if (m) {
+        const { messages } = await api.getMessages(m.matchId);
+        const target = messages[messages.length - 1];
+        if (target) await api.reactToMessage(target.id, emoji);
+      }
+    });
+  }, [update]);
+
+  const activateBoost = useCallback(() => {
+    const until = Date.now() + 30 * 60000;
+    update((s) => ({ ...s, boostUntil: until, boosts: Math.max(0, s.boosts - 1) }));
+    api.mirror(() => api.boost());
+    return until;
+  }, [update]);
+
+  const blockPerson = useCallback((personId, reason) => {
+    update((s) => ({
+      ...s,
+      matches: s.matches.filter((id) => id !== personId),
+      feedback: { ...s.feedback, [personId]: 'passed' },
+      seen: s.seen.includes(personId) ? s.seen : [...s.seen, personId],
+    }));
+    api.mirror(() => api.block(personId, reason));
+  }, [update]);
+
   const togglePostLike = useCallback((postId) => {
     update((s) => {
       const cur = s.postLikes[postId];
@@ -179,7 +239,8 @@ export function MuzzProvider({ children }) {
     setMe, completeOnboarding, likePerson, passPerson, undoSwipe, markSeen,
     sendMessage, togglePostLike, addPost, update, resetAll,
     likesRemaining, useInstantChat,
-  }), [state, hydrated, setMe, completeOnboarding, likePerson, passPerson, undoSwipe, markSeen, sendMessage, togglePostLike, addPost, update, resetAll, likesRemaining, useInstantChat]);
+    addPhoto, removePhoto, setFilters, reactToMessage, activateBoost, blockPerson,
+  }), [state, hydrated, setMe, completeOnboarding, likePerson, passPerson, undoSwipe, markSeen, sendMessage, togglePostLike, addPost, update, resetAll, likesRemaining, useInstantChat, addPhoto, removePhoto, setFilters, reactToMessage, activateBoost, blockPerson]);
 
   return <MuzzContext.Provider value={value}>{children}</MuzzContext.Provider>;
 }

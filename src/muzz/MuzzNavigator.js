@@ -20,6 +20,8 @@ import SocialScreen from './screens/SocialScreen';
 import MessagesScreen from './screens/MessagesScreen';
 import ChatScreen from './screens/ChatScreen';
 import ProfileDetailScreen from './screens/ProfileDetailScreen';
+import FiltersScreen from './screens/FiltersScreen';
+import CallScreen from './screens/CallScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import MatchRevealScreen from './screens/MatchRevealScreen';
 import GoldScreen from './screens/GoldScreen';
@@ -114,7 +116,9 @@ function Root() {
             <Stack.Screen name="MuzzTabs" component={MuzzTabs} />
             <Stack.Screen name="MuzzButterflyPicks" component={ButterflyScreen} />
             <Stack.Screen name="MuzzExplore" component={ExploreScreen} />
+            <Stack.Screen name="MuzzFilters" component={FiltersScreen} options={{ animation: 'slide_from_bottom' }} />
             <Stack.Screen name="MuzzChat" component={ChatScreen} />
+            <Stack.Screen name="MuzzCall" component={CallScreen} options={{ animation: 'fade' }} />
             <Stack.Screen name="MuzzProfileDetail" component={ProfileDetailScreen} />
             <Stack.Screen name="MuzzPost" component={PostScreen} />
             <Stack.Screen name="MuzzSettings" component={SettingsScreen} />

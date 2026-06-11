@@ -186,7 +186,33 @@ db.exec(`
     like_window_start INTEGER DEFAULT 0,
     likes_in_window INTEGER DEFAULT 0,
     instant_chat_day TEXT DEFAULT '',
-    instant_chats_used INTEGER DEFAULT 0
+    instant_chats_used INTEGER DEFAULT 0,
+    boost_until INTEGER DEFAULT 0,
+    super_likes INTEGER DEFAULT 3,
+    roses INTEGER DEFAULT 1
+  );
+
+  CREATE TABLE IF NOT EXISTS dating_photos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    url TEXT NOT NULL,
+    position INTEGER DEFAULT 0,
+    created_at INTEGER DEFAULT (strftime('%s','now') * 1000)
+  );
+
+  CREATE TABLE IF NOT EXISTS dating_reactions (
+    message_id INTEGER NOT NULL REFERENCES dating_messages(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    emoji TEXT NOT NULL,
+    PRIMARY KEY (message_id, user_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS dating_blocks (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    blocked_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    reason TEXT,
+    created_at INTEGER DEFAULT (strftime('%s','now') * 1000),
+    PRIMARY KEY (user_id, blocked_id)
   );
 
   CREATE INDEX IF NOT EXISTS idx_dating_swipes_user ON dating_swipes(user_id);
@@ -195,6 +221,19 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_dating_matches_b ON dating_matches(user_b);
   CREATE INDEX IF NOT EXISTS idx_dating_messages_match ON dating_messages(match_id, created_at);
   CREATE INDEX IF NOT EXISTS idx_dating_posts_date ON dating_posts(created_at);
+  CREATE INDEX IF NOT EXISTS idx_dating_photos_user ON dating_photos(user_id, position);
 `);
+
+// ── Lightweight migrations for columns added after initial release ────
+const cols = (table) => db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
+const ensure = (table, col, ddl) => {
+  if (!cols(table).includes(col)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+};
+ensure('dating_swipes', 'is_super', 'is_super INTEGER DEFAULT 0');
+ensure('dating_swipes', 'note', 'note TEXT');
+ensure('dating_messages', 'kind', "kind TEXT DEFAULT 'text'");
+ensure('dating_limits', 'boost_until', 'boost_until INTEGER DEFAULT 0');
+ensure('dating_limits', 'super_likes', 'super_likes INTEGER DEFAULT 3');
+ensure('dating_limits', 'roses', 'roses INTEGER DEFAULT 1');
 
 module.exports = db;

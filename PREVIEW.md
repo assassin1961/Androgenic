@@ -12,6 +12,9 @@ Runtime-verified screenshots from the production web build (zero console errors)
 |----------|--------|
 | ![](.preview/muzz-ai-picks.png) | ![](.preview/muzz-reveal.png) |
 
+## Chat — reactions, voice notes, calls
+![](.preview/muzz-chat.png)
+
 ## Social Feed & Profile
 | Social | Profile |
 |--------|---------|

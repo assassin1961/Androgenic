@@ -1,18 +1,31 @@
-import React, { useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions, Platform } from 'react-native';
+import React, { useMemo, useCallback, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Pressable, Dimensions, Platform, Modal, TextInput } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
-  FadeIn, useSharedValue, useAnimatedStyle, withTiming, withSpring,
+  FadeIn, FadeInUp, useSharedValue, useAnimatedStyle, withTiming, withSpring,
   interpolate, runOnJS, Easing,
 } from 'react-native-reanimated';
 import { M, GRAD, RADIUS, SPACE, SHADOW, TYPE, gradVariantFor } from '../theme';
-import { useMuzz } from '../store';
+import { useMuzz, getPerson } from '../store';
+import { PEOPLE } from '../data';
 import { rankMatches } from '../butterfly';
-import { PhotoTile, Verified } from '../components/ui';
+import { PhotoTile, Verified, GButton } from '../components/ui';
+import Stories from '../components/Stories';
 import Butterfly from '../components/Butterfly';
 import * as H from '../haptics';
+
+const matchesFilters = (p, f) => {
+  if (!f) return true;
+  if (p.distance > f.maxDistance) return false;
+  if (p.age < f.ageMin || p.age > f.ageMax) return false;
+  if (f.sect !== 'Any' && p.sect !== f.sect) return false;
+  if (f.prayerLevel !== 'Any' && p.prayerLevel !== f.prayerLevel) return false;
+  if (f.ethnicity !== 'Any' && p.ethnicity !== f.ethnicity) return false;
+  if (f.verifiedOnly && !p.verified) return false;
+  return true;
+};
 
 const { width, height } = Dimensions.get('window');
 const CARD_W = width - SPACE.lg * 2;
@@ -24,20 +37,56 @@ export default function DiscoverScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const muzz = useMuzz();
   const {
-    me, feedback, matches, butterflyAuto,
-    likePerson, passPerson, undoSwipe, likesRemaining, useInstantChat,
+    me, feedback, matches, butterflyAuto, filters, superLikes, boostUntil,
+    likePerson, passPerson, undoSwipe, likesRemaining, useInstantChat, activateBoost, update,
   } = muzz;
-  const [photoIdx, setPhotoIdx] = React.useState(0);
-  const [lastSwiped, setLastSwiped] = React.useState(null);
+  const [photoIdx, setPhotoIdx] = useState(0);
+  const [lastSwiped, setLastSwiped] = useState(null);
+  const [superTarget, setSuperTarget] = useState(null);
+  const [superNote, setSuperNote] = useState('');
+  const [showBoost, setShowBoost] = useState(false);
+  const [now, setNow] = useState(Date.now());
+
+  const boostActive = boostUntil > now;
+  useEffect(() => {
+    if (!boostActive) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [boostActive]);
 
   const stack = useMemo(
     () => rankMatches(me, feedback).filter(
       (m) => feedback[m.person.id] !== 'liked' && !matches.includes(m.person.id)
+        && matchesFilters(m.person, filters)
     ),
-    [me, feedback, matches]
+    [me, feedback, matches, filters]
   );
   const top = stack[0];
   const next = stack[1];
+
+  const onlinePeople = useMemo(
+    () => PEOPLE.filter((p) => p.online && !matches.includes(p.id)).slice(0, 8),
+    [matches]
+  );
+
+  const sendSuperLike = () => {
+    if (!superTarget) return;
+    if (!me.gold && superLikes <= 0) { setSuperTarget(null); navigation.navigate('MuzzGold'); return; }
+    const t = superTarget;
+    if (!me.gold) update((s) => ({ ...s, superLikes: Math.max(0, s.superLikes - 1) }));
+    likePerson(t.id, { mutual: true });
+    setSuperTarget(null);
+    setSuperNote('');
+    H.success();
+    navigation.navigate('MuzzMatchReveal', { personId: t.id, score: 99, superLike: true });
+  };
+
+  const doBoost = () => {
+    activateBoost();
+    setShowBoost(false);
+    H.success();
+  };
+  const boostLeft = boostActive ? Math.ceil((boostUntil - now) / 60000) : 0;
 
   const tx = useSharedValue(0);
 
@@ -114,18 +163,29 @@ export default function DiscoverScreen({ navigation }) {
             <Ionicons name="sparkles" size={15} color={M.butterfly} />
             <Text style={styles.aiBtnText}>AI picks</Text>
           </Pressable>
-          <Pressable onPress={() => { H.tap(); navigation.navigate('MuzzSettings'); }} style={styles.iconBtn}>
+          <Pressable onPress={() => { H.tap(); setShowBoost(true); }} style={styles.iconBtn}>
+            <Ionicons name={boostActive ? 'flash' : 'flash-outline'} size={23} color={boostActive ? M.primary : M.text} />
+          </Pressable>
+          <Pressable onPress={() => { H.tap(); navigation.navigate('MuzzFilters'); }} style={styles.iconBtn}>
             <Ionicons name="options-outline" size={24} color={M.text} />
           </Pressable>
         </View>
       </View>
 
-      {butterflyAuto && top && (
+      {/* Stories / moments rail */}
+      <Stories people={onlinePeople} me={me} />
+
+      {boostActive ? (
+        <Animated.View entering={FadeInUp} style={styles.boostBanner}>
+          <Ionicons name="flash" size={14} color="#fff" />
+          <Text style={styles.boostText}>You're boosted — top of the deck for {boostLeft} min</Text>
+        </Animated.View>
+      ) : butterflyAuto && top ? (
         <View style={styles.autoChip}>
           <Ionicons name="sparkles" size={12} color={M.butterfly} />
           <Text style={styles.autoChipText}>Sorted by your butterfly — top pick {top.score}% compatible</Text>
         </View>
-      )}
+      ) : null}
 
       {/* Card stack */}
       <View style={styles.deck}>
@@ -149,7 +209,7 @@ export default function DiscoverScreen({ navigation }) {
                 <View style={{ flex: 1, flexDirection: 'row' }}>
                   <Pressable style={{ flex: 1 }} onPress={() => { H.select(); setPhotoIdx((i) => Math.max(0, i - 1)); }} />
                   <Pressable style={{ flex: 1.2 }} onPress={() => { H.tap(); navigation.navigate('MuzzProfileDetail', { personId: top.person.id }); }} />
-                  <Pressable style={{ flex: 1 }} onPress={() => { H.select(); setPhotoIdx((i) => Math.min(2, i + 1)); }} />
+                  <Pressable style={{ flex: 1 }} onPress={() => { H.select(); setPhotoIdx((i) => Math.min((top.person.photos?.length || 3) - 1, i + 1)); }} />
                 </View>
               </View>
             </Animated.View>
@@ -157,37 +217,75 @@ export default function DiscoverScreen({ navigation }) {
         )}
       </View>
 
-      {/* Muzz-style circular action buttons: rewind · pass · instant · like */}
+      {/* Muzz-style circular action buttons: rewind · pass · super · instant · like */}
       {top && (
         <View style={styles.actions}>
           <Pressable onPress={rewind} style={[styles.actBtn, styles.rewindBtn, !lastSwiped && { opacity: 0.4 }]}>
-            <Ionicons name="arrow-undo" size={22} color={M.gold} />
+            <Ionicons name="arrow-undo" size={20} color={M.gold} />
           </Pressable>
           <Pressable onPress={() => swipe(-1)} style={[styles.actBtn, styles.passBtn]}>
-            <Ionicons name="close" size={32} color="#B9B6C3" />
+            <Ionicons name="close" size={30} color="#B9B6C3" />
+          </Pressable>
+          <Pressable onPress={() => { H.press(); setSuperTarget(top.person); }} style={[styles.actBtn, styles.superBtn]}>
+            <Ionicons name="star" size={22} color="#fff" />
           </Pressable>
           <Pressable onPress={instant} style={[styles.actBtn, styles.instantBtn]}>
-            <Ionicons name="flash" size={24} color="#fff" />
+            <Ionicons name="flash" size={22} color="#fff" />
           </Pressable>
           <Pressable onPress={() => swipe(1)} style={[styles.actBtn, styles.likeBtn]}>
-            <Ionicons name="heart" size={32} color="#fff" />
+            <Ionicons name="heart" size={30} color="#fff" />
           </Pressable>
         </View>
       )}
-      {top && !me.gold && (
+      {top && (
         <Text style={styles.likesLeft}>
-          {remaining === Infinity ? '' : `${remaining} likes left · resets every 12h`}
+          {me.gold ? 'Unlimited likes · Gold' : `${remaining} likes · ${superLikes} super likes left`}
         </Text>
       )}
+
+      {/* Super Like note sheet */}
+      <Modal visible={!!superTarget} transparent animationType="fade" onRequestClose={() => setSuperTarget(null)}>
+        <Pressable style={styles.sheetBg} onPress={() => setSuperTarget(null)}>
+          <Animated.View entering={FadeInUp} style={[styles.sheet, { paddingBottom: insets.bottom + 18 }]}>
+            <View style={styles.superIcon}><Ionicons name="star" size={28} color="#fff" /></View>
+            <Text style={styles.sheetTitle}>Super Like {superTarget?.name}</Text>
+            <Text style={styles.sheetSub}>Stand out from the crowd — Super Likes are 3x more likely to match. Add a note to say why.</Text>
+            <TextInput
+              value={superNote} onChangeText={setSuperNote}
+              placeholder={`Hey ${superTarget?.name || ''}, your profile caught my eye because…`}
+              placeholderTextColor={M.textMuted} multiline style={styles.sheetInput}
+            />
+            <GButton label="Send Super Like" icon="star" gradient={[M.blue, '#2C6FD6']} onPress={sendSuperLike} style={{ alignSelf: 'stretch' }} />
+            <Pressable onPress={() => setSuperTarget(null)} style={{ marginTop: 12 }}><Text style={styles.sheetCancel}>Maybe later</Text></Pressable>
+          </Animated.View>
+        </Pressable>
+      </Modal>
+
+      {/* Boost sheet */}
+      <Modal visible={showBoost} transparent animationType="fade" onRequestClose={() => setShowBoost(false)}>
+        <Pressable style={styles.sheetBg} onPress={() => setShowBoost(false)}>
+          <Animated.View entering={FadeInUp} style={[styles.sheet, { paddingBottom: insets.bottom + 18 }]}>
+            <View style={[styles.superIcon, { backgroundColor: M.primary }]}><Ionicons name="flash" size={28} color="#fff" /></View>
+            <Text style={styles.sheetTitle}>{boostActive ? `Boosted for ${boostLeft} more min` : 'Boost your profile'}</Text>
+            <Text style={styles.sheetSub}>Be one of the top profiles in your area for 30 minutes and get seen by up to 10x more people.</Text>
+            {!boostActive && (
+              <GButton label={`Boost now · ${me.gold ? 'Free with Gold' : '1 boost'}`} icon="flash" onPress={doBoost} style={{ alignSelf: 'stretch' }} />
+            )}
+            <Pressable onPress={() => setShowBoost(false)} style={{ marginTop: 12 }}><Text style={styles.sheetCancel}>Close</Text></Pressable>
+          </Animated.View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
 
 function Card({ m, photoIdx = 0 }) {
   const p = m.person;
+  const photoCount = p.photos?.length || 3;
   return (
     <PhotoTile
       seed={p.id} name={p.name} rounded={RADIUS.xl} style={styles.card}
+      uri={p.photos?.[photoIdx]}
       gradient={gradVariantFor(p.id, photoIdx)} silhouette={300}
     >
       <LinearGradient
@@ -196,7 +294,7 @@ function Card({ m, photoIdx = 0 }) {
       />
       {/* photo pager dots */}
       <View style={styles.pager}>
-        {[0, 1, 2].map((i) => (
+        {[...Array(Math.min(5, photoCount))].map((_, i) => (
           <View key={i} style={[styles.pagerSeg, i === photoIdx && styles.pagerSegOn]} />
         ))}
       </View>
@@ -289,16 +387,36 @@ const styles = StyleSheet.create({
   },
   tagText: { color: '#fff', fontWeight: '700', fontSize: 12 },
   actions: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 22,
-    paddingTop: 12, paddingBottom: 4,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 14,
+    paddingTop: 10, paddingBottom: 2,
   },
   actBtn: { alignItems: 'center', justifyContent: 'center', ...SHADOW.soft },
-  rewindBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#fff', borderWidth: 1, borderColor: M.border },
-  passBtn: { width: 62, height: 62, borderRadius: 31, backgroundColor: '#fff', borderWidth: 1, borderColor: M.border },
-  instantBtn: { width: 52, height: 52, borderRadius: 26, backgroundColor: M.gold, ...SHADOW.card },
-  likeBtn: { width: 70, height: 70, borderRadius: 35, backgroundColor: M.primary, ...SHADOW.primary },
-  likesLeft: { ...TYPE.caption, color: M.textMuted, textAlign: 'center', marginBottom: 8 },
+  rewindBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#fff', borderWidth: 1, borderColor: M.border },
+  passBtn: { width: 58, height: 58, borderRadius: 29, backgroundColor: '#fff', borderWidth: 1, borderColor: M.border },
+  superBtn: { width: 50, height: 50, borderRadius: 25, backgroundColor: M.blue, ...SHADOW.card },
+  instantBtn: { width: 50, height: 50, borderRadius: 25, backgroundColor: M.gold, ...SHADOW.card },
+  likeBtn: { width: 64, height: 64, borderRadius: 32, backgroundColor: M.primary, ...SHADOW.primary },
+  likesLeft: { ...TYPE.caption, color: M.textMuted, textAlign: 'center', marginTop: 6, marginBottom: 8 },
+  boostBanner: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    alignSelf: 'center', paddingHorizontal: 14, paddingVertical: 6, borderRadius: RADIUS.pill,
+    backgroundColor: M.primary, marginBottom: 6,
+  },
+  boostText: { color: '#fff', fontWeight: '800', fontSize: 12 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: SPACE.xxl },
   emptyTitle: { ...TYPE.h1, marginTop: 14 },
   emptySub: { ...TYPE.soft, textAlign: 'center', marginTop: 8, fontSize: 15, lineHeight: 21 },
+  sheetBg: { flex: 1, backgroundColor: M.overlay, justifyContent: 'flex-end' },
+  sheet: {
+    backgroundColor: M.bg, borderTopLeftRadius: 26, borderTopRightRadius: 26,
+    padding: SPACE.xl, paddingTop: 24, alignItems: 'center',
+  },
+  superIcon: { width: 56, height: 56, borderRadius: 28, backgroundColor: M.blue, alignItems: 'center', justifyContent: 'center', ...SHADOW.card },
+  sheetTitle: { ...TYPE.h2, marginTop: 14, textAlign: 'center' },
+  sheetSub: { ...TYPE.soft, textAlign: 'center', marginTop: 6, marginBottom: 16, fontSize: 14, lineHeight: 20 },
+  sheetInput: {
+    alignSelf: 'stretch', backgroundColor: M.bgInput, borderRadius: RADIUS.md,
+    padding: 14, fontSize: 15, color: M.text, minHeight: 78, textAlignVertical: 'top', marginBottom: 16,
+  },
+  sheetCancel: { ...TYPE.body, color: M.textSoft, fontWeight: '700' },
 });

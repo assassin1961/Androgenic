@@ -11,19 +11,27 @@ import { useMuzz } from '../store';
 import { INTERESTS, VALUES } from '../data';
 import { PhotoTile, Verified, Chip, GButton, OButton } from '../components/ui';
 import Butterfly from '../components/Butterfly';
+import { pickAndUpload } from '../photos';
 import * as H from '../haptics';
 
 const { width } = Dimensions.get('window');
+const GRID_W = (width - SPACE.xl * 2 - 20) / 3;
 
 export default function ProfileScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const muzz = useMuzz();
-  const { me, matches, butterflyAuto, update, setMe, resetAll } = muzz;
+  const { me, matches, butterflyAuto, update, setMe, resetAll, addPhoto, removePhoto } = muzz;
   const [edit, setEdit] = useState(false);
   const [bio, setBio] = useState(me.bio);
   const [job, setJob] = useState(me.job);
   const [interests, setInterests] = useState(me.interests || []);
   const [values, setValues] = useState(me.values || []);
+
+  const photos = me.photos || [];
+  const addPhotoTap = async () => {
+    const uri = await pickAndUpload();
+    if (uri) { addPhoto(uri); H.success(); }
+  };
 
   const completeness = Math.min(100, Math.round(
     ((me.name ? 20 : 0) + (me.bio ? 20 : 0) + (me.job ? 15 : 0) +
@@ -46,7 +54,7 @@ export default function ProfileScreen({ navigation }) {
 
         {/* Hero card */}
         <View style={styles.heroCard}>
-          <PhotoTile seed="me" name={me.name || 'You'} rounded={RADIUS.lg} style={styles.heroPhoto}>
+          <PhotoTile seed="me" name={me.name || 'You'} uri={photos[0]} silhouette={150} rounded={RADIUS.lg} style={styles.heroPhoto}>
             <LinearGradient colors={['transparent', 'rgba(20,16,26,0.8)']} style={StyleSheet.absoluteFill} />
             <View style={styles.heroInfo}>
               <Text style={styles.heroName}>{me.name || 'Your name'}, {me.age}</Text>
@@ -126,6 +134,24 @@ export default function ProfileScreen({ navigation }) {
             <Pressable onPress={saveEdit}><Text style={styles.save}>Save</Text></Pressable>
           </View>
           <ScrollView contentContainerStyle={{ padding: SPACE.xl, paddingBottom: 60 }}>
+            <Text style={styles.label}>Photos</Text>
+            <View style={styles.photoGrid}>
+              {photos.map((uri, i) => (
+                <View key={uri + i} style={styles.photoCell}>
+                  <PhotoTile uri={uri} seed={uri} rounded={RADIUS.md} silhouette={40} style={StyleSheet.absoluteFill} />
+                  {i === 0 && <View style={styles.mainTag}><Text style={styles.mainTagText}>Main</Text></View>}
+                  <Pressable onPress={() => { removePhoto(uri); H.tap(); }} style={styles.photoRemove}>
+                    <Ionicons name="close" size={14} color="#fff" />
+                  </Pressable>
+                </View>
+              ))}
+              {photos.length < 6 && (
+                <Pressable onPress={addPhotoTap} style={[styles.photoCell, styles.photoAdd]}>
+                  <Ionicons name="add" size={28} color={M.primary} />
+                  <Text style={styles.photoAddText}>Add</Text>
+                </Pressable>
+              )}
+            </View>
             <Text style={styles.label}>Job</Text>
             <TextInput value={job} onChangeText={setJob} placeholder="Your occupation" placeholderTextColor={M.textMuted} style={styles.input} />
             <Text style={styles.label}>Bio</Text>
@@ -186,6 +212,13 @@ const styles = StyleSheet.create({
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },
   reset: { alignItems: 'center', marginTop: 24 },
   resetText: { ...TYPE.caption, color: M.textMuted },
+  photoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  photoCell: { width: GRID_W, height: GRID_W * 1.3, borderRadius: RADIUS.md, overflow: 'hidden', backgroundColor: M.bgSoft },
+  photoAdd: { alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: M.primary, borderStyle: 'dashed' },
+  photoAddText: { ...TYPE.caption, color: M.primary, fontWeight: '700', marginTop: 2 },
+  photoRemove: { position: 'absolute', top: 5, right: 5, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' },
+  mainTag: { position: 'absolute', bottom: 5, left: 5, backgroundColor: M.primary, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 7 },
+  mainTagText: { color: '#fff', fontWeight: '800', fontSize: 9 },
   editHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACE.xl, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: M.border },
   cancel: { ...TYPE.body, color: M.textSoft, fontWeight: '700' },
   editTitle: { ...TYPE.h3 },

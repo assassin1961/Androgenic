@@ -231,6 +231,7 @@ export const DEFAULT_ME = {
   interests: [], values: [], intention: 'Marriage',
   languages: ['English'],
   prompts: [],
+  photos: [],
   sect: 'Sunni', prayerLevel: 'Usually prays', ethnicity: 'Other', halalDiet: 'Mostly halal',
   waliEnabled: false,
   photoPrivacy: false,

@@ -114,6 +114,39 @@ export const getMessages = (matchId) => request(`/dating/matches/${matchId}/mess
 export const sendMessage = (matchId, body) =>
   request(`/dating/matches/${matchId}/messages`, { method: 'POST', body: { body } });
 
+export const superLike = (targetId, note) =>
+  request('/dating/super-like', { method: 'POST', body: { targetId: toServerId(targetId), note } });
+export const boost = () => request('/dating/boost', { method: 'POST' });
+export const reactToMessage = (messageId, emoji) =>
+  request(`/dating/messages/${messageId}/react`, { method: 'POST', body: { emoji } });
+export const block = (targetId, reason) =>
+  request('/dating/block', { method: 'POST', body: { targetId: toServerId(targetId), reason } });
+export const deletePhoto = (photoId) => request(`/dating/photos/${photoId}`, { method: 'DELETE' });
+
+// Upload a local photo (uri from image picker) as multipart form data.
+export async function uploadPhoto(uri) {
+  if (!BASE) throw new Error('API not configured');
+  await loadToken();
+  const form = new FormData();
+  if (uri.startsWith('data:') || uri.startsWith('blob:')) {
+    const blob = await (await fetch(uri)).blob();
+    form.append('image', blob, 'photo.jpg');
+  } else {
+    const name = uri.split('/').pop() || 'photo.jpg';
+    const ext = (name.split('.').pop() || 'jpg').toLowerCase();
+    form.append('image', { uri, name, type: `image/${ext === 'jpg' ? 'jpeg' : ext}` });
+  }
+  const res = await fetch(`${BASE}/api/dating/photos`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: form,
+  });
+  if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+  return res.json();
+}
+
+export const mediaUrl = (url) => (url && url.startsWith('/') ? `${BASE}${url}` : url);
+
 // ── Social ───────────────────────────────────────────────────────────
 
 export const getPosts = () => request('/dating/social/posts');
