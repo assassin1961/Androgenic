@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { M, GRAD, RADIUS, SPACE, SHADOW, TYPE } from '../theme';
+import { M, GRAD, RADIUS, SPACE, SHADOW, TYPE, gradVariantFor } from '../theme';
 import { useMuzz, getPerson } from '../store';
 import { scoreMatch, compatLabel } from '../butterfly';
 import { PhotoTile, Verified, Chip } from '../components/ui';
@@ -16,8 +16,10 @@ export default function ProfileDetailScreen({ route, navigation }) {
   const insets = useSafeAreaInsets();
   const { personId } = route.params;
   const { me, matches, feedback, likePerson, passPerson, likesRemaining } = useMuzz();
+  const [photoIdx, setPhotoIdx] = React.useState(0);
   const person = getPerson(personId);
   if (!person) return null;
+  const photoCount = Math.max(1, Math.min(5, person.photos?.length || 3));
   const isMatch = matches.includes(personId);
   const compat = scoreMatch(me, person, feedback);
 
@@ -35,8 +37,21 @@ export default function ProfileDetailScreen({ route, navigation }) {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 130 }} showsVerticalScrollIndicator={false}>
-        {/* Hero photo */}
-        <PhotoTile seed={person.id} name={person.name} rounded={0} silhouette={320} style={{ height: width * 1.15 }}>
+        {/* Hero photo gallery: tap left/right halves to flick through */}
+        <PhotoTile
+          seed={person.id} name={person.name} rounded={0} silhouette={320}
+          uri={person.photos?.[photoIdx]} gradient={gradVariantFor(person.id, photoIdx)}
+          style={{ height: width * 1.15 }}
+        >
+          <View style={styles.heroTapRow}>
+            <Pressable style={{ flex: 1 }} onPress={() => setPhotoIdx((i) => Math.max(0, i - 1))} />
+            <Pressable style={{ flex: 1 }} onPress={() => setPhotoIdx((i) => Math.min(photoCount - 1, i + 1))} />
+          </View>
+          <View style={[styles.heroPager, { top: insets.top + 2 }]}>
+            {[...Array(photoCount)].map((_, i) => (
+              <View key={i} style={[styles.heroPagerSeg, i === photoIdx && styles.heroPagerSegOn]} />
+            ))}
+          </View>
           <LinearGradient colors={['rgba(0,0,0,0.25)', 'transparent', 'transparent', 'rgba(20,16,26,0.85)']} style={StyleSheet.absoluteFill} />
           <Pressable onPress={() => navigation.goBack()} style={[styles.back, { top: insets.top + 8 }]}>
             <Ionicons name="chevron-back" size={26} color="#fff" />
@@ -174,6 +189,10 @@ function Fact({ icon, label, value }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: M.bg },
+  heroTapRow: { ...StyleSheet.absoluteFillObject, flexDirection: 'row' },
+  heroPager: { position: 'absolute', top: 8, left: 14, right: 14, flexDirection: 'row', gap: 5 },
+  heroPagerSeg: { flex: 1, height: 3.5, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.35)' },
+  heroPagerSegOn: { backgroundColor: '#fff' },
   back: { position: 'absolute', left: 14, width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' },
   matchPill: { position: 'absolute', right: 14, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(139,92,246,0.92)', paddingHorizontal: 12, paddingVertical: 7, borderRadius: RADIUS.pill },
   matchPillText: { color: '#fff', fontWeight: '800', fontSize: 12 },

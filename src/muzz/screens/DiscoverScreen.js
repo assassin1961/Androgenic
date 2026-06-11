@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, Dimensions, Platform, Modal, TextInp
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   FadeIn, FadeInUp, useSharedValue, useAnimatedStyle, withTiming, withSpring,
   interpolate, runOnJS, Easing,
@@ -89,6 +90,7 @@ export default function DiscoverScreen({ navigation }) {
   const boostLeft = boostActive ? Math.ceil((boostUntil - now) / 60000) : 0;
 
   const tx = useSharedValue(0);
+  const ty = useSharedValue(0);
 
   const commit = useCallback((dir, personId, score) => {
     setLastSwiped(personId);
@@ -100,7 +102,44 @@ export default function DiscoverScreen({ navigation }) {
       passPerson(personId);
     }
     tx.value = 0;
+    ty.value = 0;
   }, [likePerson, passPerson, navigation]);
+
+  // Called when a drag ends: decide fling vs spring-back, with the
+  // like-limit gate applied before committing a right swipe.
+  const finishDrag = useCallback((translationX, velocityX) => {
+    const shouldFling = Math.abs(translationX) > width * 0.28 || Math.abs(velocityX) > 900;
+    const dir = translationX > 0 ? 1 : -1;
+    if (!shouldFling || !top) {
+      tx.value = withSpring(0, { damping: 16, stiffness: 160 });
+      ty.value = withSpring(0, { damping: 16, stiffness: 160 });
+      return;
+    }
+    if (dir > 0 && likesRemaining() <= 0) {
+      tx.value = withSpring(0, { damping: 16, stiffness: 160 });
+      ty.value = withSpring(0, { damping: 16, stiffness: 160 });
+      H.warn();
+      navigation.navigate('MuzzGold');
+      return;
+    }
+    H.press();
+    const { id } = top.person;
+    const score = top.score;
+    tx.value = withTiming(dir * width * 1.4, { duration: 240, easing: Easing.in(Easing.quad) }, () => {
+      runOnJS(commit)(dir, id, score);
+    });
+  }, [top, likesRemaining, commit, navigation]);
+
+  const pan = Gesture.Pan()
+    .activeOffsetX([-14, 14])
+    .failOffsetY([-18, 18])
+    .onUpdate((e) => {
+      tx.value = e.translationX;
+      ty.value = e.translationY * 0.12;
+    })
+    .onEnd((e) => {
+      runOnJS(finishDrag)(e.translationX, e.velocityX);
+    });
 
   const rewind = () => {
     if (!lastSwiped) return;
@@ -143,6 +182,7 @@ export default function DiscoverScreen({ navigation }) {
   const cardStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: tx.value },
+      { translateY: ty.value },
       { rotate: `${interpolate(tx.value, [-width, 0, width], [-11, 0, 11])}deg` },
     ],
   }));
@@ -150,6 +190,12 @@ export default function DiscoverScreen({ navigation }) {
     const p = Math.min(1, Math.abs(tx.value) / width);
     return { transform: [{ scale: 0.94 + p * 0.06 }, { translateY: 14 - p * 14 }] };
   });
+  const likeStampStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(tx.value, [0, width * 0.18], [0, 1], 'clamp'),
+  }));
+  const nopeStampStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(tx.value, [-width * 0.18, 0], [1, 0], 'clamp'),
+  }));
 
   const remaining = likesRemaining();
 
@@ -202,17 +248,26 @@ export default function DiscoverScreen({ navigation }) {
                 <Card m={next} />
               </Animated.View>
             )}
-            <Animated.View key={top.person.id} style={[styles.cardWrap, cardStyle]}>
-              <Card m={top} photoIdx={photoIdx} />
-              {/* photo pager tap zones: left = prev photo, right = next, centre = profile */}
-              <View style={StyleSheet.absoluteFill}>
-                <View style={{ flex: 1, flexDirection: 'row' }}>
-                  <Pressable style={{ flex: 1 }} onPress={() => { H.select(); setPhotoIdx((i) => Math.max(0, i - 1)); }} />
-                  <Pressable style={{ flex: 1.2 }} onPress={() => { H.tap(); navigation.navigate('MuzzProfileDetail', { personId: top.person.id }); }} />
-                  <Pressable style={{ flex: 1 }} onPress={() => { H.select(); setPhotoIdx((i) => Math.min((top.person.photos?.length || 3) - 1, i + 1)); }} />
+            <GestureDetector gesture={pan}>
+              <Animated.View key={top.person.id} style={[styles.cardWrap, cardStyle]}>
+                <Card m={top} photoIdx={photoIdx} />
+                {/* photo pager tap zones: left = prev photo, right = next, centre = profile */}
+                <View style={StyleSheet.absoluteFill}>
+                  <View style={{ flex: 1, flexDirection: 'row' }}>
+                    <Pressable style={{ flex: 1 }} onPress={() => { H.select(); setPhotoIdx((i) => Math.max(0, i - 1)); }} />
+                    <Pressable style={{ flex: 1.2 }} onPress={() => { H.tap(); navigation.navigate('MuzzProfileDetail', { personId: top.person.id }); }} />
+                    <Pressable style={{ flex: 1 }} onPress={() => { H.select(); setPhotoIdx((i) => Math.min((top.person.photos?.length || 3) - 1, i + 1)); }} />
+                  </View>
                 </View>
-              </View>
-            </Animated.View>
+                {/* swipe stamps */}
+                <Animated.View style={[styles.stamp, styles.likeStamp, likeStampStyle]} pointerEvents="none">
+                  <Text style={[styles.stampText, { color: '#2ECC71' }]}>LIKE</Text>
+                </Animated.View>
+                <Animated.View style={[styles.stamp, styles.nopeStamp, nopeStampStyle]} pointerEvents="none">
+                  <Text style={[styles.stampText, { color: '#FF5A5F' }]}>NOPE</Text>
+                </Animated.View>
+              </Animated.View>
+            </GestureDetector>
           </>
         )}
       </View>
@@ -220,19 +275,19 @@ export default function DiscoverScreen({ navigation }) {
       {/* Muzz-style circular action buttons: rewind · pass · super · instant · like */}
       {top && (
         <View style={styles.actions}>
-          <Pressable onPress={rewind} style={[styles.actBtn, styles.rewindBtn, !lastSwiped && { opacity: 0.4 }]}>
+          <Pressable onPress={rewind} style={({ pressed }) => [styles.actBtn, styles.rewindBtn, !lastSwiped && { opacity: 0.4 }, pressed && styles.pressed]}>
             <Ionicons name="arrow-undo" size={20} color={M.gold} />
           </Pressable>
-          <Pressable onPress={() => swipe(-1)} style={[styles.actBtn, styles.passBtn]}>
+          <Pressable onPress={() => swipe(-1)} style={({ pressed }) => [styles.actBtn, styles.passBtn, pressed && styles.pressed]}>
             <Ionicons name="close" size={30} color="#B9B6C3" />
           </Pressable>
-          <Pressable onPress={() => { H.press(); setSuperTarget(top.person); }} style={[styles.actBtn, styles.superBtn]}>
+          <Pressable onPress={() => { H.press(); setSuperTarget(top.person); }} style={({ pressed }) => [styles.actBtn, styles.superBtn, pressed && styles.pressed]}>
             <Ionicons name="star" size={22} color="#fff" />
           </Pressable>
-          <Pressable onPress={instant} style={[styles.actBtn, styles.instantBtn]}>
+          <Pressable onPress={instant} style={({ pressed }) => [styles.actBtn, styles.instantBtn, pressed && styles.pressed]}>
             <Ionicons name="flash" size={22} color="#fff" />
           </Pressable>
-          <Pressable onPress={() => swipe(1)} style={[styles.actBtn, styles.likeBtn]}>
+          <Pressable onPress={() => swipe(1)} style={({ pressed }) => [styles.actBtn, styles.likeBtn, pressed && styles.pressed]}>
             <Ionicons name="heart" size={30} color="#fff" />
           </Pressable>
         </View>
@@ -391,6 +446,7 @@ const styles = StyleSheet.create({
     paddingTop: 10, paddingBottom: 2,
   },
   actBtn: { alignItems: 'center', justifyContent: 'center', ...SHADOW.soft },
+  pressed: { transform: [{ scale: 0.88 }] },
   rewindBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#fff', borderWidth: 1, borderColor: M.border },
   passBtn: { width: 58, height: 58, borderRadius: 29, backgroundColor: '#fff', borderWidth: 1, borderColor: M.border },
   superBtn: { width: 50, height: 50, borderRadius: 25, backgroundColor: M.blue, ...SHADOW.card },
@@ -419,4 +475,11 @@ const styles = StyleSheet.create({
     padding: 14, fontSize: 15, color: M.text, minHeight: 78, textAlignVertical: 'top', marginBottom: 16,
   },
   sheetCancel: { ...TYPE.body, color: M.textSoft, fontWeight: '700' },
+  stamp: {
+    position: 'absolute', top: 36, paddingHorizontal: 14, paddingVertical: 6,
+    borderWidth: 4, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.12)',
+  },
+  likeStamp: { left: 22, borderColor: '#2ECC71', transform: [{ rotate: '-14deg' }] },
+  nopeStamp: { right: 22, borderColor: '#FF5A5F', transform: [{ rotate: '14deg' }] },
+  stampText: { fontSize: 32, fontWeight: '900', letterSpacing: 2 },
 });

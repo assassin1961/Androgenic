@@ -82,9 +82,16 @@ app.use((err, req, res, _next) => {
 
 // ---- Start ----
 
-app.listen(PORT, () => {
+const http = require('http');
+const { init: initRealtime } = require('./realtime');
+
+const httpServer = http.createServer(app);
+initRealtime(httpServer);
+
+httpServer.listen(PORT, () => {
   console.log(`Androgenic API server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/api/health`);
+  console.log(`Realtime: socket.io attached`);
 });
 
 module.exports = app;

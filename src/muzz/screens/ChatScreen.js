@@ -12,6 +12,7 @@ import { useMuzz, getPerson } from '../store';
 import { scoreMatch } from '../butterfly';
 import { PhotoTile, Verified } from '../components/ui';
 import { pickAndUpload } from '../photos';
+import * as realtime from '../realtime';
 import * as H from '../haptics';
 
 const REACTIONS = ['❤️', '😂', '😍', '👍', '🔥', '🤲'];
@@ -40,6 +41,19 @@ export default function ChatScreen({ route, navigation }) {
       return { ...s, chats: { ...s.chats, [personId]: arr } };
     });
   }, [personId]);
+
+  // Live typing indicator from the realtime channel (when connected)
+  useEffect(() => realtime.onTyping(personId, (isTyping) => setTyping(isTyping)), [personId]);
+
+  // Broadcast our typing state, debounced
+  const typingTimer = useRef(null);
+  const onChangeText = (t) => {
+    setText(t);
+    if (!realtime.isConnected()) return;
+    realtime.emitTyping(personId, true);
+    clearTimeout(typingTimer.current);
+    typingTimer.current = setTimeout(() => realtime.emitTyping(personId, false), 1600);
+  };
 
   useEffect(() => {
     const t = setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
@@ -202,7 +216,7 @@ export default function ChatScreen({ route, navigation }) {
           <View style={[styles.composer, { paddingBottom: Math.max(insets.bottom, 10) }]}>
             <Pressable style={styles.plus} onPress={sendImage}><Ionicons name="image-outline" size={23} color={M.primary} /></Pressable>
             <TextInput
-              value={text} onChangeText={setText}
+              value={text} onChangeText={onChangeText}
               placeholder="Message…" placeholderTextColor={M.textMuted}
               style={styles.input} multiline
             />

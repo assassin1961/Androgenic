@@ -6,6 +6,7 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path, Circle } from 'react-native-svg';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { M } from './theme';
 import { MuzzProvider, useMuzz } from './store';
@@ -91,13 +92,13 @@ function MuzzTabs({ navigation, route }) {
   const screenProps = { navigation };
   return (
     <View style={{ flex: 1, backgroundColor: M.bg }}>
-      <View style={{ flex: 1 }}>
+      <Animated.View key={active} entering={FadeIn.duration(160)} style={{ flex: 1 }}>
         {active === 'Discover' && <DiscoverScreen {...screenProps} />}
         {active === 'LikesYou' && <MatchesScreen {...screenProps} />}
         {active === 'Social' && <SocialScreen {...screenProps} />}
         {active === 'Messages' && <MessagesScreen {...screenProps} />}
         {active === 'Profile' && <ProfileScreen {...screenProps} />}
-      </View>
+      </Animated.View>
       <TabBar active={active} onChange={setActive} badges={badges} />
     </View>
   );

@@ -4,6 +4,8 @@ const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
 const { authenticate } = require('../middleware/auth');
+const { emitToUser, isOnline } = require('../realtime');
+const { saveToken, sendPush } = require('../push');
 
 const router = express.Router();
 
@@ -54,7 +56,7 @@ const parseProfile = (row) => row && ({
   photoPrivacy: !!row.photo_privacy,
   verified: !!row.selfie_verified,
   gold: !!row.is_gold,
-  online: !!row.online,
+  online: !!row.online || isOnline(row.user_id),
   photos: photosFor(row.user_id).map((p) => p.url),
 });
 
@@ -140,7 +142,16 @@ const createMatch = (a, b, source = 'like') => {
   const existing = findMatch(a, b);
   if (existing) return existing;
   const r = db.prepare('INSERT INTO dating_matches (user_a, user_b, source) VALUES (?, ?, ?)').run(a, b, source);
-  return db.prepare('SELECT * FROM dating_matches WHERE id = ?').get(r.lastInsertRowid);
+  const match = db.prepare('SELECT * FROM dating_matches WHERE id = ?').get(r.lastInsertRowid);
+  // Live + push notify both parties
+  const pa = getProfile(a), pb = getProfile(b);
+  emitToUser(a, 'match:new', { matchId: match.id, person: pb });
+  emitToUser(b, 'match:new', { matchId: match.id, person: pa });
+  if (pa && pb) {
+    sendPush(a, "It's a match! 💕", `You and ${pb.name} liked each other`, { matchId: match.id });
+    sendPush(b, "It's a match! 💕", `You and ${pa.name} liked each other`, { matchId: match.id });
+  }
+  return match;
 };
 
 // ── Profile ──────────────────────────────────────────────────────────
@@ -408,9 +419,15 @@ router.post('/matches/:id/messages', authenticate, (req, res) => {
     const r = db.prepare(
       'INSERT INTO dating_messages (match_id, sender_id, body) VALUES (?, ?, ?)'
     ).run(m.id, req.userId, body.trim());
-    res.status(201).json({
-      message: { id: r.lastInsertRowid, senderId: req.userId, body: body.trim(), ts: Date.now() },
-    });
+    const message = { id: r.lastInsertRowid, senderId: req.userId, body: body.trim(), ts: Date.now() };
+    // Live-deliver to the other participant; push if they're offline
+    const otherId = m.user_a === req.userId ? m.user_b : m.user_a;
+    emitToUser(otherId, 'message:new', { matchId: m.id, message });
+    if (!isOnline(otherId)) {
+      const sender = getProfile(req.userId);
+      sendPush(otherId, sender ? sender.name : 'New message', body.trim().slice(0, 120), { matchId: m.id });
+    }
+    res.status(201).json({ message });
   } catch (err) {
     console.error('Send message error:', err);
     res.status(500).json({ error: 'Server error' });
@@ -599,6 +616,20 @@ router.post('/super-like', authenticate, (req, res) => {
     res.json({ match: !!match, matchId: match ? match.id : null, superLikesLeft: me.gold ? -1 : Math.max(0, lim.super_likes - 1) });
   } catch (err) {
     console.error('Super like error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ── Push tokens ──────────────────────────────────────────────────────
+
+// POST /api/dating/push-token { token, platform }
+router.post('/push-token', authenticate, (req, res) => {
+  try {
+    const { token, platform } = req.body || {};
+    if (!token) return res.status(400).json({ error: 'token required' });
+    saveToken(req.userId, token, platform || 'unknown');
+    res.json({ ok: true });
+  } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
 });

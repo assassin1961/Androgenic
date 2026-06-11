@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DEFAULT_ME, SOCIAL_SEED, PEOPLE } from './data';
 import * as api from './api';
+import * as realtime from './realtime';
+import { registerForPush, localNotify } from './notifications';
 
 const KEY = '@muzz_state_v1';
 
@@ -61,6 +63,32 @@ export function MuzzProvider({ children }) {
       setHydrated(true);
     })();
   }, []);
+
+  // Connect the realtime channel once hydrated (no-op without a backend).
+  useEffect(() => {
+    if (!hydrated || !state.onboarded) return;
+    realtime.connect({
+      onMessage: (personId, text) => {
+        const msg = { id: `m${Date.now()}${Math.random().toString(36).slice(2, 6)}`, text, sender: 'them', ts: Date.now(), read: false };
+        setState((s) => {
+          const next = { ...s, chats: { ...s.chats, [personId]: [...(s.chats[personId] || []), msg] } };
+          AsyncStorage.setItem(KEY, JSON.stringify(next)).catch(() => {});
+          return next;
+        });
+        localNotify('New message', text.slice(0, 100));
+      },
+      onMatch: (personId) => {
+        setState((s) => {
+          if (s.matches.includes(personId)) return s;
+          const next = { ...s, matches: [...s.matches, personId], chats: s.chats[personId] ? s.chats : { ...s.chats, [personId]: [] } };
+          AsyncStorage.setItem(KEY, JSON.stringify(next)).catch(() => {});
+          return next;
+        });
+      },
+    });
+    registerForPush();
+    return () => realtime.disconnect();
+  }, [hydrated, state.onboarded]);
 
   const persist = useCallback((next) => {
     setState(next);
