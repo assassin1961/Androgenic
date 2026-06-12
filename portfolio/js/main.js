@@ -519,7 +519,7 @@ if (dealsGrid) {
   HOT_DEALS.forEach((d, di) => {
     const el = document.createElement("article");
     el.className = "deal";
-    const wa = `https://wa.me/923000000000?text=${encodeURIComponent(
+    const wa = `https://wa.me/16134083945?text=${encodeURIComponent(
       `Hello Adeel, I'm interested in: ${d.title} (${d.loc}) — Demand ${d.demand}. Please share details.`)}`;
     el.innerHTML = `
       <div class="deal__media">
@@ -535,7 +535,7 @@ if (dealsGrid) {
         <div class="deal__price"><span>Demand</span><strong>${d.demand}</strong></div>
         <div class="deal__actions">
           <a class="btn btn--wa" href="${wa}" target="_blank" rel="noopener">WhatsApp Now</a>
-          <a class="btn btn--ghost btn--sm" href="tel:+923000000000">Call</a>
+          <a class="btn btn--ghost btn--sm" href="tel:+16134083945">Call</a>
         </div>
       </div>`;
     dealsGrid.appendChild(el);

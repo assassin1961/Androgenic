@@ -40,7 +40,12 @@ function box(w, h, d, color = CHARCOAL) {
   return edged(g, color);
 }
 function windowPane(w, h) {
-  return new THREE.Mesh(new THREE.PlaneGeometry(w, h), winMat);
+  const g = new THREE.Group();
+  const frame = new THREE.Mesh(new THREE.PlaneGeometry(w + 0.1, h + 0.1), mat(0x11151c, 0.7, 0.2));
+  const pane = new THREE.Mesh(new THREE.PlaneGeometry(w, h), winMat);
+  pane.position.z = 0.006;
+  g.add(frame, pane);
+  return g;
 }
 function windowGrid(parent, { cols, rows, w = 0.42, h = 0.5, gx = 0.3, gy = 0.42, x = 0, y = 1, z = 0, rotY = 0 }) {
   const g = new THREE.Group();
