@@ -370,6 +370,62 @@ body::before {
 .card:hover .card__view { color: var(--gold); }
 .card.is-hidden { display: none; }
 
+/* ============ CARD TAGS & PRICE ============ */
+.card__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.9rem; }
+.card__tags span, .deal .card__tags span {
+  font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold-bright); border: 1px solid rgba(201,164,92,0.45);
+  padding: 0.22rem 0.6rem; border-radius: 99px; background: rgba(201,164,92,0.08);
+}
+.card__price em {
+  display: block; font-family: var(--sans); font-style: normal; font-size: 0.6rem;
+  letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.1rem;
+}
+
+/* ============ HOT DEALS ============ */
+.deals { padding: clamp(4rem, 8vw, 7rem) 4vw; background: linear-gradient(180deg, transparent, rgba(201,164,92,0.05) 50%, transparent); }
+.deals__head { text-align: center; max-width: 50rem; margin: 0 auto 3rem; }
+.deals__grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.6rem; max-width: 1380px; margin: 0 auto;
+}
+.deal {
+  border-radius: 18px; overflow: hidden; background: var(--ink-2);
+  border: 1px solid rgba(201,164,92,0.3);
+  box-shadow: 0 24px 60px -30px rgba(0,0,0,0.8);
+  transition: transform 0.5s var(--ease), box-shadow 0.5s var(--ease);
+}
+.deal:hover { transform: translateY(-8px); box-shadow: 0 36px 80px -30px rgba(0,0,0,0.9), 0 0 0 1px rgba(201,164,92,0.5); }
+.deal__media { position: relative; aspect-ratio: 16/9; overflow: hidden; }
+.deal__media img { width: 100%; height: 100%; object-fit: cover; transition: transform 1s var(--ease); }
+.deal:hover .deal__media img { transform: scale(1.07); }
+.deal__badge {
+  position: absolute; top: 1rem; left: 1rem;
+  background: linear-gradient(100deg, #e2453a, #c92f24); color: #fff;
+  font-weight: 800; font-size: 0.64rem; letter-spacing: 0.26em;
+  padding: 0.45rem 1rem; border-radius: 99px;
+  box-shadow: 0 8px 24px -6px rgba(226,69,58,0.6);
+  animation: deal-pulse 2.2s var(--ease) infinite;
+}
+@keyframes deal-pulse {
+  0%,100% { box-shadow: 0 8px 24px -6px rgba(226,69,58,0.6), 0 0 0 0 rgba(226,69,58,0.4); }
+  50%     { box-shadow: 0 8px 24px -6px rgba(226,69,58,0.6), 0 0 0 12px rgba(226,69,58,0); }
+}
+.deal__body { padding: 1.4rem 1.5rem 1.6rem; }
+.deal__specs { color: var(--muted); font-size: 0.82rem; margin-bottom: 1rem; }
+.deal__price {
+  display: flex; align-items: baseline; gap: 0.8rem;
+  border-top: 1px solid rgba(243,238,227,0.1); padding-top: 1rem; margin-bottom: 1.1rem;
+}
+.deal__price span { font-size: 0.62rem; letter-spacing: 0.26em; text-transform: uppercase; color: var(--muted); }
+.deal__price strong { font-family: var(--serif); font-size: 1.5rem; color: var(--gold-bright); }
+.deal__actions { display: flex; gap: 0.7rem; }
+.btn--wa {
+  background: #1ebe57; color: #fff; padding: 0.7rem 1.4rem; font-weight: 600; font-size: 0.78rem;
+}
+.btn--wa:hover { background: #25d366; box-shadow: 0 10px 30px -8px rgba(30,190,87,0.6); }
+.btn--sm { padding: 0.7rem 1.4rem; font-size: 0.78rem; }
+
 /* ============ QUOTE BAND ============ */
 .quote-band {
   text-align: center; padding: clamp(5rem, 10vw, 8rem) 6vw;
@@ -461,6 +517,12 @@ body::before {
 .lightbox__specs div { border-left: 2px solid rgba(201,164,92,0.5); padding-left: 0.9rem; }
 .lightbox__specs span { display: block; font-size: 0.64rem; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); }
 .lightbox__specs strong { font-size: 0.95rem; }
+.lightbox__features {
+  list-style: none; display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0.45rem 1rem; margin: 0 0 1.6rem; padding: 0;
+}
+.lightbox__features li { font-size: 0.8rem; color: #c9cedb; }
+.lightbox__features li::first-letter { color: var(--gold); }
 .lightbox__price { display: flex; align-items: baseline; gap: 0.9rem; border-top: 1px solid rgba(243,238,227,0.12); padding-top: 1.4rem; }
 .lightbox__price span { font-size: 0.7rem; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); }
 .lightbox__price strong { font-family: var(--serif); font-size: 1.7rem; color: var(--gold-bright); }
