@@ -3,10 +3,16 @@
 A highly interactive, single-page portfolio showcasing luxury homes sold across
 **Islamabad** and **Lahore** — 5 Marla, 10 Marla, 1 Kanal and beyond.
 
-**Stack:** Pure HTML/CSS/JS · GSAP + ScrollTrigger · Lenis smooth scroll · No build step.
+**Stack:** Pure HTML/CSS/JS · Three.js 3D · GSAP + ScrollTrigger · Lenis smooth scroll · No build step.
+**Fully self-hosted** — all libraries, fonts and artwork are vendored locally; zero external requests, works offline.
 
 **Highlights**
 
+- **Scroll-driven 3D showcase** — three signature homes built as procedural
+  Three.js maquettes that assemble piece-by-piece and orbit as you scroll
+  through a pinned section
+- **Interactive 3D model in every property lightbox** — drag to rotate,
+  gentle auto-spin, assembled on open (all 12 homes mapped to 8 archetypes)
 - 12 bespoke "blue-hour" architectural illustrations — one per sold home, each
   accurate to its story (Margalla Hills, infinity pool, colonial verandas, orchard…)
 - Hand-drawn SVG panoramas: Faisal Mosque dusk skyline (hero) and
@@ -34,6 +40,11 @@ folder `/portfolio` (or copy this folder to the repo root of a `gh-pages` branch
 
 ### Hero
 ![Hero](.preview/01-hero.png)
+
+### 3D Showcase — homes assemble & orbit on scroll
+![3D Manor](.preview/09-3d-manor.png)
+![3D Palazzo](.preview/10-3d-palazzo.png)
+![3D Colonial](.preview/11-3d-colonial.png)
 
 ### About
 ![About](.preview/02-about.png)

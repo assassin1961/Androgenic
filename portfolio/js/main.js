@@ -358,11 +358,18 @@ function openLightbox(i) {
   lightbox.classList.add("is-open");
   lightbox.setAttribute("aria-hidden", "false");
   if (lenis) lenis.stop();
+
+  // interactive 3D model (estate3d.js); falls back to the illustration
+  const media = lightbox.querySelector(".lightbox__media");
+  const hint = document.getElementById("lbDragHint");
+  const has3d = window.Estate3D && window.Estate3D.openViewer(i, media);
+  if (hint) hint.style.display = has3d ? "block" : "none";
 }
 function closeLightbox() {
   lightbox.classList.remove("is-open");
   lightbox.setAttribute("aria-hidden", "true");
   if (lenis) lenis.start();
+  if (window.Estate3D) window.Estate3D.closeViewer();
 }
 document.getElementById("lightboxClose").addEventListener("click", closeLightbox);
 document.getElementById("lightboxBackdrop").addEventListener("click", closeLightbox);
