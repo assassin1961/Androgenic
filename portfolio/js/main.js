@@ -465,10 +465,10 @@ if (HAS_GSAP && window.matchMedia("(hover: hover)").matches) {
 const HOT_DEALS = [
   {
     title: "Brand New 10 Marla Designer House",
-    loc: "Bahria Town Phase 8, Rawalpindi",
-    demand: "PKR 4.85 Crore",
+    loc: "Bahria Town Phase 8 — Sector F1, Rawalpindi",
+    demand: "PKR 3.7 Crore",
     tags: ["Brand New", "Park Face", "Solar Installed"],
-    specs: "5 Beds Attached Baths · Double Unit · 2-Car Porch",
+    specs: "5 Beds Attached Baths · Double Storey · 2-Car Porch",
     img: "assets/villas/02-villa-serena.svg",
     badge: "HOT DEAL"
   },
@@ -543,5 +543,90 @@ if (dealsGrid) {
     el.querySelector(".deal__media img").addEventListener("error", function () {
       this.style.display = "none";
     }, { once: true });
+  });
+}
+
+/* ---------- GALLERY SEARCH + SORT ---------- */
+const searchInput = document.getElementById("searchInput");
+const sortSelect = document.getElementById("sortSelect");
+
+function activeChipFilter() {
+  const c = document.querySelector(".chip.is-active");
+  return c ? c.dataset.filter : "all";
+}
+function applySearch() {
+  const q = (searchInput.value || "").trim().toLowerCase();
+  const f = activeChipFilter();
+  document.querySelectorAll(".card").forEach((card, i) => {
+    const p = PROPERTIES[i];
+    const hay = `${p.title} ${p.loc} ${p.sizeLabel} ${(p.tags || []).join(" ")} ${(p.features || []).join(" ")}`.toLowerCase();
+    const passChip = f === "all" || card.dataset.city === f || card.dataset.size === f;
+    card.classList.toggle("is-hidden", !(passChip && (!q || hay.includes(q))));
+  });
+  if (HAS_ST) ScrollTrigger.refresh();
+}
+function applySort() {
+  const v = sortSelect.value;
+  const cards = Array.from(grid.children);
+  const num = (p) => parseFloat(p.price.replace(/[^\d.]/g, "")) || 0;
+  const keyFns = {
+    "price-desc": (i) => -num(PROPERTIES[i]),
+    "price-asc": (i) => num(PROPERTIES[i]),
+    "year-desc": (i) => -PROPERTIES[i].year,
+    "days-asc": (i) => PROPERTIES[i].soldIn || 999
+  };
+  const orig = cards.map((c, idx) => ({ c, i: idx }));
+  // dataset order survives reordering; store original index once
+  cards.forEach((c, idx) => { if (!c.dataset.idx) c.dataset.idx = idx; });
+  const sorted = cards.slice().sort((a, b) => {
+    if (v === "default") return a.dataset.idx - b.dataset.idx;
+    const k = keyFns[v];
+    return k(+a.dataset.idx) - k(+b.dataset.idx);
+  });
+  sorted.forEach((c) => grid.appendChild(c));
+  if (HAS_GSAP) gsap.from(sorted.filter((c) => !c.classList.contains("is-hidden")),
+    { opacity: 0, y: 18, duration: 0.4, stagger: 0.04, ease: "power2.out", overwrite: true });
+  if (HAS_ST) ScrollTrigger.refresh();
+  void orig;
+}
+if (searchInput) searchInput.addEventListener("input", applySearch);
+if (sortSelect) sortSelect.addEventListener("change", applySort);
+
+/* ---------- PAYMENT PLANNER ---------- */
+const calcEls = ["calcPrice", "calcDown", "calcYears", "calcRate"].map((id) => document.getElementById(id));
+function runCalc() {
+  if (calcEls.some((e) => !e)) return;
+  const [price, down, years, rate] = calcEls.map((e) => parseFloat(e.value) || 0);
+  const principal = price * 1e7 * (1 - down / 100);
+  const r = rate / 1200, n = years * 12;
+  if (principal <= 0 || r <= 0 || n <= 0) return;
+  const monthly = (principal * r) / (1 - Math.pow(1 + r, -n));
+  const lakh = monthly / 1e5;
+  document.getElementById("calcOut").textContent =
+    lakh >= 100 ? `PKR ${(lakh / 100).toFixed(2)} Crore / month` : `PKR ${lakh.toFixed(2)} Lakh / month`;
+}
+calcEls.forEach((e) => e && e.addEventListener("input", runCalc));
+runCalc();
+
+/* ---------- WHATSAPP LEAD FORM ---------- */
+const leadForm = document.getElementById("leadForm");
+if (leadForm) {
+  leadForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const d = new FormData(leadForm);
+    const msg = `Hello Adeel! I'm ${d.get("name") || "a visitor"} — interested in ${d.get("intent")} ` +
+      `(${d.get("area")}, budget: ${d.get("budget") || "flexible"}). Found you via your portfolio site.`;
+    window.open(`https://wa.me/16134083945?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
+  });
+}
+
+/* ---------- BACK TO TOP ---------- */
+const toTop = document.getElementById("toTop");
+if (toTop) {
+  window.addEventListener("scroll", () => {
+    toTop.classList.toggle("is-visible", window.scrollY > 900);
+  }, { passive: true });
+  toTop.addEventListener("click", () => {
+    if (lenis) lenis.scrollTo(0); else window.scrollTo({ top: 0, behavior: "smooth" });
   });
 }

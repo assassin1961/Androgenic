@@ -438,6 +438,67 @@ body::before {
 .btn--wa:hover { background: #25d366; box-shadow: 0 10px 30px -8px rgba(30,190,87,0.6); }
 .btn--sm { padding: 0.7rem 1.4rem; font-size: 0.78rem; }
 
+/* ============ PORTFOLIO TOOLBAR ============ */
+.portfolio__toolbar {
+  display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;
+  max-width: 760px; margin: 0 auto 1.4rem;
+}
+.portfolio__toolbar input, .portfolio__toolbar select,
+.lead input, .lead select {
+  background: rgba(20,28,52,0.6); border: 1px solid rgba(243,238,227,0.18);
+  color: var(--cream); font-family: var(--sans); font-size: 0.85rem;
+  padding: 0.75rem 1.2rem; border-radius: 99px; outline: none;
+  transition: border-color 0.3s;
+}
+.portfolio__toolbar input:focus, .portfolio__toolbar select:focus,
+.lead input:focus, .lead select:focus { border-color: var(--gold); }
+.portfolio__toolbar input { flex: 1; min-width: 240px; }
+.portfolio__toolbar select option, .lead select option { background: var(--ink-2); }
+
+/* ============ PAYMENT PLANNER ============ */
+.calc { padding: 0 4vw clamp(4rem, 7vw, 6rem); display: grid; place-items: center; }
+.calc__card { max-width: 880px; width: 100%; padding: clamp(2rem, 4vw, 3.4rem); text-align: center; }
+.calc__grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem; margin: 1.6rem 0;
+}
+.calc__grid label {
+  display: flex; flex-direction: column; gap: 0.45rem; text-align: left;
+  font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
+}
+.calc__grid label small { color: var(--gold); letter-spacing: 0.1em; }
+.calc__grid input {
+  background: rgba(10,15,30,0.6); border: 1px solid rgba(243,238,227,0.18);
+  color: var(--gold-bright); font-family: var(--serif); font-size: 1.3rem;
+  padding: 0.7rem 1rem; border-radius: 12px; outline: none; width: 100%;
+  transition: border-color 0.3s;
+}
+.calc__grid input:focus { border-color: var(--gold); }
+.calc__result { border-top: 1px solid rgba(243,238,227,0.12); padding-top: 1.4rem; }
+.calc__result span { display: block; font-size: 0.68rem; letter-spacing: 0.26em; text-transform: uppercase; color: var(--muted); }
+.calc__result strong { display: block; font-family: var(--serif); font-size: clamp(1.8rem, 4vw, 2.6rem); color: var(--gold-bright); margin: 0.4rem 0; }
+.calc__result em { font-size: 0.74rem; color: var(--muted); font-style: normal; }
+
+/* ============ LEAD FORM ============ */
+.lead { margin-top: 2rem; border-top: 1px solid rgba(243,238,227,0.12); padding-top: 1.6rem; }
+.lead__title { font-size: 0.85rem; color: var(--muted); margin-bottom: 1rem; }
+.lead__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin-bottom: 1rem; }
+.lead input, .lead select { width: 100%; }
+.lead .btn--wa { width: 100%; justify-content: center; }
+@media (max-width: 560px) { .lead__grid { grid-template-columns: 1fr; } }
+
+/* ============ BACK TO TOP ============ */
+.to-top {
+  position: fixed; left: 1.6rem; bottom: 1.6rem; z-index: 920;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: rgba(20,28,52,0.8); backdrop-filter: blur(10px);
+  border: 1px solid rgba(201,164,92,0.5); color: var(--gold); font-size: 1.1rem;
+  cursor: pointer; opacity: 0; pointer-events: none; transform: translateY(12px);
+  transition: opacity 0.4s var(--ease), transform 0.4s var(--ease), background 0.3s;
+}
+.to-top.is-visible { opacity: 1; pointer-events: auto; transform: none; }
+.to-top:hover { background: var(--gold); color: var(--ink); }
+
 /* ============ QUOTE BAND ============ */
 .quote-band {
   text-align: center; padding: clamp(5rem, 10vw, 8rem) 6vw;

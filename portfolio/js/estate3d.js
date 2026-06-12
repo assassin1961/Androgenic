@@ -17,11 +17,104 @@ const PLINTH = 0x141f3a;
 const GREEN_DARK = 0x12241a;
 const STRIP_WARM = 0xffd98e;
 
+/* ---------- procedural textures (no external assets) ---------- */
+const texCache = {};
+function canvasTex(key, draw, repeat = [2, 2], size = 256) {
+  if (texCache[key]) return texCache[key];
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  draw(c.getContext("2d"), size);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(repeat[0], repeat[1]);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return (texCache[key] = t);
+}
+const hexCss = (h) => `#${h.toString(16).padStart(6, "0")}`;
+// stucco / render: base colour + fine speckle + faint trowel streaks
+function stuccoTex(color) {
+  return canvasTex(`stucco-${color}`, (ctx, s) => {
+    ctx.fillStyle = hexCss(color);
+    ctx.fillRect(0, 0, s, s);
+    for (let i = 0; i < 5200; i++) {
+      const v = Math.random();
+      ctx.fillStyle = v > 0.5 ? "rgba(255,255,255,0.045)" : "rgba(0,0,0,0.06)";
+      ctx.fillRect(Math.random() * s, Math.random() * s, 1.4, 1.4);
+    }
+    ctx.strokeStyle = "rgba(0,0,0,0.04)";
+    for (let i = 0; i < 26; i++) {
+      ctx.beginPath();
+      const y = Math.random() * s;
+      ctx.moveTo(0, y);
+      ctx.bezierCurveTo(s * 0.3, y + 9, s * 0.6, y - 9, s, y + 4);
+      ctx.stroke();
+    }
+  });
+}
+// running-bond brick courses with light mortar
+function brickTex(color) {
+  return canvasTex(`brick-${color}`, (ctx, s) => {
+    ctx.fillStyle = "#cfc4ad";
+    ctx.fillRect(0, 0, s, s);
+    const bh = 18, bw = 52, m = 3;
+    for (let row = 0; row * bh < s + bh; row++) {
+      const off = row % 2 ? -bw / 2 : 0;
+      for (let col = 0; col * bw + off < s + bw; col++) {
+        const shade = 0.86 + Math.random() * 0.26;
+        const r = ((color >> 16) & 255) * shade, g = ((color >> 8) & 255) * shade, b = (color & 255) * shade;
+        ctx.fillStyle = `rgb(${r | 0},${g | 0},${b | 0})`;
+        ctx.fillRect(col * bw + off + m, row * bh + m, bw - m * 2, bh - m * 2);
+      }
+    }
+  }, [2.4, 2.4]);
+}
+// terracotta paver grid
+function paverTex(color) {
+  return canvasTex(`paver-${color}`, (ctx, s) => {
+    ctx.fillStyle = hexCss(color);
+    ctx.fillRect(0, 0, s, s);
+    for (let i = 0; i < 2600; i++) {
+      ctx.fillStyle = Math.random() > 0.5 ? "rgba(255,235,200,0.05)" : "rgba(0,0,0,0.08)";
+      ctx.fillRect(Math.random() * s, Math.random() * s, 2, 2);
+    }
+    ctx.strokeStyle = "rgba(20,10,6,0.65)";
+    ctx.lineWidth = 3;
+    for (let i = 0; i <= 4; i++) {
+      ctx.beginPath(); ctx.moveTo(0, i * s / 4); ctx.lineTo(s, i * s / 4); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(i * s / 4, 0); ctx.lineTo(i * s / 4, s); ctx.stroke();
+    }
+  }, [3, 2]);
+}
+// roof tiles: horizontal courses
+function tileTex(color) {
+  return canvasTex(`tile-${color}`, (ctx, s) => {
+    ctx.fillStyle = hexCss(color);
+    ctx.fillRect(0, 0, s, s);
+    ctx.strokeStyle = "rgba(0,0,0,0.35)";
+    ctx.lineWidth = 2.5;
+    for (let y = 0; y < s; y += 16) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(s, y); ctx.stroke();
+      ctx.strokeStyle = "rgba(0,0,0,0.18)";
+      for (let x = (y / 16) % 2 ? 14 : 0; x < s; x += 28) {
+        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 16); ctx.stroke();
+      }
+      ctx.strokeStyle = "rgba(0,0,0,0.35)";
+    }
+  }, [3, 3]);
+}
+
 /* ---------- material / geometry helpers ---------- */
+const WALL_COLORS = new Set([0x3a3f4a, 0xd9d0bc, 0xe6dfcd, 0xe2dccb, 0x4d5360, 0x4d5460, 0x272c36, 0x2a2e38]);
 const matCache = {};
 function mat(color, rough = 0.85, metal = 0.12) {
   const key = `${color}-${rough}-${metal}`;
-  return (matCache[key] ||= new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal }));
+  if (matCache[key]) return matCache[key];
+  const params = { color, roughness: rough, metalness: metal };
+  if (color === 0x8e4f38) { params.map = brickTex(color); params.color = 0xffffff; }
+  else if (color === 0xa3674a) { params.map = paverTex(color); params.color = 0xffffff; }
+  else if (color === 0x9c4f33) { params.map = tileTex(color); params.color = 0xffffff; }
+  else if (WALL_COLORS.has(color)) { params.map = stuccoTex(color); params.color = 0xffffff; }
+  return (matCache[key] = new THREE.MeshStandardMaterial(params));
 }
 const winMat = new THREE.MeshBasicMaterial({ color: STRIP_WARM });
 const glassMat = new THREE.MeshStandardMaterial({
@@ -31,6 +124,7 @@ const edgeMat = new THREE.LineBasicMaterial({ color: GOLD, transparent: true, op
 
 function edged(geo, color = CHARCOAL, rough = 0.85, metal = 0.12) {
   const m = new THREE.Mesh(geo, mat(color, rough, metal));
+  m.castShadow = m.receiveShadow = true;
   m.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 20), edgeMat));
   return m;
 }
@@ -584,14 +678,27 @@ const PROPERTY_MODELS = [
 function makeScene() {
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x0a0f1e, 17, 36);
-  scene.add(new THREE.AmbientLight(0x5a6a96, 1.5));
-  const key = new THREE.DirectionalLight(0xffd9a0, 1.9);
+  scene.add(new THREE.AmbientLight(0x5a6a96, 1.7));
+  const key = new THREE.DirectionalLight(0xffd9a0, 2.3);
   key.position.set(6, 9, 5);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.camera.left = key.shadow.camera.bottom = -11;
+  key.shadow.camera.right = key.shadow.camera.top = 11;
+  key.shadow.camera.near = 1;
+  key.shadow.camera.far = 32;
+  key.shadow.bias = -0.0008;
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0x4466cc, 0.95);
+  const rim = new THREE.DirectionalLight(0x4466cc, 1.05);
   rim.position.set(-7, 5, -6);
   scene.add(rim);
   return scene;
+}
+function cinematic(renderer) {
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
 }
 const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 function applyAssembly(house, p) {
@@ -624,6 +731,7 @@ function initShowcase() {
     return;
   }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+  cinematic(renderer);
 
   const scene = makeScene();
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 60);
@@ -700,6 +808,7 @@ function ensureViewer(container) {
     return null;
   }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+  cinematic(renderer);
   const scene = makeScene();
   const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 60);
   camera.position.set(0, 4.6, 12.8);

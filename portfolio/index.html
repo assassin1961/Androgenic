@@ -79,6 +79,7 @@
   </a>
   <nav class="nav__links">
     <a href="#about" data-magnetic>About</a>
+    <a href="#deals" data-magnetic>Available</a>
     <a href="#portfolio" data-magnetic>Sold Portfolio</a>
     <a href="#testimonials" data-magnetic>Clients</a>
     <a href="#contact" class="nav__cta" data-magnetic>Work With Me</a>
@@ -89,6 +90,7 @@
 <!-- ======= MOBILE MENU ======= -->
 <div class="mobile-menu" id="mobileMenu">
   <a href="#about">About</a>
+  <a href="#deals">Available Now</a>
   <a href="#portfolio">Sold Portfolio</a>
   <a href="#testimonials">Clients</a>
   <a href="#contact">Work With Me</a>
@@ -174,12 +176,52 @@
     </div>
   </section>
 
+  <!-- ======= HOT DEALS ======= -->
+  <section class="deals" id="deals">
+    <div class="deals__head">
+      <p class="section-eyebrow" data-reveal>Available Now</p>
+      <h2 class="section-title" data-reveal>Hot deals, <em class="gold-italic">act fast</em></h2>
+      <p class="portfolio__intro" data-reveal>Fresh inventory from my desk — message me on WhatsApp before these join the sold wall.</p>
+    </div>
+    <div class="deals__grid" id="dealsGrid"><!-- deals injected by JS --></div>
+  </section>
+
+  <!-- ======= PAYMENT PLANNER ======= -->
+  <section class="calc" id="calc">
+    <div class="calc__card glass" data-reveal>
+      <p class="section-eyebrow">Payment Planner</p>
+      <h2 class="section-title">What would it <em class="gold-italic">cost monthly?</em></h2>
+      <div class="calc__grid">
+        <label>Property Price <small>PKR Crore</small><input id="calcPrice" type="number" value="4.85" min="0.5" step="0.05" /></label>
+        <label>Down Payment <small>%</small><input id="calcDown" type="number" value="30" min="0" max="90" /></label>
+        <label>Tenure <small>Years</small><input id="calcYears" type="number" value="15" min="1" max="25" /></label>
+        <label>Markup Rate <small>% p.a.</small><input id="calcRate" type="number" value="16" min="1" max="30" /></label>
+      </div>
+      <div class="calc__result">
+        <span>Estimated Monthly Installment</span>
+        <strong id="calcOut">—</strong>
+        <em>Indicative only — I'll connect you with bank home-finance partners for exact terms.</em>
+      </div>
+    </div>
+  </section>
+
   <!-- ======= PORTFOLIO ======= -->
   <section class="portfolio" id="portfolio">
     <div class="portfolio__head">
       <p class="section-eyebrow" data-reveal>Sold & Closed</p>
       <h2 class="section-title" data-reveal>A gallery of <em class="gold-italic">handed-over keys</em></h2>
       <p class="portfolio__intro" data-reveal>Each of these homes found its family through my desk. Filter by city or plot size.</p>
+    </div>
+
+    <div class="portfolio__toolbar" data-reveal>
+      <input id="searchInput" type="search" placeholder="Search area or feature — DHA, Bahria, corner…" aria-label="Search sold homes" />
+      <select id="sortSelect" aria-label="Sort sold homes">
+        <option value="default">Sort: Featured</option>
+        <option value="price-desc">Price · High to Low</option>
+        <option value="price-asc">Price · Low to High</option>
+        <option value="year-desc">Newest Sold</option>
+        <option value="days-asc">Fastest Sale</option>
+      </select>
     </div>
 
     <div class="portfolio__filters" data-reveal id="filters">
@@ -192,16 +234,6 @@
     </div>
 
     <div class="portfolio__grid" id="grid"><!-- cards injected by JS --></div>
-  </section>
-
-  <!-- ======= HOT DEALS ======= -->
-  <section class="deals" id="deals">
-    <div class="deals__head">
-      <p class="section-eyebrow" data-reveal>Available Now</p>
-      <h2 class="section-title" data-reveal>Hot deals, <em class="gold-italic">act fast</em></h2>
-      <p class="portfolio__intro" data-reveal>Fresh inventory from my desk — message me on WhatsApp before these join the sold wall.</p>
-    </div>
-    <div class="deals__grid" id="dealsGrid"><!-- deals injected by JS --></div>
   </section>
 
   <!-- ======= QUOTE BAND ======= -->
@@ -281,6 +313,21 @@
         <a class="btn btn--gold" href="mailto:adeelahmedrahman@gmail.com" data-magnetic>adeelahmedrahman@gmail.com</a>
         <a class="btn btn--ghost" href="tel:+16134083945" data-magnetic>+1 613 408 3945</a>
       </div>
+      <form class="lead" id="leadForm">
+        <p class="lead__title">Or tell me what you're looking for — I'll reply on WhatsApp:</p>
+        <div class="lead__grid">
+          <input name="name" placeholder="Your name" required />
+          <select name="intent">
+            <option>Buying</option><option>Selling</option><option>Renting</option><option>Free Valuation</option>
+          </select>
+          <select name="area">
+            <option>Any Area</option><option>DHA Islamabad</option><option>Bahria Town Rawalpindi</option>
+            <option>Gulberg Greens</option><option>DHA Lahore</option><option>Bahria Town Lahore</option><option>Other</option>
+          </select>
+          <input name="budget" placeholder="Budget — e.g. 4 to 5 Crore" />
+        </div>
+        <button type="submit" class="btn btn--wa">Get Matches on WhatsApp</button>
+      </form>
     </div>
   </section>
 
@@ -291,6 +338,9 @@
   </footer>
 
 </main>
+
+<!-- ======= BACK TO TOP ======= -->
+<button class="to-top" id="toTop" aria-label="Back to top">↑</button>
 
 <!-- ======= WHATSAPP ======= -->
 <a class="whatsapp-fab" href="https://wa.me/16134083945?text=Hello%20Adeel%2C%20I%20found%20your%20portfolio%20site%20and%20I%27m%20interested%20in%20buying%2Fselling%20a%20home."
