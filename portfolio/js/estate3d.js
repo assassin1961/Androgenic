@@ -73,15 +73,23 @@ function woodSlats(w, h, n = 7) {
   }
   return g;
 }
-// glass-railing balcony with cream slab
-function balcony(w, d = 0.85) {
+// glass-railing balcony with cream slab (dark=true → wrought-iron style)
+function balcony(w, d = 0.85, dark = false) {
   const g = new THREE.Group();
   const slabGeo = new THREE.BoxGeometry(w, 0.12, d);
   slabGeo.translate(0, 0.06, 0);
-  g.add(edged(slabGeo, CREAM));
-  const rail = new THREE.Mesh(new THREE.BoxGeometry(w, 0.42, 0.04), glassMat);
-  rail.position.set(0, 0.12 + 0.21, d / 2 - 0.02);
-  g.add(rail);
+  g.add(edged(slabGeo, dark ? CHARCOAL_DARK : CREAM));
+  if (dark) {
+    for (let i = 0; i <= Math.round(w / 0.22); i++) {
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.42, 0.025), mat(GATE_BLACK, 0.6, 0.4));
+      bar.position.set(-w / 2 + i * 0.22, 0.12 + 0.21, d / 2 - 0.02);
+      g.add(bar);
+    }
+  } else {
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(w, 0.42, 0.04), glassMat);
+    rail.position.set(0, 0.12 + 0.21, d / 2 - 0.02);
+    g.add(rail);
+  }
   const railTop = new THREE.Mesh(new THREE.BoxGeometry(w, 0.035, 0.05), mat(GOLD, 0.45, 0.7));
   railTop.position.set(0, 0.12 + 0.44, d / 2 - 0.02);
   g.add(railTop);
@@ -385,6 +393,165 @@ function buildFarmhouse({ linear = false } = {}) {
   return g;
 }
 
+// Spanish villa — white render, twin terracotta hip roofs, wrought balcony
+function buildSpanish() {
+  const g = new THREE.Group();
+  const WHITE = 0xe6dfcd, TERRA = 0x9c4f33;
+  part(g, plinth(5.4), 0);
+  const main = box(4.6, 2.5, 3.5, WHITE);
+  main.position.set(-0.7, 0.22, 0);
+  part(g, main, 0.1, 0.7);
+  windowGrid(main, { cols: 3, rows: 1, w: 0.55, h: 0.95, gx: 0.55, y: 0.6, z: 1.76 });
+  const roofMain = hipRoof(5.2, 4.1, 2.4, 1.5, 1.1, TERRA);
+  roofMain.position.set(-0.7, 2.72, 0);
+  part(g, roofMain, 0.42, 0.6);
+  const tower = box(2, 3.5, 2.2, WHITE);
+  tower.position.set(2.1, 0.22, 0.3);
+  part(g, tower, 0.22, 0.8);
+  windowGrid(tower, { cols: 1, rows: 1, w: 0.7, h: 1, y: 2.1, z: 1.11 });
+  const roofTower = hipRoof(2.5, 2.7, 1, 1, 0.85, TERRA);
+  roofTower.position.set(2.1, 3.72, 0.3);
+  part(g, roofTower, 0.52, 0.6);
+  const bal = balcony(1.7, 0.8, true);
+  bal.position.set(2.1, 1.95, 1.5);
+  part(g, bal, 0.36, 0.4);
+  const doorPane = windowPane(0.6, 1.4);
+  doorPane.position.set(-0.7, 0.95, 1.77);
+  part(g, doorPane, 0.3);
+  part(g, lightStrip(-2.6, 0.35, 1.77, 2.1), 0.46);
+  const front = frontage({ width: 8.6, z: 3.2 });
+  front.position.y = 0.22;
+  part(g, front, 0.62, 0.3);
+  part(g, planter(-1.7, 2), 0.7);
+  part(g, planter(0.3, 2), 0.72);
+  part(g, tree(-4, 1.2, 1.05), 0.78);
+  part(g, cypress(4.2, 0.4, 0.95), 0.84);
+  return g;
+}
+// grey graphite-texture elevation with wide glazing + wood slats
+function buildGreyTexture() {
+  const g = new THREE.Group();
+  const GREY = 0x4d5360, GRAPHITE = 0x2a2e38;
+  part(g, plinth(5.3), 0);
+  const main = box(4.9, 3.4, 3.4, GREY);
+  main.position.set(-0.4, 0.22, -0.2);
+  part(g, main, 0.1, 0.7);
+  const band = box(1.25, 3.6, 0.18, GRAPHITE);
+  band.position.set(-2, 0.22, 1.55);
+  part(g, band, 0.24, 0.6);
+  part(g, lightStrip(-1.32, 0.3, 1.68, 3.2), 0.3);
+  windowGrid(main, { cols: 2, rows: 1, w: 1, h: 0.95, gx: 0.35, y: 0.55, z: 1.71, x: 0.5 });
+  windowGrid(main, { cols: 2, rows: 1, w: 0.8, h: 0.8, gx: 0.55, y: 2.2, z: 1.71, x: 0.5 });
+  const bal = balcony(2.5, 0.85);
+  bal.position.set(0.55, 1.95, 1.95);
+  part(g, bal, 0.4, 0.4);
+  const slats = woodSlats(1.4, 2.9, 6);
+  slats.position.set(1.95, 0.42, 1.42);
+  part(g, slats, 0.46, 0.4);
+  const par = parapet(4.9, 3.4, GRAPHITE);
+  par.position.set(-0.4, 3.62, -0.2);
+  part(g, par, 0.54, 0.5);
+  const front = frontage({ width: 8.8, z: 3.3 });
+  front.position.y = 0.22;
+  part(g, front, 0.64, 0.3);
+  part(g, planter(1.5, 2.2), 0.74);
+  part(g, cypress(-4.1, 1, 1.05), 0.8);
+  part(g, tree(4.3, 0.8, 0.95), 0.86);
+  return g;
+}
+// narrow 5-marla with stacked balconies (classic Bahria street house)
+function buildCube5Marla() {
+  const g = new THREE.Group();
+  const WHITE = 0xe2dccb;
+  part(g, plinth(4.4), 0);
+  const main = box(2.9, 4.1, 3.3, WHITE);
+  main.position.set(-0.4, 0.22, 0);
+  part(g, main, 0.1, 0.9);
+  const accent = box(0.85, 4.3, 0.2, CHARCOAL_DARK);
+  accent.position.set(1.35, 0.22, 1.6);
+  part(g, accent, 0.24, 0.7);
+  part(g, lightStrip(1.95, 0.3, 1.7, 3.9), 0.3);
+  windowGrid(main, { cols: 2, rows: 1, w: 0.62, h: 0.85, gx: 0.4, y: 0.55, z: 1.66 });
+  [1.62, 2.96].forEach((y, i) => {
+    const bal = balcony(2.3, 0.75);
+    bal.position.set(-0.4, y, 1.95);
+    part(g, bal, 0.36 + i * 0.1, 0.4);
+    windowGrid(main, { cols: 2, rows: 1, w: 0.55, h: 0.7, gx: 0.5, y: y - 0.12, z: 1.66 });
+  });
+  const par = parapet(2.9, 3.3, CHARCOAL_DARK);
+  par.position.set(-0.4, 4.32, 0);
+  part(g, par, 0.56, 0.5);
+  const front = frontage({ width: 7, gateX: 0.8, z: 3.1 });
+  front.position.y = 0.22;
+  part(g, front, 0.64, 0.3);
+  part(g, planter(-1.75, 2), 0.74);
+  part(g, cypress(3.4, 0.6, 0.85), 0.8);
+  return g;
+}
+// corner plot with wraparound glass balcony on two faces
+function buildCornerGlass() {
+  const g = new THREE.Group();
+  part(g, plinth(5.5), 0);
+  const volA = box(4.4, 3.3, 3.2, CHARCOAL);
+  volA.position.set(-0.6, 0.22, -0.3);
+  part(g, volA, 0.1, 0.7);
+  const volB = box(2.4, 2.7, 2.6, CREAM);
+  volB.position.set(2.1, 0.22, 0.6);
+  part(g, volB, 0.2, 0.7);
+  windowGrid(volA, { cols: 3, rows: 1, w: 0.72, h: 0.95, gx: 0.34, y: 0.5, z: 1.61 });
+  windowGrid(volA, { cols: 3, rows: 1, w: 0.62, h: 0.8, gx: 0.45, y: 2.1, z: 1.61 });
+  windowGrid(volB, { cols: 2, rows: 2, w: 0.5, h: 0.6, gx: 0.3, gy: 0.5, y: 0.4, z: 1.31 });
+  const balFront = balcony(3.6, 0.8);
+  balFront.position.set(-0.6, 1.92, 1.7);
+  part(g, balFront, 0.36, 0.4);
+  const balSide = balcony(2.6, 0.8);
+  balSide.position.set(-3.2, 1.92, 0);
+  balSide.rotation.y = Math.PI / 2;
+  part(g, balSide, 0.42, 0.4);
+  part(g, lightStrip(1.1, 0.3, 1.62, 3), 0.3);
+  const par = parapet(4.4, 3.2, CREAM);
+  par.position.set(-0.6, 3.52, -0.3);
+  part(g, par, 0.52, 0.5);
+  const front = frontage({ width: 9, z: 3.2 });
+  front.position.y = 0.22;
+  part(g, front, 0.62, 0.3);
+  part(g, planter(0.9, 2.1), 0.72);
+  part(g, tree(4.4, 1.6, 1), 0.78);
+  part(g, cypress(-4.4, 1.2, 1), 0.84);
+  return g;
+}
+// face-brick modern with cream banding
+function buildBrick() {
+  const g = new THREE.Group();
+  const BRICK = 0x8e4f38;
+  part(g, plinth(5), 0);
+  const main = box(4.5, 3.1, 3.4, BRICK);
+  main.position.set(-0.3, 0.22, 0);
+  part(g, main, 0.1, 0.7);
+  [1.35, 2.55].forEach((y, i) => {
+    const bandGeo = new THREE.BoxGeometry(4.7, 0.14, 3.6);
+    bandGeo.translate(0, 0.07, 0);
+    const band = edged(bandGeo, CREAM);
+    band.position.set(-0.3, y, 0);
+    part(g, band, 0.26 + i * 0.08, 0.4);
+  });
+  windowGrid(main, { cols: 3, rows: 1, w: 0.6, h: 0.85, gx: 0.5, y: 0.45, z: 1.71 });
+  windowGrid(main, { cols: 3, rows: 1, w: 0.55, h: 0.75, gx: 0.55, y: 1.75, z: 1.71 });
+  const doorPane = windowPane(0.6, 1.1);
+  doorPane.position.set(1.6, 0.77, 1.72);
+  part(g, doorPane, 0.34);
+  part(g, lightStrip(-2.55, 0.3, 1.72, 2.7), 0.4);
+  const par = parapet(4.5, 3.4, CREAM);
+  par.position.set(-0.3, 3.32, 0);
+  part(g, par, 0.5, 0.5);
+  const front = frontage({ width: 8.2, z: 3.1 });
+  front.position.y = 0.22;
+  part(g, front, 0.6, 0.3);
+  part(g, planter(1.6, 2.1), 0.7);
+  part(g, tree(-3.9, 1.3, 1), 0.78);
+  return g;
+}
+
 const ARCHETYPES = {
   manor: () => buildDesigner({ grand: true, withPool: true }),
   modern: () => buildDesigner({ grand: false }),
@@ -393,13 +560,19 @@ const ARCHETYPES = {
   colonial: () => buildColonial(),
   colonialAtrium: () => buildColonial({ atrium: true }),
   farmhouse: () => buildFarmhouse(),
-  linear: () => buildFarmhouse({ linear: true })
+  linear: () => buildFarmhouse({ linear: true }),
+  spanish: () => buildSpanish(),
+  greyTexture: () => buildGreyTexture(),
+  cube5: () => buildCube5Marla(),
+  corner: () => buildCornerGlass(),
+  brick: () => buildBrick()
 };
 
 // property index (matches PROPERTIES in main.js) -> archetype
+// every sold home gets a distinct model
 const PROPERTY_MODELS = [
-  "manor", "modern", "modern", "modernWhite", "farmhouse", "modern",
-  "palazzo", "colonialAtrium", "modernWhite", "colonial", "linear", "modern"
+  "manor", "modern", "greyTexture", "cube5", "farmhouse", "corner",
+  "palazzo", "colonialAtrium", "modernWhite", "colonial", "linear", "brick"
 ];
 
 /* ---------- scene factory ---------- */
@@ -565,9 +738,12 @@ function ensureViewer(container) {
 }
 
 function openViewer(index, container) {
+  return openViewerByType(PROPERTY_MODELS[index] || "modern", container);
+}
+function openViewerByType(type, container) {
   const v = ensureViewer(container);
   if (!v) return false;
-  const type = PROPERTY_MODELS[index] || "modern";
+  if (!ARCHETYPES[type]) type = "modern";
   if (v.type !== type) {
     if (v.house) v.scene.remove(v.house);
     v.house = ARCHETYPES[type]();
@@ -585,5 +761,5 @@ function closeViewer() {
   if (viewer) viewer.open = false;
 }
 
-window.Estate3D = { openViewer, closeViewer };
+window.Estate3D = { openViewer, openViewerByType, closeViewer };
 initShowcase();

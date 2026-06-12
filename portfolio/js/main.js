@@ -382,6 +382,8 @@ function openLightbox(i) {
     <div><span>Bathrooms</span><strong>${p.baths}</strong></div>`;
   document.getElementById("lbFeatures").innerHTML =
     (p.features || []).map((f) => `<li>✓ ${f}</li>`).join("");
+  document.getElementById("lbPriceLabel").textContent = "Closed at";
+  document.getElementById("lbSold").style.display = "";
   lightbox.classList.add("is-open");
   lightbox.setAttribute("aria-hidden", "false");
   if (lenis) lenis.stop();
@@ -489,9 +491,32 @@ const HOT_DEALS = [
     badge: "INVESTOR RATE"
   }
 ];
+// 3D archetype per deal (see estate3d.js ARCHETYPES)
+const DEAL_MODELS = ["greyTexture", "manor", "spanish"];
+
+function openDealLightbox(d, i) {
+  document.getElementById("lbImg").src = d.img;
+  document.getElementById("lbLoc").textContent = d.loc + " · Available Now";
+  document.getElementById("lbTitle").textContent = d.title;
+  document.getElementById("lbDesc").textContent = d.specs;
+  document.getElementById("lbPrice").textContent = d.demand;
+  document.getElementById("lbPriceLabel").textContent = "Demand";
+  document.getElementById("lbSold").style.display = "none";
+  document.getElementById("lbSpecs").innerHTML = "";
+  document.getElementById("lbFeatures").innerHTML =
+    d.tags.map((t) => `<li>✓ ${t}</li>`).join("");
+  lightbox.classList.add("is-open");
+  lightbox.setAttribute("aria-hidden", "false");
+  if (lenis) lenis.stop();
+  const media = lightbox.querySelector(".lightbox__media");
+  const hint = document.getElementById("lbDragHint");
+  const has3d = window.Estate3D && window.Estate3D.openViewerByType(DEAL_MODELS[i] || "modern", media);
+  if (hint) hint.style.display = has3d ? "block" : "none";
+}
+
 const dealsGrid = document.getElementById("dealsGrid");
 if (dealsGrid) {
-  HOT_DEALS.forEach((d) => {
+  HOT_DEALS.forEach((d, di) => {
     const el = document.createElement("article");
     el.className = "deal";
     const wa = `https://wa.me/923000000000?text=${encodeURIComponent(
@@ -500,6 +525,7 @@ if (dealsGrid) {
       <div class="deal__media">
         <img src="${d.img}" alt="${d.title}" loading="lazy" />
         <span class="deal__badge">${d.badge}</span>
+        <span class="deal__3d">View in 3D</span>
       </div>
       <div class="deal__body">
         <p class="card__loc">${d.loc}</p>
@@ -513,6 +539,7 @@ if (dealsGrid) {
         </div>
       </div>`;
     dealsGrid.appendChild(el);
+    el.querySelector(".deal__media").addEventListener("click", () => openDealLightbox(d, di));
     el.querySelector(".deal__media img").addEventListener("error", function () {
       this.style.display = "none";
     }, { once: true });

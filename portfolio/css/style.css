@@ -411,6 +411,18 @@ body::before {
   0%,100% { box-shadow: 0 8px 24px -6px rgba(226,69,58,0.6), 0 0 0 0 rgba(226,69,58,0.4); }
   50%     { box-shadow: 0 8px 24px -6px rgba(226,69,58,0.6), 0 0 0 12px rgba(226,69,58,0); }
 }
+.deal__media { cursor: pointer; }
+.deal__3d {
+  position: absolute; right: 1rem; bottom: 1rem;
+  background: rgba(10,15,30,0.75); backdrop-filter: blur(6px);
+  border: 1px solid rgba(201,164,92,0.5); color: var(--gold-bright);
+  font-size: 0.62rem; letter-spacing: 0.22em; text-transform: uppercase;
+  padding: 0.4rem 0.9rem; border-radius: 99px;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
+}
+.deal:hover .deal__3d { opacity: 1; transform: none; }
+@media (hover: none) { .deal__3d { opacity: 1; transform: none; } }
 .deal__body { padding: 1.4rem 1.5rem 1.6rem; }
 .deal__specs { color: var(--muted); font-size: 0.82rem; margin-bottom: 1rem; }
 .deal__price {
