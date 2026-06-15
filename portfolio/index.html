@@ -376,7 +376,10 @@
     <p>Building the show-home…</p>
   </div>
   <div class="tour__bar">
-    <div class="tour__title"><span class="tour__dot"></span> Virtual Show-Home <em id="tourRoom">Entrance Foyer</em></div>
+    <div class="tour__titlewrap">
+      <div class="tour__title"><span class="tour__dot"></span> <b id="tourName">Virtual Show-Home</b> <em id="tourRoom">Entrance Foyer</em></div>
+      <div class="tour__sub" id="tourSub"></div>
+    </div>
     <button class="tour__close" id="tourClose" aria-label="Exit tour">✕ Exit</button>
   </div>
   <div class="tour__legend">
@@ -403,7 +406,7 @@
       <div class="lightbox__specs" id="lbSpecs"></div>
       <ul class="lightbox__features" id="lbFeatures"></ul>
       <div class="lightbox__price"><span id="lbPriceLabel">Closed at</span><strong id="lbPrice"></strong></div>
-      <button class="btn btn--gold lightbox__tour" type="button" onclick="HouseTour&&HouseTour.open()">
+      <button class="btn btn--gold lightbox__tour" id="lbTourBtn" type="button">
         <span class="lightbox__tour-ico">⊹</span> Step Inside — Walk the Interior
       </button>
     </div>

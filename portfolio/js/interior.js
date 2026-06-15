@@ -8,7 +8,41 @@
 (function () {
   const ENGINE_SRC = "js/vendor/playcanvas.min.js";
   let enginePromise = null;
-  let app = null, camRoot = null, cam = null;
+  let app = null, camRoot = null, cam = null, world = null, curCfgKey = "";
+  const P = () => world || (app && app.root);
+
+  /* ---------- per-listing interior themes ----------
+     Each home opens a furnished walkthrough tinted to its character. */
+  const THEMES = {
+    charcoalCream: { wall: [0.86, 0.83, 0.77], feature: [0.16, 0.18, 0.22], wood: [0.27, 0.17, 0.10], woodLight: [0.55, 0.39, 0.24], fabric: [0.17, 0.22, 0.30], fabric2: [0.45, 0.36, 0.30], marble: ["#efece4", "#e3ddd0"], art: [["#243044", "#0f1726"], ["#3a2740", "#160f1e"], ["#243a36", "#0f1d1a"]] },
+    whiteOak:      { wall: [0.92, 0.91, 0.87], feature: [0.74, 0.70, 0.62], wood: [0.55, 0.40, 0.24], woodLight: [0.70, 0.55, 0.34], fabric: [0.40, 0.42, 0.40], fabric2: [0.62, 0.55, 0.44], marble: ["#f4f1ea", "#e9e4d8"], art: [["#3a4a52", "#1a2630"], ["#4a3f2e", "#241d12"], ["#2e4036", "#15201a"]] },
+    greyGraphite:  { wall: [0.42, 0.45, 0.50], feature: [0.16, 0.18, 0.21], wood: [0.24, 0.16, 0.10], woodLight: [0.42, 0.32, 0.22], fabric: [0.14, 0.16, 0.20], fabric2: [0.34, 0.34, 0.36], marble: ["#dadbde", "#c6c8cc"], art: [["#2a3038", "#12161c"], ["#34302a", "#16130f"], ["#283036", "#11151a"]] },
+    spanishWarm:   { wall: [0.90, 0.86, 0.76], feature: [0.61, 0.31, 0.20], wood: [0.45, 0.28, 0.16], woodLight: [0.66, 0.46, 0.27], fabric: [0.38, 0.30, 0.22], fabric2: [0.55, 0.34, 0.22], marble: ["#f1e9da", "#e6dcc6"], art: [["#5a3a26", "#2a1c12"], ["#3a4030", "#1c2016"], ["#4a3526", "#231910"]] },
+    heritage:      { wall: [0.80, 0.76, 0.68], feature: [0.18, 0.22, 0.22], wood: [0.20, 0.12, 0.07], woodLight: [0.40, 0.27, 0.16], fabric: [0.13, 0.26, 0.26], fabric2: [0.42, 0.32, 0.22], marble: ["#ece4d2", "#ddd0b8"], art: [["#1d3530", "#0c1a16"], ["#3a2f1e", "#1a150e"], ["#243a40", "#101d20"], ["#3a2740", "#160f1e"]], gold: true },
+    brickWarm:     { wall: [0.86, 0.82, 0.74], feature: [0.56, 0.31, 0.22], wood: [0.30, 0.19, 0.11], woodLight: [0.58, 0.42, 0.26], fabric: [0.30, 0.26, 0.22], fabric2: [0.52, 0.40, 0.28], marble: ["#efe9dc", "#e2d8c4"], art: [["#4a3026", "#241712"], ["#3a4030", "#1c2016"], ["#2e3a40", "#141d20"]] }
+  };
+  // sold properties (index matches PROPERTIES in main.js)
+  const SOLD_CFG = [
+    { theme: "charcoalCream", grand: true,  rooms: "Foyer · Living · Dining · Kitchen · Master Suite" },
+    { theme: "charcoalCream", grand: true,  rooms: "Foyer · Living · Cinema Lounge · Kitchen · Master Suite" },
+    { theme: "greyGraphite",  grand: false, rooms: "Lounge · Dining · Kitchen · Bedroom" },
+    { theme: "whiteOak",      grand: false, rooms: "Lounge · Dining · Kitchen · Bedroom" },
+    { theme: "spanishWarm",   grand: true,  rooms: "Foyer · Living · Dining · Kitchen · Master Suite", library: true },
+    { theme: "greyGraphite",  grand: false, rooms: "Lounge · Dining · Kitchen · Bedroom" },
+    { theme: "heritage",      grand: true,  rooms: "Foyer · Drawing Room · Dining · Kitchen · Master Suite" },
+    { theme: "heritage",      grand: true,  rooms: "Foyer · Drawing Room · Library · Dining · Master Suite", library: true },
+    { theme: "whiteOak",      grand: false, rooms: "Lounge · Dining · Kitchen · Bedroom" },
+    { theme: "heritage",      grand: true,  rooms: "Foyer · Drawing Room · Library · Dining · Master Suite", library: true },
+    { theme: "charcoalCream", grand: false, rooms: "Lounge · Dining · Kitchen · Bedroom" },
+    { theme: "brickWarm",     grand: false, rooms: "Courtyard Lounge · Dining · Kitchen · Bedroom" }
+  ];
+  const DEAL_CFG = [
+    { theme: "charcoalCream", grand: false, rooms: "Lounge · Dining · Kitchen · Bedroom" },
+    { theme: "charcoalCream", grand: true,  rooms: "Foyer · Living · Cinema Lounge · Kitchen · Master Suite" },
+    { theme: "spanishWarm",   grand: false, rooms: "Lounge · Dining · Kitchen · Bedroom" }
+  ];
+  let curTheme = THEMES.charcoalCream;
+  const hx = (s) => [parseInt(s.slice(1, 3), 16) / 255, parseInt(s.slice(3, 5), 16) / 255, parseInt(s.slice(5, 7), 16) / 255];
   const state = {
     yaw: 180, pitch: -2, pos: null, vel: { x: 0, z: 0 },
     keys: {}, run: false,
@@ -21,6 +55,8 @@
   const overlay = document.getElementById("tour");
   const canvas = document.getElementById("tourCanvas");
   const roomLabel = document.getElementById("tourRoom");
+  const titleEl = document.getElementById("tourName");
+  const subEl = document.getElementById("tourSub");
   const loader = document.getElementById("tourLoader");
   const joyBase = document.getElementById("tourJoy");
   const joyKnob = document.getElementById("tourJoyKnob");
@@ -55,9 +91,10 @@
     return t;
   }
   function marbleTex() {
+    const mc = (curTheme && curTheme.marble) || ["#efece4", "#e3ddd0"];
     return tex((ctx, s) => {
       const g = ctx.createLinearGradient(0, 0, s, s);
-      g.addColorStop(0, "#efece4"); g.addColorStop(0.5, "#e3ddd0"); g.addColorStop(1, "#eae5da");
+      g.addColorStop(0, mc[0]); g.addColorStop(0.5, mc[1]); g.addColorStop(1, mc[0]);
       ctx.fillStyle = g; ctx.fillRect(0, 0, s, s);
       ctx.strokeStyle = "rgba(150,140,120,0.35)"; ctx.lineWidth = 1.2;
       for (let i = 0; i < 16; i++) {
@@ -119,7 +156,7 @@
     e.render.receiveShadows = recv;
     e.setLocalScale(scale[0], scale[1], scale[2]);
     e.setLocalPosition(pos[0], pos[1], pos[2]);
-    (parent || app.root).addChild(e);
+    (parent || P()).addChild(e);
     return e;
   }
   const box = (p, o) => prim("box", p, o);
@@ -127,14 +164,15 @@
   /* ---------- furniture ---------- */
   const MATS = {};
   function buildMats() {
+    const t = curTheme;
     MATS.floor = M({ map: marbleTex(), gloss: 0.82, metal: 0.04, color: [1, 1, 1] });
-    MATS.wall = M({ color: [0.86, 0.83, 0.77], gloss: 0.2 });
-    MATS.wallDark = M({ color: [0.16, 0.18, 0.22], gloss: 0.3 });
-    MATS.ceiling = M({ color: [0.93, 0.92, 0.9], gloss: 0.1 });
-    MATS.wood = M({ color: [0.27, 0.17, 0.10], gloss: 0.55, metal: 0.05 });
-    MATS.woodLight = M({ color: [0.55, 0.39, 0.24], gloss: 0.4 });
-    MATS.fabric = M({ color: [0.17, 0.22, 0.30], gloss: 0.25 });
-    MATS.fabric2 = M({ color: [0.45, 0.36, 0.30], gloss: 0.25 });
+    MATS.wall = M({ color: t.wall, gloss: 0.2 });
+    MATS.wallDark = M({ color: t.feature, gloss: 0.3 });
+    MATS.ceiling = M({ color: [t.wall[0] + 0.06, t.wall[1] + 0.06, t.wall[2] + 0.06], gloss: 0.1 });
+    MATS.wood = M({ color: t.wood, gloss: 0.55, metal: 0.05 });
+    MATS.woodLight = M({ color: t.woodLight, gloss: 0.4 });
+    MATS.fabric = M({ color: t.fabric, gloss: 0.25 });
+    MATS.fabric2 = M({ color: t.fabric2, gloss: 0.25 });
     MATS.gold = M({ color: [0.79, 0.64, 0.36], gloss: 0.85, metal: 0.9 });
     MATS.metal = M({ color: [0.2, 0.2, 0.22], gloss: 0.7, metal: 0.8 });
     MATS.glass = M({ color: [0.6, 0.78, 0.9], opacity: 0.22, gloss: 0.95, metal: 0.1 });
@@ -147,7 +185,7 @@
   }
 
   function sofa(parent, x, z, rot, w = 2.4, matFab) {
-    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); g.setEulerAngles(0, rot, 0); (parent || app.root).addChild(g);
+    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); g.setEulerAngles(0, rot, 0); (parent || P()).addChild(g);
     const fab = matFab || MATS.fabric;
     box(g, { pos: [0, 0.22, 0], scale: [w, 0.44, 0.95], mat: fab });
     box(g, { pos: [0, 0.62, -0.4], scale: [w, 0.7, 0.18], mat: fab });
@@ -161,7 +199,7 @@
     return g;
   }
   function coffeeTable(parent, x, z) {
-    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); (parent || app.root).addChild(g);
+    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); (parent || P()).addChild(g);
     box(g, { pos: [0, 0.4, 0], scale: [1.3, 0.08, 0.7], mat: MATS.gold });
     box(g, { pos: [0, 0.2, 0], scale: [1.2, 0.04, 0.6], mat: MATS.glass });
     for (const sx of [-0.55, 0.55]) for (const sz of [-0.28, 0.28])
@@ -169,7 +207,7 @@
     return g;
   }
   function diningSet(parent, x, z) {
-    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); (parent || app.root).addChild(g);
+    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); (parent || P()).addChild(g);
     box(g, { pos: [0, 0.74, 0], scale: [2.4, 0.08, 1.1], mat: MATS.wood });
     box(g, { pos: [0, 0.76, 0], scale: [2.0, 0.02, 0.4], mat: MATS.warm });
     for (const sx of [-1.0, 1.0]) box(g, { pos: [sx, 0.37, 0], scale: [0.12, 0.74, 0.8], mat: MATS.wood });
@@ -183,7 +221,7 @@
     return g;
   }
   function kitchen(parent) {
-    const g = new pc.Entity(); (parent || app.root).addChild(g);
+    const g = new pc.Entity(); (parent || P()).addChild(g);
     // run along north wall (z=-5.7)
     box(g, { pos: [-3, 0.45, -5.4], scale: [6, 0.9, 0.7], mat: MATS.wood });
     box(g, { pos: [-3, 0.92, -5.4], scale: [6, 0.06, 0.72], mat: MATS.marbleWhite });
@@ -204,7 +242,7 @@
     return g;
   }
   function bed(parent, x, z) {
-    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); (parent || app.root).addChild(g);
+    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); (parent || P()).addChild(g);
     box(g, { pos: [0, 0.28, 0], scale: [2.1, 0.4, 2.3], mat: MATS.wood });
     box(g, { pos: [0, 0.55, 0.1], scale: [2.0, 0.25, 2.1], mat: MATS.marbleWhite }); // mattress
     box(g, { pos: [0, 0.6, 0.5], scale: [2.0, 0.18, 1.2], mat: MATS.fabric }); // duvet fold
@@ -217,13 +255,13 @@
     return g;
   }
   function wardrobe(parent, x, z, rot) {
-    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); g.setEulerAngles(0, rot, 0); (parent || app.root).addChild(g);
+    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); g.setEulerAngles(0, rot, 0); (parent || P()).addChild(g);
     box(g, { pos: [0, 1.2, 0], scale: [2.4, 2.4, 0.6], mat: MATS.woodLight });
     for (let i = 0; i < 4; i++) box(g, { pos: [-0.9 + i * 0.6, 1.2, 0.31], scale: [0.02, 2.2, 0.02], mat: MATS.gold });
     return g;
   }
   function tvWall(parent, x, z, rot) {
-    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); g.setEulerAngles(0, rot, 0); (parent || app.root).addChild(g);
+    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); g.setEulerAngles(0, rot, 0); (parent || P()).addChild(g);
     box(g, { pos: [0, 1.5, 0.06], scale: [4.2, 3.0, 0.12], mat: MATS.wallDark });
     box(g, { pos: [0, 1.5, 0.14], scale: [2.6, 1.5, 0.06], mat: MATS.screen });
     box(g, { pos: [0, 0.3, 0.3], scale: [3.4, 0.5, 0.5], mat: MATS.wood });
@@ -232,13 +270,13 @@
     return g;
   }
   function painting(parent, x, y, z, rot, hue) {
-    const g = new pc.Entity(); g.setLocalPosition(x, y, z); g.setEulerAngles(0, rot, 0); (parent || app.root).addChild(g);
+    const g = new pc.Entity(); g.setLocalPosition(x, y, z); g.setEulerAngles(0, rot, 0); (parent || P()).addChild(g);
     box(g, { pos: [0, 0, 0], scale: [1.3, 0.95, 0.06], mat: MATS.gold });
     const art = box(g, { pos: [0, 0, 0.04], scale: [1.15, 0.8, 0.04], mat: M({ map: artTex(hue), gloss: 0.3, color: [1, 1, 1] }) });
     return g;
   }
   function plant(parent, x, z, s = 1) {
-    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); (parent || app.root).addChild(g);
+    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); (parent || P()).addChild(g);
     prim("cylinder", g, { pos: [0, 0.3 * s, 0], scale: [0.4 * s, 0.6 * s, 0.4 * s], mat: MATS.marbleWhite });
     for (let i = 0; i < 5; i++) {
       const a = i / 5 * 6.28;
@@ -248,7 +286,7 @@
     return g;
   }
   function chandelier(parent, x, z, y = 3.0) {
-    const g = new pc.Entity(); g.setLocalPosition(x, y, z); (parent || app.root).addChild(g);
+    const g = new pc.Entity(); g.setLocalPosition(x, y, z); (parent || P()).addChild(g);
     prim("cylinder", g, { pos: [0, 0.4, 0], scale: [0.03, 0.8, 0.03], mat: MATS.gold });
     prim("torus", g, { pos: [0, 0, 0], scale: [1, 1, 1], mat: MATS.gold });
     for (let i = 0; i < 8; i++) {
@@ -258,12 +296,12 @@
     return g;
   }
   function curtain(parent, x, z, rot, w = 2.2) {
-    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); g.setEulerAngles(0, rot, 0); (parent || app.root).addChild(g);
+    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); g.setEulerAngles(0, rot, 0); (parent || P()).addChild(g);
     for (let i = 0; i < 6; i++) box(g, { pos: [-w / 2 + i * (w / 5), 1.7, 0], scale: [w / 9, 2.6, 0.08], mat: MATS.fabric2 });
     return g;
   }
   function stairs(parent, x, z, rot) {
-    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); g.setEulerAngles(0, rot, 0); (parent || app.root).addChild(g);
+    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); g.setEulerAngles(0, rot, 0); (parent || P()).addChild(g);
     for (let i = 0; i < 8; i++) box(g, { pos: [0, 0.15 + i * 0.22, -i * 0.3], scale: [1.8, 0.22, 0.32], mat: MATS.marbleWhite });
     box(g, { pos: [0.95, 1.0, -1.0], scale: [0.06, 1.2, 3.0], mat: MATS.glass });
     box(g, { pos: [0.95, 1.6, -1.0], scale: [0.08, 0.08, 3.0], mat: MATS.gold });
@@ -281,7 +319,7 @@
     e.setLocalScale(thick, h, len);
     e.setLocalPosition(cx, h / 2, cz);
     e.setEulerAngles(0, ang, 0);
-    app.root.addChild(e);
+    P().addChild(e);
     if (collide) state.walls.push({ x1, z1, x2, z2 });
     return e;
   }
@@ -292,10 +330,13 @@
     e.render.meshInstances.forEach((mi) => (mi.material = mat));
     e.setLocalScale(0.06, 1.8, len); e.setLocalPosition(cx, 1.7, cz); e.setEulerAngles(0, ang, 0);
     e.render.castShadows = false;
-    app.root.addChild(e);
+    P().addChild(e);
   }
 
-  function buildHouse() {
+  function buildHouse(cfg) {
+    cfg = cfg || {};
+    const art = curTheme.art;
+    const hue = (i) => art[i % art.length];
     buildMats();
     const H = 3.2;
     // floor + ceiling
@@ -332,12 +373,12 @@
     coffeeTable(null, -3, 2);
     plant(null, -6, 6.5, 1.1);
     chandelier(null, -3, 2, 3.0);
-    painting(null, -3, 1.9, 7.9, 180, ["#243044", "#0f1726"]);
+    painting(null, -3, 1.9, 7.9, 180, hue(0));
 
     // ---- dining (east-center) ----
     diningSet(null, 4.2, 1);
     chandelier(null, 4.2, 1, 3.0);
-    painting(null, 6.9, 1.9, 0.5, -90, ["#3a2740", "#160f1e"]);
+    painting(null, 6.9, 1.9, 0.5, -90, hue(1));
 
     // ---- kitchen (north) ----
     kitchen(null);
@@ -346,15 +387,34 @@
     // ---- foyer ----
     stairs(null, 1.4, 6.9, 180);
     plant(null, -6.3, 7.2, 1.2);
-    painting(null, 0, 1.9, -5.9, 0, ["#243a36", "#0f1d1a"]);
+    painting(null, 0, 1.9, -5.9, 0, hue(2));
 
     // ---- bedroom (SE room) ----
     prim("plane", null, { pos: [4.75, 0.02, 6], scale: [3.5, 1, 3.0], mat: MATS.rug, shadow: false });
     bed(null, 4.75, 5.4);
     wardrobe(null, 6.5, 6.2, -90);
     chandelier(null, 4.75, 6, 3.0);
-    painting(null, 4.75, 1.9, 7.9, 180, ["#2a3344", "#11161f"]);
+    painting(null, 4.75, 1.9, 7.9, 180, hue(3));
     plant(null, 3.1, 7.4, 0.9);
+
+    // ---- grand homes: extra seating group + console near the foyer ----
+    if (cfg.grand) {
+      sofa(null, -1.4, 5.6, 0, 1.4, MATS.fabric2);   // accent armchair-style
+      sofa(null, -3.2, 5.6, 0, 1.4, MATS.fabric2);
+      coffeeTable(null, -2.3, 5.4);
+      box(null, { pos: [-6.85, 0.5, 6.3], scale: [0.4, 1.0, 1.6], mat: MATS.wood }); // console
+      painting(null, -6.85, 1.7, 6.3, 90, hue(0));
+      chandelier(null, -2.3, 6.4, 3.05);
+    }
+    // ---- library wall of shelves on the east of the living area ----
+    if (cfg.library) {
+      const lib = new pc.Entity(); lib.setLocalPosition(2.2, 0, -4.6); lib.setEulerAngles(0, -90, 0); P().addChild(lib);
+      box(lib, { pos: [0, 1.3, 0], scale: [3.0, 2.6, 0.4], mat: MATS.wood });
+      for (let r = 0; r < 5; r++) box(lib, { pos: [0, 0.45 + r * 0.5, 0.16], scale: [2.8, 0.04, 0.06], mat: MATS.woodLight });
+      const bookCols = ["#7a2e2e", "#2e4a6a", "#3a5a3a", "#6a5a2e", "#4a2e5a"];
+      for (let r = 0; r < 5; r++) for (let b = 0; b < 10; b++)
+        box(lib, { pos: [-1.3 + b * 0.28, 0.7 + r * 0.5, 0.16], scale: [0.18, 0.34, 0.22], mat: M({ color: hx(bookCols[(r + b) % 5]), gloss: 0.3 }) });
+    }
 
     // room zones for the label
     state.rooms = [
@@ -377,13 +437,13 @@
       shadowDistance: 30, shadowType: pc.SHADOW_PCF3
     });
     sun.setEulerAngles(52, -125, 0);
-    app.root.addChild(sun);
+    P().addChild(sun);
     const spots = [[-3, 2], [4.2, 1], [-3, -4], [4.75, 6], [-3, 6.5], [0, 7]];
     for (const [x, z] of spots) {
       const o = new pc.Entity();
       o.addComponent("light", { type: "omni", color: new pc.Color(1, 0.87, 0.64), intensity: 0.85, range: 8 });
       o.setLocalPosition(x, 2.9, z);
-      app.root.addChild(o);
+      P().addChild(o);
     }
   }
 
@@ -519,22 +579,44 @@
     if (cam.camera.gammaCorrection !== undefined) cam.camera.gammaCorrection = pc.GAMMA_SRGB;
     camRoot.addChild(cam);
     app.root.addChild(camRoot);
-    buildLights();
-    buildHouse();
     bindInput();
     app.on("update", tick);
     app.start();
     window.addEventListener("resize", () => app.resizeCanvas());
   }
 
-  async function open() {
+  // (re)build the furnished interior for a given config; cheap, cached by key
+  function rebuild(cfg) {
+    const key = `${cfg.theme}|${cfg.grand ? 1 : 0}|${cfg.library ? 1 : 0}`;
+    if (key === curCfgKey && world) return;
+    curCfgKey = key;
+    curTheme = THEMES[cfg.theme] || THEMES.charcoalCream;
+    if (world) world.destroy();
+    world = new pc.Entity("world");
+    app.root.addChild(world);
+    state.walls = [];
+    buildLights();
+    buildHouse(cfg);
+  }
+
+  function resolveCfg(arg) {
+    if (arg && typeof arg === "object") return arg;
+    return { theme: "charcoalCream", grand: true, rooms: "Foyer · Living · Dining · Kitchen · Master Suite", name: "Designer Show-Home" };
+  }
+
+  async function open(arg) {
+    const cfg = resolveCfg(arg);
     overlay.classList.add("is-open");
     document.documentElement.style.overflow = "hidden";
     if (window.__lenis) window.__lenis.stop();
     loader.style.display = "flex";
+    // title + subtitle in the tour bar
+    if (titleEl) titleEl.textContent = cfg.name || "Virtual Show-Home";
+    if (subEl) subEl.textContent = cfg.rooms || "";
     try {
       await loadEngine();
       ensureApp();
+      rebuild(cfg);
       // reset spawn at the foyer looking into the house (toward -Z)
       state.pos = { x: -1.5, y: 1.65, z: 7.0 };
       state.yaw = 0; state.pitch = -4;
@@ -545,6 +627,9 @@
       loader.innerHTML = "<p>3D engine couldn't load on this connection.<br>Please try again on Wi-Fi.</p>";
     }
   }
+  // open by sold-property index / hot-deal index (from main.js)
+  function openProperty(i, name) { return open(Object.assign({ name }, SOLD_CFG[i] || {})); }
+  function openDeal(i, name) { return open(Object.assign({ name }, DEAL_CFG[i] || {})); }
   function close() {
     overlay.classList.remove("is-open");
     document.documentElement.style.overflow = "";
@@ -555,5 +640,5 @@
   document.getElementById("tourClose").addEventListener("click", close);
   window.addEventListener("keydown", (e) => { if (e.key === "Escape" && overlay.classList.contains("is-open")) close(); });
 
-  window.HouseTour = { open, close };
+  window.HouseTour = { open, openProperty, openDeal, close };
 })();

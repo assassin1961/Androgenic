@@ -544,8 +544,12 @@ body::before {
   padding: 1rem 1.4rem;
   background: linear-gradient(180deg, rgba(5,7,13,0.85), transparent);
 }
-.tour__title { font-size: 0.82rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cream); display: flex; align-items: center; gap: 0.6rem; }
-.tour__title em { color: var(--gold-bright); font-style: normal; font-family: var(--serif); letter-spacing: 0.04em; text-transform: none; font-size: 1.05rem; }
+.tour__title { font-size: 0.82rem; letter-spacing: 0.1em; color: var(--cream); display: flex; align-items: center; gap: 0.6rem; }
+.tour__title b { font-weight: 600; letter-spacing: 0.04em; }
+.tour__title em { color: var(--gold-bright); font-style: normal; font-family: var(--serif); letter-spacing: 0.04em; font-size: 1.05rem; }
+.tour__title em::before { content: "·"; margin-right: 0.5rem; color: var(--muted); }
+.tour__sub { font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 0.25rem 0 0 1.4rem; }
+@media (max-width: 640px) { .tour__sub { display: none; } }
 .tour__dot { width: 8px; height: 8px; border-radius: 50%; background: #3ddc84; box-shadow: 0 0 12px #3ddc84; }
 .tour__close {
   background: rgba(20,28,52,0.7); border: 1px solid rgba(243,238,227,0.25); color: var(--cream);

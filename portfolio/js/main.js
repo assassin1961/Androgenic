@@ -394,6 +394,10 @@ function openLightbox(i) {
   const hint = document.getElementById("lbDragHint");
   const has3d = window.Estate3D && window.Estate3D.openViewer(i, media);
   if (hint) hint.style.display = has3d ? "block" : "none";
+
+  // per-listing interior walkthrough
+  const tourBtn = document.getElementById("lbTourBtn");
+  if (tourBtn) tourBtn.onclick = () => window.HouseTour && window.HouseTour.openProperty(i, p.title);
 }
 function closeLightbox() {
   lightbox.classList.remove("is-open");
@@ -513,6 +517,9 @@ function openDealLightbox(d, i) {
   const hint = document.getElementById("lbDragHint");
   const has3d = window.Estate3D && window.Estate3D.openViewerByType(DEAL_MODELS[i] || "modern", media);
   if (hint) hint.style.display = has3d ? "block" : "none";
+
+  const tourBtn = document.getElementById("lbTourBtn");
+  if (tourBtn) tourBtn.onclick = () => window.HouseTour && window.HouseTour.openDeal(i, d.title);
 }
 
 const dealsGrid = document.getElementById("dealsGrid");
