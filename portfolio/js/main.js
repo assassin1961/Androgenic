@@ -192,8 +192,15 @@ PROPERTIES.forEach((p, i) => {
         <span class="card__price"><em>Closed at</em>${p.price}</span>
         <span class="card__view">View Story →</span>
       </div>
+      <button class="card__tour-btn" type="button">▷ Virtual Tour</button>
     </div>`;
   card.addEventListener("click", () => openLightbox(i));
+  card.querySelector(".card__tour-btn").addEventListener("click", (e) => {
+    e.stopPropagation();
+    openLightbox(i);
+    const lb = document.getElementById("lbTourBtn");
+    if (lb && lb.onclick) lb.onclick();
+  });
   guardImage(card.querySelector(".card__media img"), i, p.title);
   grid.appendChild(card);
 });
@@ -545,9 +552,15 @@ if (dealsGrid) {
           <a class="btn btn--wa" href="${wa}" target="_blank" rel="noopener">WhatsApp Now</a>
           <a class="btn btn--ghost btn--sm" href="tel:+16134083945">Call</a>
         </div>
+        <button class="card__tour-btn deal__tour-btn" type="button">▷ Virtual Tour</button>
       </div>`;
     dealsGrid.appendChild(el);
     el.querySelector(".deal__media").addEventListener("click", () => openDealLightbox(d, di));
+    el.querySelector(".deal__tour-btn").addEventListener("click", () => {
+      openDealLightbox(d, di);
+      const lb = document.getElementById("lbTourBtn");
+      if (lb && lb.onclick) lb.onclick();
+    });
     el.querySelector(".deal__media img").addEventListener("error", function () {
       this.style.display = "none";
     }, { once: true });

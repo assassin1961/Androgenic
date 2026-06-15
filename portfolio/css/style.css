@@ -369,6 +369,21 @@ body::before {
 .card__view { font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); transition: color 0.3s; }
 .card:hover .card__view { color: var(--gold); }
 .card.is-hidden { display: none; }
+.card__tour-btn {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  width: calc(100% - 3rem); margin: 0 1.5rem 1.4rem;
+  padding: 0.65rem 1rem;
+  background: rgba(201,164,92,0.1); border: 1px solid rgba(201,164,92,0.55);
+  color: var(--gold-bright); font-family: var(--sans); font-size: 0.74rem;
+  font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+  border-radius: 99px; cursor: pointer;
+  transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease), color 0.3s;
+}
+.card__tour-btn:hover {
+  background: var(--gold); color: var(--ink);
+  box-shadow: 0 8px 26px -8px rgba(201,164,92,0.55);
+}
+.deal__tour-btn { width: calc(100% - 3rem); margin: 0.7rem 1.5rem 0; }
 
 /* ============ CARD TAGS & PRICE ============ */
 .card__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.9rem; }
@@ -516,8 +531,17 @@ body::before {
 .tourcta__hints b { color: var(--gold); }
 
 /* ============ TOUR BUTTON IN LIGHTBOX ============ */
-.lightbox__tour { width: 100%; justify-content: center; margin-top: 1.2rem; }
-.lightbox__tour-ico { color: var(--ink); }
+.lightbox__tour {
+  width: 100%; justify-content: center;
+  margin: 1rem 0 1.6rem;
+  font-size: 0.95rem; letter-spacing: 0.08em;
+  animation: tour-glow 2.6s ease-in-out infinite;
+}
+.lightbox__tour-ico { color: var(--ink); font-size: 1.1em; }
+@keyframes tour-glow {
+  0%,100% { box-shadow: 0 0 0 0 rgba(201,164,92,0); }
+  50%      { box-shadow: 0 0 22px 6px rgba(201,164,92,0.38); }
+}
 
 /* ============ VIRTUAL TOUR MODAL ============ */
 .tour {
