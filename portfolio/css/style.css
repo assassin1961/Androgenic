@@ -602,6 +602,56 @@ body::before {
   .tour__legend-m { display: inline; }
 }
 
+/* ============ PHOTO TOUR ============ */
+.pt-bg {
+  position: absolute; inset: 0; z-index: 1;
+  background-size: cover; background-position: center;
+  transition: opacity 0.42s ease;
+}
+.pt-bg--next { z-index: 2; opacity: 0; }
+.pt-bg--next.pt-bg--visible { opacity: 1; }
+.pt-nav {
+  position: absolute; top: 50%; z-index: 5; transform: translateY(-50%);
+  width: 52px; height: 52px; border-radius: 50%;
+  background: rgba(10,15,30,0.65); backdrop-filter: blur(8px);
+  border: 1px solid rgba(201,164,92,0.45); color: var(--gold-bright);
+  font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.3s, transform 0.3s;
+}
+.pt-nav--prev { left: 1.2rem; }
+.pt-nav--next { right: 1.2rem; }
+.pt-nav:hover { background: var(--gold); color: var(--ink); transform: translateY(-50%) scale(1.1); }
+.pt-label {
+  position: absolute; bottom: 4.5rem; left: 50%; transform: translateX(-50%); z-index: 5;
+  background: rgba(10,15,30,0.7); backdrop-filter: blur(10px);
+  border: 1px solid rgba(201,164,92,0.35); color: var(--cream);
+  font-size: 0.78rem; letter-spacing: 0.22em; text-transform: uppercase;
+  padding: 0.55rem 1.4rem; border-radius: 99px; white-space: nowrap;
+  opacity: 0; transition: opacity 0.35s;
+}
+.pt-label--in { opacity: 1; }
+.pt-strip {
+  position: absolute; bottom: 1.6rem; left: 50%; transform: translateX(-50%); z-index: 5;
+  display: flex; gap: 0.45rem; padding: 0.5rem 0.9rem;
+  background: rgba(10,15,30,0.6); backdrop-filter: blur(8px);
+  border: 1px solid rgba(243,238,227,0.1); border-radius: 99px;
+  max-width: 90vw; overflow-x: auto; scrollbar-width: none;
+}
+.pt-strip::-webkit-scrollbar { display: none; }
+.pt-dot {
+  flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(243,238,227,0.3); border: none; cursor: pointer;
+  transition: background 0.3s, transform 0.3s;
+}
+.pt-dot.is-active { background: var(--gold); transform: scale(1.4); }
+.pt-dot:hover:not(.is-active) { background: rgba(201,164,92,0.7); }
+@media (max-width: 640px) {
+  .pt-nav { width: 42px; height: 42px; font-size: 1.1rem; }
+  .pt-nav--prev { left: 0.6rem; }
+  .pt-nav--next { right: 0.6rem; }
+  .pt-label { font-size: 0.68rem; bottom: 4rem; }
+}
+
 /* ============ QUOTE BAND ============ */
 .quote-band {
   text-align: center; padding: clamp(5rem, 10vw, 8rem) 6vw;
