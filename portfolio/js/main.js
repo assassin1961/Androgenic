@@ -254,6 +254,7 @@ if (HAS_LENIS && HAS_GSAP) {
   if (HAS_ST) lenis.on("scroll", ScrollTrigger.update);
   gsap.ticker.add((t) => lenis.raf(t * 1000));
   gsap.ticker.lagSmoothing(0);
+  window.__lenis = lenis;
 }
 
 /* ---------- HERO INTRO ---------- */

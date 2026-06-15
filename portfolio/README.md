@@ -8,6 +8,10 @@ A highly interactive, single-page portfolio showcasing luxury homes sold across
 
 **Highlights**
 
+- **Walk-through virtual show-home (PlayCanvas)** — a fully-furnished interior
+  (foyer, living, dining, open kitchen, master bedroom) you explore in
+  first-person: WASD + mouse on desktop, on-screen joystick + drag on mobile.
+  The engine is lazy-loaded only when a tour is opened.
 - **Scroll-driven 3D showcase** — three signature homes built as procedural
   Three.js maquettes that assemble piece-by-piece and orbit as you scroll
   through a pinned section
