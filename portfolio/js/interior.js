@@ -25,23 +25,47 @@
   };
   // sold properties (index matches PROPERTIES in main.js)
   const SOLD_CFG = [
-    { theme: "charcoalCream", grand: true,  rooms: "Foyer · Living · Dining · Kitchen · Master Suite" },
-    { theme: "bahriaTown",    grand: true,  rooms: "Porch · Drawing Room · Living · Kitchen · Master Suite" },
-    { theme: "greyGraphite",  grand: false, rooms: "Lounge · Dining · Kitchen · Bedroom" },
-    { theme: "whiteOak",      grand: false, rooms: "Lounge · Dining · Kitchen · Bedroom" },
-    { theme: "spanishWarm",   grand: true,  rooms: "Foyer · Living · Dining · Kitchen · Master Suite", library: true },
-    { theme: "greyGraphite",  grand: false, rooms: "Lounge · Dining · Kitchen · Bedroom" },
-    { theme: "heritage",      grand: true,  rooms: "Foyer · Drawing Room · Dining · Kitchen · Master Suite" },
-    { theme: "heritage",      grand: true,  rooms: "Foyer · Drawing Room · Library · Dining · Master Suite", library: true },
-    { theme: "bahriaTown",    grand: false, rooms: "Porch · Drawing Room · Kitchen · Master Suite" },
-    { theme: "heritage",      grand: true,  rooms: "Foyer · Drawing Room · Library · Dining · Master Suite", library: true },
-    { theme: "charcoalCream", grand: false, rooms: "Lounge · Dining · Kitchen · Bedroom" },
-    { theme: "bahriaTown",    grand: false, rooms: "Porch · Drawing Room · Living · Kitchen · Bedroom" }
+    // 0: Margalla View Manor
+    { theme:"charcoalCream", grand:true, cinema:true, pool:true,
+      roomLabels:["Master Suite","Chef's Kitchen","Cinema Lounge","Glass Drawing Room","Entrance Foyer"] },
+    // 1: Villa Serena
+    { theme:"charcoalCream", grand:true, cinema:true,
+      roomLabels:["Master Suite","Open Kitchen","Cinema Lounge","Formal Living","Entrance Foyer"] },
+    // 2: Enclave Residence
+    { theme:"greyGraphite", grand:true,
+      roomLabels:["Master Bedroom","Kitchen","Dining Room","Double-Height Lounge","Entrance Foyer"] },
+    // 3: Casa Blanca E-11
+    { theme:"spanishWarm", grand:false, terrazzo:true,
+      roomLabels:["Bedroom","Kitchen","Dining","Sunken Lounge","Entrance"] },
+    // 4: Gulberg Farmhouse
+    { theme:"brickWarm", grand:true, library:true, farmhouse:true,
+      roomLabels:["Master Suite","Farmhouse Kitchen","Dining Pavilion","Living Pavilion","Foyer & Orchard"] },
+    // 5: Hilltop Modern
+    { theme:"greyGraphite", grand:false,
+      roomLabels:["Bedroom","Kitchen","Dining","Glazed Lounge","Foyer"] },
+    // 6: Phase 6 Palazzo
+    { theme:"heritage", grand:true, library:true,
+      roomLabels:["Master Suite","Twin Kitchens","Cigar Lounge","Drawing Room","Entrance Foyer"] },
+    // 7: Gulberg Heritage House
+    { theme:"heritage", grand:true, library:true, atrium:true,
+      roomLabels:["Master Suite","Kitchen","Dining","Glass Atrium","Entrance Foyer"] },
+    // 8: Bahria Orchard Villa
+    { theme:"bahriaTown", grand:false,
+      roomLabels:["Master Suite","Kitchen","Dining","Drawing Room","Courtyard Entrance"] },
+    // 9: Model Town Estate
+    { theme:"heritage", grand:true, library:true,
+      roomLabels:["Master Suite","Kitchen","Dining Room","Drawing Room","Colonial Veranda"] },
+    // 10: Lake City Linear
+    { theme:"whiteOak", grand:true, cedar:true,
+      roomLabels:["Master Suite","Kitchen","Dining","Gallery Living","Entrance Gallery"] },
+    // 11: Phase 5 Courtyard
+    { theme:"spanishWarm", grand:false, terrazzo:true,
+      roomLabels:["Bedroom","Kitchen","Dining","Courtyard Lounge","Entrance"] }
   ];
   const DEAL_CFG = [
-    { theme: "bahriaTown",    grand: false, rooms: "Porch · Drawing Room · Living · Kitchen · Master Suite" },
-    { theme: "charcoalCream", grand: true,  rooms: "Foyer · Living · Cinema Lounge · Kitchen · Master Suite" },
-    { theme: "bahriaTown",    grand: false, rooms: "Porch · Drawing Room · Kitchen · Bedroom" }
+    { theme:"bahriaTown", grand:false, roomLabels:["Master Suite","Kitchen","Dining","Drawing Room","Entrance Foyer"] },
+    { theme:"charcoalCream", grand:true, cinema:true, roomLabels:["Master Suite","Chef's Kitchen","Cinema Lounge","Formal Living","Entrance Foyer"] },
+    { theme:"bahriaTown", grand:false, terrazzo:true, roomLabels:["Bedroom","Kitchen","Dining","Courtyard Lounge","Entrance"] }
   ];
   let curTheme = THEMES.charcoalCream;
   const hx = (s) => [parseInt(s.slice(1, 3), 16) / 255, parseInt(s.slice(3, 5), 16) / 255, parseInt(s.slice(5, 7), 16) / 255];
@@ -114,6 +138,20 @@
       }
     }, 256, 4, 4);
   }
+  function terrazzotex() {
+    return tex((ctx, s) => {
+      ctx.fillStyle = "#e8e4dc"; ctx.fillRect(0, 0, s, s);
+      const chips = ["#c9a45c","#8b7355","#d4cfc4","#a09880","#c5b99a","#4a4a50","#2a2a30"];
+      for (let i = 0; i < 180; i++) {
+        ctx.fillStyle = chips[Math.floor(Math.random() * chips.length)];
+        const x = Math.random()*s, y = Math.random()*s, r = 2+Math.random()*6;
+        ctx.beginPath(); ctx.arc(x, y, r, 0, 6.28); ctx.fill();
+      }
+      ctx.strokeStyle = "rgba(200,195,185,0.5)"; ctx.lineWidth = 1.5;
+      for (let i = 0; i < s; i += 32) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,s); ctx.stroke(); }
+      for (let i = 0; i < s; i += 32) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(s,i); ctx.stroke(); }
+    }, 256, 5, 5);
+  }
   function rugTex() {
     return tex((ctx, s) => {
       ctx.fillStyle = "#2a3344"; ctx.fillRect(0, 0, s, s);
@@ -168,6 +206,7 @@
   function buildMats() {
     const t = curTheme;
     MATS.floor = M({ map: marbleTex(), gloss: 0.82, metal: 0.04, color: [1, 1, 1] });
+    MATS.terrazzof = M({ map: terrazzotex(), gloss: 0.75, metal: 0.03, color: [1, 1, 1] });
     MATS.wall = M({ color: t.wall, gloss: 0.2 });
     MATS.wallDark = M({ color: t.feature, gloss: 0.3 });
     MATS.ceiling = M({ color: [t.wall[0] + 0.06, t.wall[1] + 0.06, t.wall[2] + 0.06], gloss: 0.1 });
@@ -373,6 +412,63 @@
     return g;
   }
 
+  /* cinema room — tiered seats, large screen */
+  function cinemaRoom(parent, x, z) {
+    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); (parent || P()).addChild(g);
+    const matSeat = M({ color: [0.12, 0.05, 0.05], gloss: 0.3 });
+    const matScreen = M({ color: [0.02, 0.05, 0.15], emissive: [0.18, 0.28, 0.55], emissiveI: 2.4 });
+    /* screen */
+    box(g, { pos: [0, 1.4, -0.2], scale: [3.8, 2.2, 0.08], mat: M({ color: [0.1, 0.1, 0.12], gloss: 0.15 }) });
+    box(g, { pos: [0, 1.4, -0.14], scale: [3.4, 1.9, 0.04], mat: matScreen });
+    /* rows of seats */
+    for (let row = 0; row < 3; row++) {
+      const tz = 0.9 + row * 1.1, ty = row * 0.12;
+      for (let s = -1; s <= 1; s++) {
+        box(g, { pos: [s * 1.1, ty + 0.3, tz], scale: [0.75, 0.12, 0.7], mat: matSeat });
+        box(g, { pos: [s * 1.1, ty + 0.7, tz - 0.28], scale: [0.75, 0.65, 0.1], mat: matSeat });
+      }
+    }
+    /* aisle floor strip glow */
+    box(g, { pos: [0, 0.01, 1.5], scale: [0.2, 0.02, 3.5], mat: MATS.warm, shadow: false });
+    return g;
+  }
+
+  /* infinity pool glow — visible through south wall */
+  function infinityPool() {
+    const matPool = M({ color: [0.12, 0.55, 0.75], emissive: [0.08, 0.45, 0.65], emissiveI: 1.6, opacity: 0.35, gloss: 0.98 });
+    box(null, { pos: [0, 0.4, -6.1], scale: [9, 0.8, 0.12], mat: matPool, shadow: false });
+    /* ripple shimmer strip */
+    box(null, { pos: [0, 0.82, -6.0], scale: [9, 0.04, 0.08], mat: M({ color:[1,1,1], emissive:[0.5,0.85,1], emissiveI:2.2 }), shadow: false });
+  }
+
+  /* glass atrium — overhead glass ceiling glow */
+  function glassAtrium(H) {
+    const matGlass = M({ color: [0.8, 0.88, 1.0], emissive: [0.6, 0.72, 0.9], emissiveI: 1.3, opacity: 0.18, gloss: 0.98 });
+    /* glass panels in ceiling above central living zone */
+    for (let i = -2; i <= 2; i++)
+      box(null, { pos: [i * 1.6, H + 0.04, 1], scale: [1.4, 0.06, 4.0], mat: matGlass, shadow: false });
+    /* overhead frame */
+    for (const fx of [-3.2, -0.8, 0.8, 3.2])
+      box(null, { pos: [fx, H + 0.04, 1], scale: [0.08, 0.08, 4.0], mat: MATS.metal, shadow: false });
+    /* warm skylight glow on floor */
+    box(null, { pos: [0, 0.01, 1], scale: [6, 0.02, 4], mat: M({ color:[1,1,1], emissive:[0.85,0.90,0.98], emissiveI:0.5 }), shadow: false });
+  }
+
+  /* farmhouse exposed ceiling beams */
+  function farmhouseBeams(H) {
+    for (let i = -2; i <= 2; i++)
+      box(null, { pos: [i * 2.2, H - 0.2, 1], scale: [0.28, 0.28, 12], mat: MATS.wood, shadow: false });
+  }
+
+  /* cedar vertical slat screens (Lake City) */
+  function cedarScreens(parent, x, z, rot) {
+    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); g.setEulerAngles(0, rot, 0); (parent || P()).addChild(g);
+    const matCedar = M({ color: [0.52, 0.32, 0.16], gloss: 0.4, metal: 0.02 });
+    for (let i = 0; i < 8; i++)
+      box(g, { pos: [-1.75 + i * 0.5, 1.6, 0], scale: [0.12, 3.2, 0.08], mat: matCedar });
+    return g;
+  }
+
   /* ---------- walls + shell ---------- */
   function wallSeg(x1, z1, x2, z2, h, mat, collide = true, thick = 0.16) {
     const dx = x2 - x1, dz = z2 - z1, len = Math.hypot(dx, dz);
@@ -432,42 +528,37 @@
 
     const isBahria = curTheme === THEMES.bahriaTown;
 
+    /* --- apply terrazzo floor override --- */
+    if (cfg.terrazzo) {
+      box(null, { pos: [0, -0.04, 1], scale: [14, 0.1, 14], mat: MATS.terrazzof });
+    }
+
+    /* --- WEST / LIVING area --- */
     if (isBahria) {
-      /* === Bahria Town 12 Marla — matched to actual video footage === */
-      /* Drawing room: black geometric feature wall on west, two ceiling fans + chandelier */
       featureWall(null, -6.85, 2, 90, 5.0, H);
       chandelier(null, -3, 2, H - 0.15);
       chandelier(null, -3, 0.5, H - 0.15);
       ceilingFan(null, -4.5, 2, H);
       ceilingFan(null, -1.5, 2, H);
-      /* Floor-to-ceiling garden glass wall on south side (2m wide panels) */
-      const matGarden = M({ color: [0.55, 0.75, 0.45], emissive: [0.38, 0.52, 0.28], emissiveI: 1.8, opacity: 0.18, gloss: 0.95 });
-      box(null, { pos: [0, H / 2, -5.95], scale: [8, H, 0.06], mat: matGarden, shadow: false });
-      /* frame dividers for floor-to-ceiling glass */
-      for (const fx of [-3, -1, 1, 3]) box(null, { pos: [fx, H / 2, -5.93], scale: [0.06, H, 0.08], mat: MATS.metal, shadow: false });
-      /* sheer curtains pulled to sides */
+      const matGarden = M({ color:[0.55,0.75,0.45], emissive:[0.38,0.52,0.28], emissiveI:1.8, opacity:0.18, gloss:0.95 });
+      box(null, { pos:[0, H/2, -5.95], scale:[8, H, 0.06], mat:matGarden, shadow:false });
+      for (const fx of [-3,-1,1,3]) box(null, { pos:[fx, H/2, -5.93], scale:[0.06, H, 0.08], mat:MATS.metal, shadow:false });
       curtain(null, -5.5, -5.6, 0, 2.0);
       curtain(null,  5.5, -5.6, 0, 2.0);
-      /* sofas facing garden */
       sofa(null, -2, 2, 180, 2.8, MATS.fabric);
       sofa(null, -4.5, 1, 90, 2.0, MATS.fabric);
       coffeeTable(null, -2, 1);
-      /* white orchid flower stands flanking drawing room entrance (brass cylinders) */
       for (const ox of [-0.6, 0.6]) {
-        prim("cylinder", null, { pos: [ox, 0.8, 6.5], scale: [0.1, 1.6, 0.1], mat: MATS.gold });
-        prim("sphere",   null, { pos: [ox, 1.7, 6.5], scale: [0.35, 0.35, 0.35], mat: M({ color: [1, 1, 1], gloss: 0.2 }) });
+        prim("cylinder", null, { pos:[ox, 0.8, 6.5], scale:[0.1, 1.6, 0.1], mat:MATS.gold });
+        prim("sphere",   null, { pos:[ox, 1.7, 6.5], scale:[0.35,0.35,0.35], mat:M({ color:[1,1,1], gloss:0.2 }) });
       }
-      /* bedroom: grey fluted accent wall + oval mirror + black-frame wardrobe */
-      const matFluted = M({ color: [0.48, 0.50, 0.54], gloss: 0.35 });
-      box(null, { pos: [4.75, H / 2, 7.9], scale: [4, H, 0.1], mat: matFluted });
-      /* oval-arch mirror on fluted wall */
-      box(null, { pos: [4.75, 1.6, 7.85], scale: [0.7, 1.0, 0.04], mat: M({ color: [0.55, 0.55, 0.58], gloss: 0.98, metal: 0.15, opacity: 0.6 }) });
-      box(null, { pos: [4.75, 1.6, 7.84], scale: [0.76, 1.06, 0.03], mat: MATS.gold });
-      /* bathroom backlit mirror glow */
-      box(null, { pos: [-5.5, 1.8, -5.85], scale: [1.2, 0.7, 0.04], mat: M({ color: [1, 0.9, 0.7], emissive: [1, 0.88, 0.6], emissiveI: 2.5 }), shadow: false });
+      const matFluted = M({ color:[0.48,0.50,0.54], gloss:0.35 });
+      box(null, { pos:[4.75, H/2, 7.9], scale:[4, H, 0.1], mat:matFluted });
+      box(null, { pos:[4.75, 1.6, 7.85], scale:[0.7, 1.0, 0.04], mat:M({ color:[0.55,0.55,0.58], gloss:0.98, metal:0.15, opacity:0.6 }) });
+      box(null, { pos:[4.75, 1.6, 7.84], scale:[0.76, 1.06, 0.03], mat:MATS.gold });
+      box(null, { pos:[-5.5, 1.8, -5.85], scale:[1.2, 0.7, 0.04], mat:M({ color:[1,0.9,0.7], emissive:[1,0.88,0.6], emissiveI:2.5 }), shadow:false });
     } else {
-      /* ---- classic interior ---- */
-      prim("plane", null, { pos: [-3, 0.02, 2], scale: [4.5, 1, 3.2], mat: MATS.rug, shadow: false });
+      prim("plane", null, { pos:[-3, 0.02, 2], scale:[4.5,1,3.2], mat:MATS.rug, shadow:false });
       tvWall(null, -6.8, 2, 90);
       sofa(null, -3, 3.6, 180, 2.8, MATS.fabric);
       sofa(null, -5.0, 2, 90, 2.2, MATS.fabric);
@@ -478,60 +569,76 @@
 
     plant(null, -6, 6.5, 1.1);
 
-    // ---- dining (east-center) ----
-    diningSet(null, 4.2, 1);
-    chandelier(null, 4.2, 1, 3.0);
-    painting(null, 6.9, 1.9, 0.5, -90, hue(1));
+    /* --- EAST zone: cinema OR dining --- */
+    if (cfg.cinema) {
+      cinemaRoom(null, 4.2, 1);
+      chandelier(null, 4.2, 1, 3.0);
+    } else {
+      diningSet(null, 4.2, 1);
+      chandelier(null, 4.2, 1, 3.0);
+      painting(null, 6.9, 1.9, 0.5, -90, hue(1));
+    }
 
-    // ---- kitchen (north) ----
+    /* --- KITCHEN --- */
     kitchen(null);
     plant(null, -6.2, -5, 1.0);
 
-    // ---- foyer ----
+    /* --- FOYER --- */
     stairs(null, 1.4, 6.9, 180);
     plant(null, -6.3, 7.2, 1.2);
     painting(null, 0, 1.9, -5.9, 0, hue(2));
 
-    // ---- bedroom (SE room) ----
-    prim("plane", null, { pos: [4.75, 0.02, 6], scale: [3.5, 1, 3.0], mat: MATS.rug, shadow: false });
+    /* --- BEDROOM --- */
+    prim("plane", null, { pos:[4.75, 0.02, 6], scale:[3.5,1,3.0], mat:MATS.rug, shadow:false });
     bed(null, 4.75, 5.4);
     wardrobe(null, 6.5, 6.2, -90);
     chandelier(null, 4.75, 6, 3.0);
     painting(null, 4.75, 1.9, 7.9, 180, hue(3));
     plant(null, 3.1, 7.4, 0.9);
 
-    // ---- grand homes: extra seating group + console near the foyer ----
+    /* --- grand homes: foyer seating --- */
     if (cfg.grand) {
-      sofa(null, -1.4, 5.6, 0, 1.4, MATS.fabric2);   // accent armchair-style
+      sofa(null, -1.4, 5.6, 0, 1.4, MATS.fabric2);
       sofa(null, -3.2, 5.6, 0, 1.4, MATS.fabric2);
       coffeeTable(null, -2.3, 5.4);
-      box(null, { pos: [-6.85, 0.5, 6.3], scale: [0.4, 1.0, 1.6], mat: MATS.wood }); // console
+      box(null, { pos:[-6.85, 0.5, 6.3], scale:[0.4, 1.0, 1.6], mat:MATS.wood });
       painting(null, -6.85, 1.7, 6.3, 90, hue(0));
       chandelier(null, -2.3, 6.4, 3.05);
     }
-    // ---- library wall of shelves on the east of the living area ----
+
+    /* --- library / bookshelves --- */
     if (cfg.library) {
       const lib = new pc.Entity(); lib.setLocalPosition(2.2, 0, -4.6); lib.setEulerAngles(0, -90, 0); P().addChild(lib);
-      box(lib, { pos: [0, 1.3, 0], scale: [3.0, 2.6, 0.4], mat: MATS.wood });
-      for (let r = 0; r < 5; r++) box(lib, { pos: [0, 0.45 + r * 0.5, 0.16], scale: [2.8, 0.04, 0.06], mat: MATS.woodLight });
-      const bookCols = ["#7a2e2e", "#2e4a6a", "#3a5a3a", "#6a5a2e", "#4a2e5a"];
+      box(lib, { pos:[0, 1.3, 0], scale:[3.0, 2.6, 0.4], mat:MATS.wood });
+      for (let r = 0; r < 5; r++) box(lib, { pos:[0, 0.45+r*0.5, 0.16], scale:[2.8, 0.04, 0.06], mat:MATS.woodLight });
+      const bc = ["#7a2e2e","#2e4a6a","#3a5a3a","#6a5a2e","#4a2e5a"];
       for (let r = 0; r < 5; r++) for (let b = 0; b < 10; b++)
-        box(lib, { pos: [-1.3 + b * 0.28, 0.7 + r * 0.5, 0.16], scale: [0.18, 0.34, 0.22], mat: M({ color: hx(bookCols[(r + b) % 5]), gloss: 0.3 }) });
+        box(lib, { pos:[-1.3+b*0.28, 0.7+r*0.5, 0.16], scale:[0.18, 0.34, 0.22], mat:M({ color:hx(bc[(r+b)%5]), gloss:0.3 }) });
     }
 
-    // room zones for the label
-    state.rooms = isBahria ? [
-      { name: "Master Bedroom",   x1: 2.5, z1: 4,  x2: 7,   z2: 8 },
-      { name: "Kitchen",          x1: -7,  z1: -6, x2: 0,   z2: -2.2 },
-      { name: "Dining Area",      x1: 1,   z1: -2, x2: 7,   z2: 3.8 },
-      { name: "Drawing Room",     x1: -7,  z1: -2, x2: 0.8, z2: 5 },
-      { name: "Entrance Foyer",   x1: -7,  z1: 5,  x2: 2.4, z2: 8 }
-    ] : [
-      { name: "Master Bedroom", x1: 2.5, z1: 4, x2: 7, z2: 8 },
-      { name: "Open Kitchen", x1: -7, z1: -6, x2: 0, z2: -2.2 },
-      { name: "Dining Area", x1: 1, z1: -2, x2: 7, z2: 3.8 },
-      { name: "Formal Living", x1: -7, z1: -2, x2: 0.8, z2: 5 },
-      { name: "Entrance Foyer", x1: -7, z1: 5, x2: 2.4, z2: 8 }
+    /* --- infinity pool glow --- */
+    if (cfg.pool) infinityPool();
+
+    /* --- glass atrium overhead --- */
+    if (cfg.atrium) glassAtrium(H);
+
+    /* --- farmhouse exposed beams --- */
+    if (cfg.farmhouse) farmhouseBeams(H);
+
+    /* --- cedar screens --- */
+    if (cfg.cedar) {
+      cedarScreens(null, -5.5, -5.5, 0);
+      cedarScreens(null, 5.5, -5.5, 0);
+    }
+
+    /* --- room zone labels from config --- */
+    const rl = cfg.roomLabels || ["Master Bedroom","Open Kitchen","Dining Area","Formal Living","Entrance Foyer"];
+    state.rooms = [
+      { name: rl[0], x1:2.5, z1:4,  x2:7,   z2:8 },
+      { name: rl[1], x1:-7,  z1:-6, x2:0,   z2:-2.2 },
+      { name: rl[2], x1:1,   z1:-2, x2:7,   z2:3.8 },
+      { name: rl[3], x1:-7,  z1:-2, x2:0.8, z2:5 },
+      { name: rl[4], x1:-7,  z1:5,  x2:2.4, z2:8 }
     ];
   }
 
