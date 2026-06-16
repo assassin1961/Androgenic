@@ -803,7 +803,7 @@
 
   // (re)build the furnished interior for a given config; cheap, cached by key
   function rebuild(cfg) {
-    const key = `${cfg.theme}|${cfg.grand ? 1 : 0}|${cfg.library ? 1 : 0}`;
+    const key = `${cfg.theme}|${cfg.grand?1:0}|${cfg.library?1:0}|${cfg.cinema?1:0}|${cfg.pool?1:0}|${cfg.atrium?1:0}|${cfg.farmhouse?1:0}|${cfg.cedar?1:0}|${cfg.terrazzo?1:0}`;
     if (key === curCfgKey && world) return;
     curCfgKey = key;
     curTheme = THEMES[cfg.theme] || THEMES.charcoalCream;
@@ -828,7 +828,7 @@
     loader.style.display = "flex";
     // title + subtitle in the tour bar
     if (titleEl) titleEl.textContent = cfg.name || "Virtual Show-Home";
-    if (subEl) subEl.textContent = cfg.rooms || "";
+    if (subEl) subEl.textContent = cfg.rooms || (cfg.roomLabels ? cfg.roomLabels.join(" · ") : "");
     try {
       await loadEngine();
       ensureApp();
@@ -836,7 +836,7 @@
       // reset spawn at the foyer looking into the house (toward -Z)
       state.pos = { x: -1.5, y: 1.65, z: 7.0 };
       state.yaw = 0; state.pitch = -4;
-      state.curRoom = ""; roomLabel.textContent = "Entrance Foyer";
+      state.curRoom = ""; roomLabel.textContent = (cfg.roomLabels && cfg.roomLabels[4]) || "Entrance Foyer";
       app.resizeCanvas();
       loader.style.display = "none";
     } catch (e) {
