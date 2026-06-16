@@ -21,17 +21,21 @@
     greyGraphite:  { wall: [0.42, 0.45, 0.50], feature: [0.16, 0.18, 0.21], wood: [0.24, 0.16, 0.10], woodLight: [0.42, 0.32, 0.22], fabric: [0.14, 0.16, 0.20], fabric2: [0.34, 0.34, 0.36], marble: ["#dadbde", "#c6c8cc"], art: [["#2a3038", "#12161c"], ["#34302a", "#16130f"], ["#283036", "#11151a"]] },
     spanishWarm:   { wall: [0.90, 0.86, 0.76], feature: [0.61, 0.31, 0.20], wood: [0.45, 0.28, 0.16], woodLight: [0.66, 0.46, 0.27], fabric: [0.38, 0.30, 0.22], fabric2: [0.55, 0.34, 0.22], marble: ["#f1e9da", "#e6dcc6"], art: [["#5a3a26", "#2a1c12"], ["#3a4030", "#1c2016"], ["#4a3526", "#231910"]] },
     heritage:      { wall: [0.80, 0.76, 0.68], feature: [0.18, 0.22, 0.22], wood: [0.20, 0.12, 0.07], woodLight: [0.40, 0.27, 0.16], fabric: [0.13, 0.26, 0.26], fabric2: [0.42, 0.32, 0.22], marble: ["#ece4d2", "#ddd0b8"], art: [["#1d3530", "#0c1a16"], ["#3a2f1e", "#1a150e"], ["#243a40", "#101d20"], ["#3a2740", "#160f1e"]], gold: true },
-    brickWarm:     { wall: [0.86, 0.82, 0.74], feature: [0.56, 0.31, 0.22], wood: [0.30, 0.19, 0.11], woodLight: [0.58, 0.42, 0.26], fabric: [0.30, 0.26, 0.22], fabric2: [0.52, 0.40, 0.28], marble: ["#efe9dc", "#e2d8c4"], art: [["#4a3026", "#241712"], ["#3a4030", "#1c2016"], ["#2e3a40", "#141d20"]] }
+    brickWarm:     { wall: [0.86, 0.82, 0.74], feature: [0.56, 0.31, 0.22], wood: [0.30, 0.19, 0.11], woodLight: [0.58, 0.42, 0.26], fabric: [0.30, 0.26, 0.22], fabric2: [0.52, 0.40, 0.28], marble: ["#efe9dc", "#e2d8c4"], art: [["#4a3026", "#241712"], ["#3a4030", "#1c2016"], ["#2e3a40", "#141d20"]] },
+    /* ---- Charcoal & Gold — extracted from uploaded property photos:
+       dark walnut lounge, forest-green feature wall, white marble floors,
+       gold rectangular chain chandeliers, amber glass kitchen pendants ---- */
+    charcoalGold:  { wall: [0.78, 0.76, 0.72], feature: [0.10, 0.19, 0.14], wood: [0.22, 0.14, 0.08], woodLight: [0.42, 0.30, 0.18], fabric: [0.28, 0.28, 0.30], fabric2: [0.52, 0.50, 0.44], marble: ["#f4f2ee", "#ebe8e0"], art: [["#0e1c12", "#070e09"], ["#1c1c30", "#0d0d18"], ["#2c200c", "#160f06"]], gold: true }
   };
   // sold properties (index matches PROPERTIES in main.js)
   const SOLD_CFG = [
     // 0: Margalla View Manor
-    { theme:"charcoalCream", grand:true, cinema:true, pool:true,
-      roomLabels:["Master Suite","Chef's Kitchen","Cinema Lounge","Glass Drawing Room","Entrance Foyer"],
+    { theme:"charcoalGold", grand:true, cinema:true, pool:true,
+      roomLabels:["Master Suite","Chef's Kitchen","Cinema Lounge","Drawing Room","Grand Foyer"],
       upRoomLabels:["Master Suite + Dressing","Guest Suite","Family Lounge"] },
     // 1: Villa Serena
-    { theme:"charcoalCream", grand:true, cinema:true,
-      roomLabels:["Master Suite","Open Kitchen","Cinema Lounge","Formal Living","Entrance Foyer"],
+    { theme:"charcoalGold", grand:true, cinema:true,
+      roomLabels:["Master Suite","Open Kitchen","Cinema Lounge","Formal Living","Grand Foyer"],
       upRoomLabels:["Master Suite","Children's Bedroom","Upper Lounge"] },
     // 2: Enclave Residence
     { theme:"greyGraphite", grand:true,
@@ -77,7 +81,7 @@
   const DEAL_CFG = [
     { theme:"bahriaTown", grand:false, roomLabels:["Master Suite","Kitchen","Dining","Drawing Room","Entrance Foyer"],
       upRoomLabels:["Master Suite","Children's Bedroom","Upper Landing"] },
-    { theme:"charcoalCream", grand:true, cinema:true, roomLabels:["Master Suite","Chef's Kitchen","Cinema Lounge","Formal Living","Entrance Foyer"],
+    { theme:"charcoalGold", grand:true, cinema:true, roomLabels:["Master Suite","Chef's Kitchen","Cinema Lounge","Formal Living","Grand Foyer"],
       upRoomLabels:["Master Suite","Guest Suite","Family Lounge"] },
     { theme:"bahriaTown", grand:false, terrazzo:true, roomLabels:["Bedroom","Kitchen","Dining","Courtyard Lounge","Entrance"],
       upRoomLabels:["Master Bedroom","Guest Bedroom","Courtyard Landing"] }
@@ -278,11 +282,13 @@
   }
   function kitchen(parent) {
     const g = new pc.Entity(); (parent || P()).addChild(g);
-    const isBahria = curTheme === THEMES.bahriaTown;
-    const matLower  = isBahria ? M({ color: [0.20, 0.20, 0.22], gloss: 0.45, metal: 0.1 }) : MATS.wood;
-    const matUpper  = isBahria ? M({ color: [0.88, 0.86, 0.82], gloss: 0.35 }) : MATS.woodLight;
-    const matCounter= isBahria ? M({ color: [0.30, 0.30, 0.32], gloss: 0.65, metal: 0.15 }) : MATS.marbleWhite;
-    const matSplash = isBahria ? M({ color: [0.55, 0.55, 0.58], gloss: 0.8, metal: 0.2 }) : MATS.wallDark;
+    const isBahria      = curTheme === THEMES.bahriaTown;
+    const isCGold       = curTheme === THEMES.charcoalGold;
+    const matLower  = (isBahria || isCGold) ? M({ color: [0.20, 0.20, 0.22], gloss: 0.45, metal: 0.1 }) : MATS.wood;
+    const matUpper  = isCGold   ? M({ color: [0.22, 0.22, 0.24], gloss: 0.50, metal: 0.15 })
+                    : isBahria  ? M({ color: [0.88, 0.86, 0.82], gloss: 0.35 }) : MATS.woodLight;
+    const matCounter= (isBahria || isCGold) ? M({ color: [0.12, 0.12, 0.14], gloss: 0.84, metal: 0.38 }) : MATS.marbleWhite;
+    const matSplash = (isBahria || isCGold) ? M({ color: [0.52, 0.52, 0.55], gloss: 0.82, metal: 0.2 }) : MATS.wallDark;
     // run along north wall (z=-5.7)
     box(g, { pos: [-3, 0.45, -5.4], scale: [6, 0.9, 0.7], mat: matLower });
     box(g, { pos: [-3, 0.92, -5.4], scale: [6, 0.06, 0.72], mat: matCounter });
@@ -295,12 +301,25 @@
     box(g, { pos: [-4, 0.93, -5.4], scale: [0.7, 0.05, 0.5], mat: MATS.metal });
     // island / peninsula (no island in this house — extend lower run instead)
     if (!isBahria) {
-    box(g, { pos: [-3, 0.45, -3.4], scale: [3, 0.9, 1.2], mat: MATS.wallDark });
-    box(g, { pos: [-3, 0.93, -3.4], scale: [3.2, 0.08, 1.4], mat: MATS.marbleWhite });
-    for (const sx of [-1, 0, 1]) {
-      prim("cylinder", g, { pos: [-3 + sx * 0.9, 0.55, -2.6], scale: [0.07, 0.7, 0.07], mat: MATS.gold });
-      prim("cylinder", g, { pos: [-3 + sx * 0.9, 1.0, -2.6], scale: [0.34, 0.12, 0.34], mat: MATS.fabric2 });
-    }
+      if (isCGold) {
+        // dark concrete island + black stone top + amber glass cylinder pendants (as in photos)
+        const matIsland   = M({ color: [0.16, 0.16, 0.18], gloss: 0.55, metal: 0.2 });
+        const matBlackTop = M({ color: [0.10, 0.10, 0.11], gloss: 0.90, metal: 0.5 });
+        const matAmber    = M({ color: [0.92, 0.56, 0.20], opacity: 0.55, gloss: 0.92, emissive: [0.85, 0.45, 0.12], emissiveI: 1.8 });
+        box(g, { pos: [-3, 0.45, -3.4], scale: [3, 0.9, 1.2], mat: matIsland });
+        box(g, { pos: [-3, 0.93, -3.4], scale: [3.2, 0.08, 1.4], mat: matBlackTop });
+        for (const sx of [-1, 0, 1]) {
+          prim("cylinder", g, { pos: [-3 + sx * 0.9, 0.52, -2.6], scale: [0.055, 0.7, 0.055], mat: MATS.gold });
+          prim("cylinder", g, { pos: [-3 + sx * 0.9, 0.92, -2.6], scale: [0.22, 0.36, 0.22], mat: matAmber });
+        }
+      } else {
+        box(g, { pos: [-3, 0.45, -3.4], scale: [3, 0.9, 1.2], mat: MATS.wallDark });
+        box(g, { pos: [-3, 0.93, -3.4], scale: [3.2, 0.08, 1.4], mat: MATS.marbleWhite });
+        for (const sx of [-1, 0, 1]) {
+          prim("cylinder", g, { pos: [-3 + sx * 0.9, 0.55, -2.6], scale: [0.07, 0.7, 0.07], mat: MATS.gold });
+          prim("cylinder", g, { pos: [-3 + sx * 0.9, 1.0, -2.6], scale: [0.34, 0.12, 0.34], mat: MATS.fabric2 });
+        }
+      }
     } // end !isBahria island block
     /* bahria: laundry appliance against side wall */
     if (isBahria) {
@@ -419,6 +438,61 @@
     for (let i = 0; i < 6; i++) box(g, { pos: [-w / 2 + i * (w / 5), 1.7, 0], scale: [w / 9, 2.6, 0.08], mat: MATS.fabric2 });
     return g;
   }
+  /* forest-green feature wall with floating white shelves — charcoalGold drawing room */
+  function greenFeatureWall(parent, x, z, rot, w = 5.0, h = 3.2) {
+    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); g.setEulerAngles(0, rot, 0); (parent || P()).addChild(g);
+    const matGreen = M({ color: [0.09, 0.18, 0.13], gloss: 0.22 });
+    const matShelf = M({ color: [0.92, 0.90, 0.86], gloss: 0.55 });
+    box(g, { pos: [0, h / 2, 0],    scale: [w, h, 0.10], mat: matGreen });
+    // two slim vertical dividers
+    for (const vx of [-w * 0.28, w * 0.28])
+      box(g, { pos: [vx, h / 2, 0.06], scale: [0.04, h - 0.18, 0.04], mat: matShelf });
+    // three shelves with small decor cubes
+    for (let r = 0; r < 3; r++) {
+      const sy = 0.85 + r * 0.82;
+      box(g, { pos: [0, sy, 0.08], scale: [w - 0.28, 0.04, 0.26], mat: matShelf });
+      for (let d = 0; d < 4; d++) {
+        const dx = -w * 0.35 + d * w * 0.23;
+        box(g, { pos: [dx, sy + 0.12 + d * 0.04, 0.16], scale: [0.08, 0.18 + d * 0.06, 0.08], mat: MATS.marbleWhite });
+      }
+    }
+    return g;
+  }
+
+  /* 3 gold circular disc pendants — as seen in charcoalGold lounge */
+  function discPendants(parent, x, z, y = 2.82) {
+    const g = new pc.Entity(); g.setLocalPosition(x, y, z); (parent || P()).addChild(g);
+    for (let i = -1; i <= 1; i++) {
+      prim("cylinder", g, { pos: [i * 1.05, 0.38, 0], scale: [0.022, 0.76, 0.022], mat: MATS.gold });
+      prim("cylinder", g, { pos: [i * 1.05, 0,    0], scale: [0.68,  0.055, 0.68],  mat: MATS.gold });
+      prim("cylinder", g, { pos: [i * 1.05, -0.04, 0], scale: [0.52, 0.10, 0.52],   mat: MATS.warm });
+    }
+    return g;
+  }
+
+  /* large rectangular chain chandelier — charcoalGold foyer/dining feature piece */
+  function rectChandelier(parent, x, z, y = 3.0) {
+    const g = new pc.Entity(); g.setLocalPosition(x, y, z); (parent || P()).addChild(g);
+    prim("cylinder", g, { pos: [0, 0.55, 0], scale: [0.026, 1.1, 0.026], mat: MATS.gold });
+    const fw = 1.5, fd = 0.75, ft = 0.045;
+    box(g, { pos: [0,       0,    0],       scale: [fw, ft, ft],       mat: MATS.gold });
+    box(g, { pos: [0,       0,    fd],      scale: [fw, ft, ft],       mat: MATS.gold });
+    box(g, { pos: [-fw / 2, 0,    fd / 2], scale: [ft, ft, fd + ft],  mat: MATS.gold });
+    box(g, { pos: [fw / 2,  0,    fd / 2], scale: [ft, ft, fd + ft],  mat: MATS.gold });
+    // bulbs along the perimeter
+    for (let i = 0; i < 6; i++) {
+      const ox = -fw / 2 + (fw / 5) * i;
+      prim("sphere", g, { pos: [ox, -0.09, 0],  scale: [0.1, 0.13, 0.1], mat: MATS.warm });
+      prim("sphere", g, { pos: [ox, -0.09, fd], scale: [0.1, 0.13, 0.1], mat: MATS.warm });
+    }
+    for (let i = 1; i < 3; i++) {
+      const oz = (fd / 3) * i;
+      prim("sphere", g, { pos: [-fw / 2, -0.09, oz], scale: [0.1, 0.13, 0.1], mat: MATS.warm });
+      prim("sphere", g, { pos: [fw / 2,  -0.09, oz], scale: [0.1, 0.13, 0.1], mat: MATS.warm });
+    }
+    return g;
+  }
+
   /* ---------- WALKABLE STAIRCASE ----------
      Fixed footprint: x in [STAIR.x0, STAIR.x1], z in [STAIR.zBot, STAIR.zTop].
      Climbs from y=0 at zBot (near back wall) up to y=H at zTop.
@@ -626,7 +700,8 @@
     curtain(null, -6.7, -3.5, 90, 2.6);
     curtain(null, 6.7, -1.5, -90, 2.6);
 
-    const isBahria = curTheme === THEMES.bahriaTown;
+    const isBahria     = curTheme === THEMES.bahriaTown;
+    const isCharcoalGold = curTheme === THEMES.charcoalGold;
 
     /* --- WEST / LIVING area --- */
     if (isBahria) {
@@ -652,6 +727,24 @@
       box(null, { pos:[4.75, 1.6, 7.85], scale:[0.7, 1.0, 0.04], mat:M({ color:[0.55,0.55,0.58], gloss:0.98, metal:0.15, opacity:0.6 }) });
       box(null, { pos:[4.75, 1.6, 7.84], scale:[0.76, 1.06, 0.03], mat:MATS.gold });
       box(null, { pos:[-5.5, 1.8, -5.85], scale:[1.2, 0.7, 0.04], mat:M({ color:[1,0.9,0.7], emissive:[1,0.88,0.6], emissiveI:2.5 }), shadow:false });
+    } else if (isCharcoalGold) {
+      // forest-green feature wall with floating shelves (drawing room, as in photos)
+      greenFeatureWall(null, -6.85, 2, 90, 5.0, H);
+      // white marble TV panel inset into the green wall
+      box(null, { pos: [-6.80, 1.5, 2], scale: [0.06, 2.8, 4.6], mat: M({ color:[0.90,0.88,0.84], gloss:0.76, metal:0.05 }) });
+      box(null, { pos: [-6.76, 1.5, 2], scale: [0.05, 1.48, 2.6], mat: MATS.screen });
+      // 3 gold disc pendants over lounge (as in photos)
+      discPendants(null, -3.2, 1.8, H - 0.18);
+      ceilingFan(null, -4.8, 2, H);
+      // cove light strip below ceiling on the green wall side
+      box(null, { pos: [-6.5, H - 0.10, 2], scale: [0.04, 0.04, 5.0], mat: MATS.warm, shadow: false });
+      prim("plane", null, { pos:[-3, 0.02, 2], scale:[4.5,1,3.2], mat:MATS.rug, shadow:false });
+      sofa(null, -2.2, 2.8, 180, 2.8, MATS.fabric);
+      sofa(null, -4.8, 1.6, 90,  2.0, MATS.fabric);
+      coffeeTable(null, -2.8, 2);
+      curtain(null, -6.7, -0.8, 90, 2.6);
+      curtain(null, -6.7,  4.8, 90, 2.6);
+      painting(null, -3, 1.9, 7.9, 180, hue(0));
     } else {
       prim("plane", null, { pos:[-3, 0.02, 2], scale:[4.5,1,3.2], mat:MATS.rug, shadow:false });
       tvWall(null, -6.8, 2, 90);
@@ -670,7 +763,8 @@
       chandelier(null, 4.2, 1, 3.0);
     } else {
       diningSet(null, 4.2, 1);
-      chandelier(null, 4.2, 1, 3.0);
+      if (isCharcoalGold) rectChandelier(null, 4.2, 1, 3.0);
+      else chandelier(null, 4.2, 1, 3.0);
       painting(null, 6.9, 1.9, 0.5, -90, hue(1));
     }
 
@@ -699,7 +793,8 @@
       coffeeTable(null, -2.3, 5.4);
       box(null, { pos:[-6.85, 0.5, 6.3], scale:[0.4, 1.0, 1.6], mat:MATS.wood });
       painting(null, -6.85, 1.7, 6.3, 90, hue(0));
-      chandelier(null, -2.3, 6.4, 3.05);
+      if (isCharcoalGold) rectChandelier(null, -2.3, 6.4, 3.05);
+      else chandelier(null, -2.3, 6.4, 3.05);
     }
 
     /* --- library / bookshelves --- */
