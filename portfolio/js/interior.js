@@ -34,7 +34,7 @@
       roomLabels:["Master Suite","Chef's Kitchen","Cinema Lounge","Drawing Room","Grand Foyer"],
       upRoomLabels:["Master Suite + Dressing","Guest Suite","Family Lounge"] },
     // 1: Villa Serena
-    { theme:"charcoalGold", grand:true, cinema:true,
+    { theme:"charcoalGold", grand:true, cinema:true, mirror:true,
       roomLabels:["Master Suite","Open Kitchen","Cinema Lounge","Formal Living","Grand Foyer"],
       upRoomLabels:["Master Suite","Children's Bedroom","Upper Lounge"] },
     // 2: Enclave Residence
@@ -42,7 +42,7 @@
       roomLabels:["Master Bedroom","Kitchen","Dining Room","Double-Height Lounge","Entrance Foyer"],
       upRoomLabels:["Master Bedroom","Second Bedroom","Mezzanine Lounge"] },
     // 3: Casa Blanca E-11
-    { theme:"spanishWarm", grand:false, terrazzo:true,
+    { theme:"spanishWarm", grand:false, terrazzo:true, mirror:true,
       roomLabels:["Bedroom","Kitchen","Dining","Sunken Lounge","Entrance"],
       upRoomLabels:["Master Bedroom","Guest Bedroom","Study Landing"] },
     // 4: Gulberg Farmhouse
@@ -50,7 +50,7 @@
       roomLabels:["Master Suite","Farmhouse Kitchen","Dining Pavilion","Living Pavilion","Foyer & Orchard"],
       upRoomLabels:["Master Suite","Guest Annexe Room","Reading Loft"] },
     // 5: Hilltop Modern
-    { theme:"greyGraphite", grand:false,
+    { theme:"greyGraphite", grand:false, mirror:true,
       roomLabels:["Bedroom","Kitchen","Dining","Glazed Lounge","Foyer"],
       upRoomLabels:["Master Bedroom","Second Bedroom","Hilltop Terrace Lounge"] },
     // 6: Phase 6 Palazzo
@@ -58,7 +58,7 @@
       roomLabels:["Master Suite","Twin Kitchens","Cigar Lounge","Drawing Room","Entrance Foyer"],
       upRoomLabels:["Master Suite + Dressing","Guest Suite","Upper Drawing Room"] },
     // 7: Gulberg Heritage House
-    { theme:"heritage", grand:true, library:true, atrium:true,
+    { theme:"heritage", grand:true, library:true, atrium:true, mirror:true,
       roomLabels:["Master Suite","Kitchen","Dining","Glass Atrium","Entrance Foyer"],
       upRoomLabels:["Master Suite","Heritage Bedroom","Atrium Gallery"] },
     // 8: Bahria Orchard Villa
@@ -66,7 +66,7 @@
       roomLabels:["Master Suite","Kitchen","Dining","Drawing Room","Courtyard Entrance"],
       upRoomLabels:["Master Suite","Children's Bedroom","Upper Landing"] },
     // 9: Model Town Estate
-    { theme:"heritage", grand:true, library:true,
+    { theme:"heritage", grand:true, library:true, mirror:true,
       roomLabels:["Master Suite","Kitchen","Dining Room","Drawing Room","Colonial Veranda"],
       upRoomLabels:["Master Suite","Guest Bedroom","Veranda Lounge"] },
     // 10: Lake City Linear
@@ -74,7 +74,7 @@
       roomLabels:["Master Suite","Kitchen","Dining","Gallery Living","Entrance Gallery"],
       upRoomLabels:["Master Suite","Second Bedroom","Gallery Mezzanine"] },
     // 11: Phase 5 Courtyard
-    { theme:"spanishWarm", grand:false, terrazzo:true,
+    { theme:"spanishWarm", grand:false, terrazzo:true, mirror:true,
       roomLabels:["Bedroom","Kitchen","Dining","Courtyard Lounge","Entrance"],
       upRoomLabels:["Master Bedroom","Guest Bedroom","Courtyard Landing"] }
   ];
@@ -83,17 +83,24 @@
       upRoomLabels:["Master Suite","Children's Bedroom","Upper Landing"] },
     { theme:"charcoalGold", grand:true, cinema:true, roomLabels:["Master Suite","Chef's Kitchen","Cinema Lounge","Formal Living","Grand Foyer"],
       upRoomLabels:["Master Suite","Guest Suite","Family Lounge"] },
-    { theme:"bahriaTown", grand:false, terrazzo:true, roomLabels:["Bedroom","Kitchen","Dining","Courtyard Lounge","Entrance"],
+    { theme:"bahriaTown", grand:false, terrazzo:true, mirror:true, roomLabels:["Bedroom","Kitchen","Dining","Courtyard Lounge","Entrance"],
       upRoomLabels:["Master Bedroom","Guest Bedroom","Courtyard Landing"] }
   ];
   let curTheme = THEMES.charcoalCream;
   const hx = (s) => [parseInt(s.slice(1, 3), 16) / 255, parseInt(s.slice(3, 5), 16) / 255, parseInt(s.slice(5, 7), 16) / 255];
+  /* mirror transform — flips the whole floor plan across X for "mirrored"
+     layouts. Coordinate-level (not negative scale) so normals/shadows stay
+     correct. When MX === 1 the build is byte-identical to the classic plan. */
+  let MX = 1;
+  const X = (v) => v * MX;       // mirror an X coordinate
+  const R = (r) => r * MX;       // mirror a Y rotation (degrees)
   const state = {
     yaw: 180, pitch: -2, pos: null, vel: { x: 0, z: 0 },
     keys: {}, run: false,
     moveTouchId: null, lookTouchId: null,
     moveVec: { x: 0, y: 0 }, lookStart: null,
-    walls: [], rooms: [], curRoom: ""
+    walls: [], rooms: [], curRoom: "",
+    stair: null, spawn: null, mirror: false
   };
 
   /* ---------- DOM ---------- */
@@ -289,16 +296,16 @@
                     : isBahria  ? M({ color: [0.88, 0.86, 0.82], gloss: 0.35 }) : MATS.woodLight;
     const matCounter= (isBahria || isCGold) ? M({ color: [0.12, 0.12, 0.14], gloss: 0.84, metal: 0.38 }) : MATS.marbleWhite;
     const matSplash = (isBahria || isCGold) ? M({ color: [0.52, 0.52, 0.55], gloss: 0.82, metal: 0.2 }) : MATS.wallDark;
-    // run along north wall (z=-5.7)
-    box(g, { pos: [-3, 0.45, -5.4], scale: [6, 0.9, 0.7], mat: matLower });
-    box(g, { pos: [-3, 0.92, -5.4], scale: [6, 0.06, 0.72], mat: matCounter });
-    box(g, { pos: [-3, 2.3, -5.55], scale: [6, 0.8, 0.4], mat: matUpper });
-    box(g, { pos: [-3, 1.5, -5.7], scale: [6, 0.8, 0.06], mat: matSplash }); // backsplash
-    box(g, { pos: [-3, 1.0, -5.0], scale: [6, 0.02, 0.02], mat: MATS.warm }); // under-cabinet light
+    // run along north wall (z=-5.7) — mirror x so it tracks the flipped plan
+    box(g, { pos: [X(-3), 0.45, -5.4], scale: [6, 0.9, 0.7], mat: matLower });
+    box(g, { pos: [X(-3), 0.92, -5.4], scale: [6, 0.06, 0.72], mat: matCounter });
+    box(g, { pos: [X(-3), 2.3, -5.55], scale: [6, 0.8, 0.4], mat: matUpper });
+    box(g, { pos: [X(-3), 1.5, -5.7], scale: [6, 0.8, 0.06], mat: matSplash }); // backsplash
+    box(g, { pos: [X(-3), 1.0, -5.0], scale: [6, 0.02, 0.02], mat: MATS.warm }); // under-cabinet light
     // hood — dark metal in bahria
-    box(g, { pos: [-3, 2.0, -5.4], scale: [1.0, 0.5, 0.6], mat: MATS.metal });
+    box(g, { pos: [X(-3), 2.0, -5.4], scale: [1.0, 0.5, 0.6], mat: MATS.metal });
     // sink notch (dark inset)
-    box(g, { pos: [-4, 0.93, -5.4], scale: [0.7, 0.05, 0.5], mat: MATS.metal });
+    box(g, { pos: [X(-4), 0.93, -5.4], scale: [0.7, 0.05, 0.5], mat: MATS.metal });
     // island / peninsula (no island in this house — extend lower run instead)
     if (!isBahria) {
       if (isCGold) {
@@ -306,25 +313,25 @@
         const matIsland   = M({ color: [0.16, 0.16, 0.18], gloss: 0.55, metal: 0.2 });
         const matBlackTop = M({ color: [0.10, 0.10, 0.11], gloss: 0.90, metal: 0.5 });
         const matAmber    = M({ color: [0.92, 0.56, 0.20], opacity: 0.55, gloss: 0.92, emissive: [0.85, 0.45, 0.12], emissiveI: 1.8 });
-        box(g, { pos: [-3, 0.45, -3.4], scale: [3, 0.9, 1.2], mat: matIsland });
-        box(g, { pos: [-3, 0.93, -3.4], scale: [3.2, 0.08, 1.4], mat: matBlackTop });
+        box(g, { pos: [X(-3), 0.45, -3.4], scale: [3, 0.9, 1.2], mat: matIsland });
+        box(g, { pos: [X(-3), 0.93, -3.4], scale: [3.2, 0.08, 1.4], mat: matBlackTop });
         for (const sx of [-1, 0, 1]) {
-          prim("cylinder", g, { pos: [-3 + sx * 0.9, 0.52, -2.6], scale: [0.055, 0.7, 0.055], mat: MATS.gold });
-          prim("cylinder", g, { pos: [-3 + sx * 0.9, 0.92, -2.6], scale: [0.22, 0.36, 0.22], mat: matAmber });
+          prim("cylinder", g, { pos: [X(-3 + sx * 0.9), 0.52, -2.6], scale: [0.055, 0.7, 0.055], mat: MATS.gold });
+          prim("cylinder", g, { pos: [X(-3 + sx * 0.9), 0.92, -2.6], scale: [0.22, 0.36, 0.22], mat: matAmber });
         }
       } else {
-        box(g, { pos: [-3, 0.45, -3.4], scale: [3, 0.9, 1.2], mat: MATS.wallDark });
-        box(g, { pos: [-3, 0.93, -3.4], scale: [3.2, 0.08, 1.4], mat: MATS.marbleWhite });
+        box(g, { pos: [X(-3), 0.45, -3.4], scale: [3, 0.9, 1.2], mat: MATS.wallDark });
+        box(g, { pos: [X(-3), 0.93, -3.4], scale: [3.2, 0.08, 1.4], mat: MATS.marbleWhite });
         for (const sx of [-1, 0, 1]) {
-          prim("cylinder", g, { pos: [-3 + sx * 0.9, 0.55, -2.6], scale: [0.07, 0.7, 0.07], mat: MATS.gold });
-          prim("cylinder", g, { pos: [-3 + sx * 0.9, 1.0, -2.6], scale: [0.34, 0.12, 0.34], mat: MATS.fabric2 });
+          prim("cylinder", g, { pos: [X(-3 + sx * 0.9), 0.55, -2.6], scale: [0.07, 0.7, 0.07], mat: MATS.gold });
+          prim("cylinder", g, { pos: [X(-3 + sx * 0.9), 1.0, -2.6], scale: [0.34, 0.12, 0.34], mat: MATS.fabric2 });
         }
       }
     } // end !isBahria island block
     /* bahria: laundry appliance against side wall */
     if (isBahria) {
-      box(g, { pos: [5.5, 0.45, -5.3], scale: [0.6, 0.9, 0.65], mat: matLower });
-      box(g, { pos: [5.5, 0.4, -5.0], scale: [0.55, 0.55, 0.04], mat: MATS.metal });
+      box(g, { pos: [X(5.5), 0.45, -5.3], scale: [0.6, 0.9, 0.65], mat: matLower });
+      box(g, { pos: [X(5.5), 0.4, -5.0], scale: [0.55, 0.55, 0.04], mat: MATS.metal });
     }
     return g;
   }
@@ -494,36 +501,40 @@
   }
 
   /* ---------- WALKABLE STAIRCASE ----------
-     Fixed footprint: x in [STAIR.x0, STAIR.x1], z in [STAIR.zBot, STAIR.zTop].
+     Footprint: x in [stair.x0, stair.x1], z in [stair.zBot, stair.zTop].
      Climbs from y=0 at zBot (near back wall) up to y=H at zTop.
-     The tick() loop reads this same footprint to raise the camera. */
-  const STAIR = { x0: 0.1, x1: 1.9, zBot: 7.5, zTop: 4.6 };
+     state.stair holds the active (already mirror-resolved) footprint, read by
+     staircase(), buildUpperFloor(), collide() and tick() so they stay in sync. */
+  const STAIR_BASE = { x0: 0.1, x1: 1.9, zBot: 7.5, zTop: 4.6 };
   function staircase(H) {
+    const S = state.stair;
     const steps = 16;
-    const xMid = (STAIR.x0 + STAIR.x1) / 2, w = STAIR.x1 - STAIR.x0;
-    const run = STAIR.zBot - STAIR.zTop;          // total horizontal travel
+    const xMid = (S.x0 + S.x1) / 2, w = S.x1 - S.x0;
+    const run = S.zBot - S.zTop;          // total horizontal travel
     const stepDepth = run / steps, stepRise = H / steps;
     for (let i = 0; i < steps; i++) {
-      const z = STAIR.zBot - stepDepth * (i + 0.5);
+      const z = S.zBot - stepDepth * (i + 0.5);
       const y = stepRise * (i + 0.5);
       box(null, { pos: [xMid, y - stepRise / 2, z], scale: [w, stepRise + 0.02, stepDepth + 0.02], mat: MATS.marbleWhite });
     }
-    // glass balustrade down the open (west) side
-    box(null, { pos: [STAIR.x0 - 0.04, H * 0.5 + 0.4, (STAIR.zBot + STAIR.zTop) / 2], scale: [0.05, H + 0.8, run], mat: MATS.glass });
-    box(null, { pos: [STAIR.x0 - 0.04, H + 0.55, (STAIR.zBot + STAIR.zTop) / 2], scale: [0.07, 0.07, run], mat: MATS.gold });
+    // glass balustrade down the open side
+    box(null, { pos: [S.x0 - 0.04, H * 0.5 + 0.4, (S.zBot + S.zTop) / 2], scale: [0.05, H + 0.8, run], mat: MATS.glass });
+    box(null, { pos: [S.x0 - 0.04, H + 0.55, (S.zBot + S.zTop) / 2], scale: [0.07, 0.07, run], mat: MATS.gold });
     // newel light at the foot
-    prim("cylinder", null, { pos: [STAIR.x1 + 0.1, 0.5, STAIR.zBot - 0.1], scale: [0.12, 1.0, 0.12], mat: MATS.gold });
-    prim("sphere", null, { pos: [STAIR.x1 + 0.1, 1.1, STAIR.zBot - 0.1], scale: [0.26, 0.26, 0.26], mat: MATS.warm });
+    prim("cylinder", null, { pos: [S.x1 + 0.1, 0.5, S.zBot - 0.1], scale: [0.12, 1.0, 0.12], mat: MATS.gold });
+    prim("sphere", null, { pos: [S.x1 + 0.1, 1.1, S.zBot - 0.1], scale: [0.26, 0.26, 0.26], mat: MATS.warm });
   }
 
   /* ---------- UPPER FLOOR ----------
      A real second storey: slab with a stairwell void, perimeter walls,
      two bedroom suites + a landing lounge, reachable by the staircase. */
   function buildUpperFloor(cfg, H) {
+    const S = state.stair;
     const slabTop = H, t = 0.12, cy = slabTop - t / 2;
-    const hole = { x0: STAIR.x0 - 0.2, x1: STAIR.x1 + 0.2, z0: STAIR.zTop, z1: 8 };
+    // hole is already in mirror-resolved world space (from state.stair)
+    const hole = { x0: S.x0 - 0.2, x1: S.x1 + 0.2, z0: S.zTop, z1: 8 };
     const slab = (x0, x1, z0, z1) =>
-      box(null, { pos: [(x0 + x1) / 2, cy, (z0 + z1) / 2], scale: [x1 - x0, t, z1 - z0], mat: MATS.floor });
+      box(null, { pos: [(x0 + x1) / 2, cy, (z0 + z1) / 2], scale: [Math.abs(x1 - x0), t, z1 - z0], mat: MATS.floor });
     // slab around the stairwell hole (covers x[-7,7] z[-6,8] minus hole)
     slab(-7, hole.x0, -6, 8);
     slab(hole.x1, 7, -6, 8);
@@ -533,7 +544,7 @@
     box(null, { pos: [0, 2 * H + 0.05, 1], scale: [14, 0.1, 14], mat: MATS.ceiling, shadow: false });
     for (const cz of [-3, 1, 5]) box(null, { pos: [0, 2 * H - 0.06, cz], scale: [10, 0.04, 0.18], mat: MATS.warm, shadow: false });
 
-    // upper perimeter walls (lvl 1)
+    // upper perimeter walls (lvl 1) — symmetric about x, mirror is a no-op
     wallSeg(-7, 8, 7, 8, H, MATS.wall, true, 0.16, slabTop, 1);
     wallSeg(-7, -6, 7, -6, H, MATS.wall, true, 0.16, slabTop, 1);
     wallSeg(-7, -6, -7, 8, H, MATS.wall, true, 0.16, slabTop, 1);
@@ -541,38 +552,38 @@
     // central partition splitting two suites, doorway gap z 0.5..1.7
     wallSeg(0, -6, 0, 0.5, H, MATS.wall, true, 0.16, slabTop, 1);
     wallSeg(0, 1.7, 0, 4, H, MATS.wall, true, 0.16, slabTop, 1);
-    wallSeg(-7, 4, hole.x0, 4, H, MATS.wall, true, 0.16, slabTop, 1);
+    wallSeg(X(-7), 4, hole.x0, 4, H, MATS.wall, true, 0.16, slabTop, 1);
 
     // stairwell guard rails (lvl 1 collision so you can't fall in)
     const rail = (x1, z1, x2, z2) => {
       wallSeg(x1, z1, x2, z2, 1.0, MATS.glass, true, 0.06, slabTop, 1);
       wallSeg(x1, z1, x2, z2, 0.06, MATS.gold, false, 0.08, slabTop + 1.0, 1);
     };
-    rail(hole.x0, hole.z0, hole.x0, hole.z1);   // west edge
-    rail(hole.x1, hole.z0, hole.x1, hole.z1);   // east edge
-    rail(hole.x0, hole.z1, hole.x1, hole.z1);   // back edge
+    rail(hole.x0, hole.z0, hole.x0, hole.z1);
+    rail(hole.x1, hole.z0, hole.x1, hole.z1);
+    rail(hole.x0, hole.z1, hole.x1, hole.z1);
 
     // furnish upstairs on a group raised to the slab
     const up = new pc.Entity(); up.setLocalPosition(0, slabTop, 0); P().addChild(up);
     // west suite
-    prim("plane", up, { pos: [-3.5, 0.02, 0], scale: [4.5, 1, 4.5], mat: MATS.rug, shadow: false });
-    bed(up, -3.5, -1.5);
-    wardrobe(up, -6.6, 1.5, 90);
-    chandelier(up, -3.5, 0, 2.9);
-    painting(up, -3.5, 1.9, -5.9, 0, hue3(cfg, 0));
-    plant(up, -6.3, -4.8, 1.0);
+    prim("plane", up, { pos: [X(-3.5), 0.02, 0], scale: [4.5, 1, 4.5], mat: MATS.rug, shadow: false });
+    bed(up, X(-3.5), -1.5);
+    wardrobe(up, X(-6.6), 1.5, R(90));
+    chandelier(up, X(-3.5), 0, 2.9);
+    painting(up, X(-3.5), 1.9, -5.9, 0, hue3(cfg, 0));
+    plant(up, X(-6.3), -4.8, 1.0);
     // east suite
-    prim("plane", up, { pos: [3.8, 0.02, -1], scale: [4.5, 1, 4.5], mat: MATS.rug, shadow: false });
-    bed(up, 3.8, -2.2);
-    wardrobe(up, 6.6, 0.5, -90);
-    chandelier(up, 3.8, -1, 2.9);
-    painting(up, 3.8, 1.9, -5.9, 0, hue3(cfg, 1));
-    plant(up, 6.2, -4.8, 1.0);
+    prim("plane", up, { pos: [X(3.8), 0.02, -1], scale: [4.5, 1, 4.5], mat: MATS.rug, shadow: false });
+    bed(up, X(3.8), -2.2);
+    wardrobe(up, X(6.6), 0.5, R(-90));
+    chandelier(up, X(3.8), -1, 2.9);
+    painting(up, X(3.8), 1.9, -5.9, 0, hue3(cfg, 1));
+    plant(up, X(6.2), -4.8, 1.0);
     // landing lounge (south, by the stairwell)
-    sofa(up, -2.5, 6.2, 180, 2.2, MATS.fabric);
-    coffeeTable(up, -2.5, 5.4);
-    plant(up, -6.2, 7.0, 1.1);
-    chandelier(up, -3, 6, 2.9);
+    sofa(up, X(-2.5), 6.2, R(180), 2.2, MATS.fabric);
+    coffeeTable(up, X(-2.5), 5.4);
+    plant(up, X(-6.2), 7.0, 1.1);
+    chandelier(up, X(-3), 6, 2.9);
 
     state.upRooms = (cfg.upRoomLabels && cfg.upRoomLabels.length === 3)
       ? cfg.upRoomLabels
@@ -674,6 +685,15 @@
     const hue = (i) => art[i % art.length];
     buildMats();
     const H = 3.2;
+
+    // ---- resolve the per-listing layout (mirror flips the whole plan) ----
+    MX = cfg.mirror ? -1 : 1;
+    state.mirror = MX < 0;
+    state.stair = MX < 0
+      ? { x0: -STAIR_BASE.x1, x1: -STAIR_BASE.x0, zBot: STAIR_BASE.zBot, zTop: STAIR_BASE.zTop }
+      : { x0: STAIR_BASE.x0, x1: STAIR_BASE.x1, zBot: STAIR_BASE.zBot, zTop: STAIR_BASE.zTop };
+    state.spawn = { x: X(-1.5), z: 7.0, yaw: 0, pitch: -4 };
+
     // ground floor — single slab, terrazzo or marble per listing (no overlay → no z-fighting)
     const floorMat = cfg.terrazzo ? MATS.terrazzof : MATS.floor;
     box(null, { pos: [0, -0.05, 1], scale: [14, 0.1, 14], mat: floorMat });
@@ -681,125 +701,125 @@
     for (const cz of [-3, 1, 5]) box(null, { pos: [0, H - 0.12, cz], scale: [10, 0.04, 0.18], mat: MATS.warm, shadow: false });
 
     // outer walls (with south doorway gap x -3..-1)
-    wallSeg(-7, 8, -3, 8, H, MATS.wall);
-    wallSeg(-1, 8, 7, 8, H, MATS.wall);
-    wallSeg(-7, -6, 7, -6, H, MATS.wall);
-    wallSeg(-7, -6, -7, 8, H, MATS.wall);
-    wallSeg(7, -6, 7, 8, H, MATS.wall);
+    wallSeg(X(-7), 8, X(-3), 8, H, MATS.wall);
+    wallSeg(X(-1), 8, X(7), 8, H, MATS.wall);
+    wallSeg(X(-7), -6, X(7), -6, H, MATS.wall);
+    wallSeg(X(-7), -6, X(-7), 8, H, MATS.wall);
+    wallSeg(X(7), -6, X(7), 8, H, MATS.wall);
     // bedroom partition (room x 2.5..7, z 4..8) with doorway gap z 5.4..6.6
-    wallSeg(2.5, 4, 2.5, 5.4, H, MATS.wall);
-    wallSeg(2.5, 6.6, 2.5, 8, H, MATS.wall);
-    wallSeg(2.5, 4, 7, 4, H, MATS.wall);
+    wallSeg(X(2.5), 4, X(2.5), 5.4, H, MATS.wall);
+    wallSeg(X(2.5), 6.6, X(2.5), 8, H, MATS.wall);
+    wallSeg(X(2.5), 4, X(7), 4, H, MATS.wall);
     // accent feature wall behind TV (west)
-    wallSeg(-6.9, 0.5, -6.9, 3.5, H, MATS.wallDark, false, 0.04);
+    wallSeg(X(-6.9), 0.5, X(-6.9), 3.5, H, MATS.wallDark, false, 0.04);
 
     // glowing windows
-    windowOnWall(-6.95, -5, -6.95, -2, MATS.window);
-    windowOnWall(-2, -5.9, 2, -5.9, MATS.window);
-    windowOnWall(6.95, -3, 6.95, 0, MATS.window);
-    curtain(null, -6.7, -3.5, 90, 2.6);
-    curtain(null, 6.7, -1.5, -90, 2.6);
+    windowOnWall(X(-6.95), -5, X(-6.95), -2, MATS.window);
+    windowOnWall(X(-2), -5.9, X(2), -5.9, MATS.window);
+    windowOnWall(X(6.95), -3, X(6.95), 0, MATS.window);
+    curtain(null, X(-6.7), -3.5, R(90), 2.6);
+    curtain(null, X(6.7), -1.5, R(-90), 2.6);
 
     const isBahria     = curTheme === THEMES.bahriaTown;
     const isCharcoalGold = curTheme === THEMES.charcoalGold;
 
     /* --- WEST / LIVING area --- */
     if (isBahria) {
-      featureWall(null, -6.85, 2, 90, 5.0, H);
-      chandelier(null, -3, 2, H - 0.15);
-      chandelier(null, -3, 0.5, H - 0.15);
-      ceilingFan(null, -4.5, 2, H);
-      ceilingFan(null, -1.5, 2, H);
+      featureWall(null, X(-6.85), 2, R(90), 5.0, H);
+      chandelier(null, X(-3), 2, H - 0.15);
+      chandelier(null, X(-3), 0.5, H - 0.15);
+      ceilingFan(null, X(-4.5), 2, H);
+      ceilingFan(null, X(-1.5), 2, H);
       const matGarden = M({ color:[0.55,0.75,0.45], emissive:[0.38,0.52,0.28], emissiveI:1.8, opacity:0.18, gloss:0.95 });
       box(null, { pos:[0, H/2, -5.95], scale:[8, H, 0.06], mat:matGarden, shadow:false });
       for (const fx of [-3,-1,1,3]) box(null, { pos:[fx, H/2, -5.93], scale:[0.06, H, 0.08], mat:MATS.metal, shadow:false });
-      curtain(null, -5.5, -5.6, 0, 2.0);
-      curtain(null,  5.5, -5.6, 0, 2.0);
-      sofa(null, -2, 2, 180, 2.8, MATS.fabric);
-      sofa(null, -4.5, 1, 90, 2.0, MATS.fabric);
-      coffeeTable(null, -2, 1);
+      curtain(null, X(-5.5), -5.6, R(0), 2.0);
+      curtain(null, X(5.5), -5.6, R(0), 2.0);
+      sofa(null, X(-2), 2, R(180), 2.8, MATS.fabric);
+      sofa(null, X(-4.5), 1, R(90), 2.0, MATS.fabric);
+      coffeeTable(null, X(-2), 1);
       for (const ox of [-0.6, 0.6]) {
-        prim("cylinder", null, { pos:[ox, 0.8, 6.5], scale:[0.1, 1.6, 0.1], mat:MATS.gold });
-        prim("sphere",   null, { pos:[ox, 1.7, 6.5], scale:[0.35,0.35,0.35], mat:M({ color:[1,1,1], gloss:0.2 }) });
+        prim("cylinder", null, { pos:[X(ox), 0.8, 6.5], scale:[0.1, 1.6, 0.1], mat:MATS.gold });
+        prim("sphere",   null, { pos:[X(ox), 1.7, 6.5], scale:[0.35,0.35,0.35], mat:M({ color:[1,1,1], gloss:0.2 }) });
       }
       const matFluted = M({ color:[0.48,0.50,0.54], gloss:0.35 });
-      box(null, { pos:[4.75, H/2, 7.9], scale:[4, H, 0.1], mat:matFluted });
-      box(null, { pos:[4.75, 1.6, 7.85], scale:[0.7, 1.0, 0.04], mat:M({ color:[0.55,0.55,0.58], gloss:0.98, metal:0.15, opacity:0.6 }) });
-      box(null, { pos:[4.75, 1.6, 7.84], scale:[0.76, 1.06, 0.03], mat:MATS.gold });
-      box(null, { pos:[-5.5, 1.8, -5.85], scale:[1.2, 0.7, 0.04], mat:M({ color:[1,0.9,0.7], emissive:[1,0.88,0.6], emissiveI:2.5 }), shadow:false });
+      box(null, { pos:[X(4.75), H/2, 7.9], scale:[4, H, 0.1], mat:matFluted });
+      box(null, { pos:[X(4.75), 1.6, 7.85], scale:[0.7, 1.0, 0.04], mat:M({ color:[0.55,0.55,0.58], gloss:0.98, metal:0.15, opacity:0.6 }) });
+      box(null, { pos:[X(4.75), 1.6, 7.84], scale:[0.76, 1.06, 0.03], mat:MATS.gold });
+      box(null, { pos:[X(-5.5), 1.8, -5.85], scale:[1.2, 0.7, 0.04], mat:M({ color:[1,0.9,0.7], emissive:[1,0.88,0.6], emissiveI:2.5 }), shadow:false });
     } else if (isCharcoalGold) {
       // forest-green feature wall with floating shelves (drawing room, as in photos)
-      greenFeatureWall(null, -6.85, 2, 90, 5.0, H);
+      greenFeatureWall(null, X(-6.85), 2, R(90), 5.0, H);
       // white marble TV panel inset into the green wall
-      box(null, { pos: [-6.80, 1.5, 2], scale: [0.06, 2.8, 4.6], mat: M({ color:[0.90,0.88,0.84], gloss:0.76, metal:0.05 }) });
-      box(null, { pos: [-6.76, 1.5, 2], scale: [0.05, 1.48, 2.6], mat: MATS.screen });
+      box(null, { pos: [X(-6.80), 1.5, 2], scale: [0.06, 2.8, 4.6], mat: M({ color:[0.90,0.88,0.84], gloss:0.76, metal:0.05 }) });
+      box(null, { pos: [X(-6.76), 1.5, 2], scale: [0.05, 1.48, 2.6], mat: MATS.screen });
       // 3 gold disc pendants over lounge (as in photos)
-      discPendants(null, -3.2, 1.8, H - 0.18);
-      ceilingFan(null, -4.8, 2, H);
+      discPendants(null, X(-3.2), 1.8, H - 0.18);
+      ceilingFan(null, X(-4.8), 2, H);
       // cove light strip below ceiling on the green wall side
-      box(null, { pos: [-6.5, H - 0.10, 2], scale: [0.04, 0.04, 5.0], mat: MATS.warm, shadow: false });
-      prim("plane", null, { pos:[-3, 0.02, 2], scale:[4.5,1,3.2], mat:MATS.rug, shadow:false });
-      sofa(null, -2.2, 2.8, 180, 2.8, MATS.fabric);
-      sofa(null, -4.8, 1.6, 90,  2.0, MATS.fabric);
-      coffeeTable(null, -2.8, 2);
-      curtain(null, -6.7, -0.8, 90, 2.6);
-      curtain(null, -6.7,  4.8, 90, 2.6);
-      painting(null, -3, 1.9, 7.9, 180, hue(0));
+      box(null, { pos: [X(-6.5), H - 0.10, 2], scale: [0.04, 0.04, 5.0], mat: MATS.warm, shadow: false });
+      prim("plane", null, { pos:[X(-3), 0.02, 2], scale:[4.5,1,3.2], mat:MATS.rug, shadow:false });
+      sofa(null, X(-2.2), 2.8, R(180), 2.8, MATS.fabric);
+      sofa(null, X(-4.8), 1.6, R(90),  2.0, MATS.fabric);
+      coffeeTable(null, X(-2.8), 2);
+      curtain(null, X(-6.7), -0.8, R(90), 2.6);
+      curtain(null, X(-6.7),  4.8, R(90), 2.6);
+      painting(null, X(-3), 1.9, 7.9, R(180), hue(0));
     } else {
-      prim("plane", null, { pos:[-3, 0.02, 2], scale:[4.5,1,3.2], mat:MATS.rug, shadow:false });
-      tvWall(null, -6.8, 2, 90);
-      sofa(null, -3, 3.6, 180, 2.8, MATS.fabric);
-      sofa(null, -5.0, 2, 90, 2.2, MATS.fabric);
-      coffeeTable(null, -3, 2);
-      painting(null, -3, 1.9, 7.9, 180, hue(0));
-      chandelier(null, -3, 2, 3.0);
+      prim("plane", null, { pos:[X(-3), 0.02, 2], scale:[4.5,1,3.2], mat:MATS.rug, shadow:false });
+      tvWall(null, X(-6.8), 2, R(90));
+      sofa(null, X(-3), 3.6, R(180), 2.8, MATS.fabric);
+      sofa(null, X(-5.0), 2, R(90), 2.2, MATS.fabric);
+      coffeeTable(null, X(-3), 2);
+      painting(null, X(-3), 1.9, 7.9, R(180), hue(0));
+      chandelier(null, X(-3), 2, 3.0);
     }
 
-    plant(null, -6, 6.5, 1.1);
+    plant(null, X(-6), 6.5, 1.1);
 
     /* --- EAST zone: cinema OR dining --- */
     if (cfg.cinema) {
-      cinemaRoom(null, 4.2, 1);
-      chandelier(null, 4.2, 1, 3.0);
+      cinemaRoom(null, X(4.2), 1);
+      chandelier(null, X(4.2), 1, 3.0);
     } else {
-      diningSet(null, 4.2, 1);
-      if (isCharcoalGold) rectChandelier(null, 4.2, 1, 3.0);
-      else chandelier(null, 4.2, 1, 3.0);
-      painting(null, 6.9, 1.9, 0.5, -90, hue(1));
+      diningSet(null, X(4.2), 1);
+      if (isCharcoalGold) rectChandelier(null, X(4.2), 1, 3.0);
+      else chandelier(null, X(4.2), 1, 3.0);
+      painting(null, X(6.9), 1.9, 0.5, R(-90), hue(1));
     }
 
     /* --- KITCHEN --- */
     kitchen(null);
-    plant(null, -6.2, -5, 1.0);
+    plant(null, X(-6.2), -5, 1.0);
 
     /* --- FOYER + walkable staircase + second storey --- */
     staircase(H);
     buildUpperFloor(cfg, H);
-    plant(null, -6.3, 7.2, 1.2);
-    painting(null, 0, 1.9, -5.9, 0, hue(2));
+    plant(null, X(-6.3), 7.2, 1.2);
+    painting(null, 0, 1.9, -5.9, R(0), hue(2));
 
     /* --- BEDROOM --- */
-    prim("plane", null, { pos:[4.75, 0.02, 6], scale:[3.5,1,3.0], mat:MATS.rug, shadow:false });
-    bed(null, 4.75, 5.4);
-    wardrobe(null, 6.5, 6.2, -90);
-    chandelier(null, 4.75, 6, 3.0);
-    painting(null, 4.75, 1.9, 7.9, 180, hue(3));
-    plant(null, 3.1, 7.4, 0.9);
+    prim("plane", null, { pos:[X(4.75), 0.02, 6], scale:[3.5,1,3.0], mat:MATS.rug, shadow:false });
+    bed(null, X(4.75), 5.4);
+    wardrobe(null, X(6.5), 6.2, R(-90));
+    chandelier(null, X(4.75), 6, 3.0);
+    painting(null, X(4.75), 1.9, 7.9, R(180), hue(3));
+    plant(null, X(3.1), 7.4, 0.9);
 
     /* --- grand homes: foyer seating --- */
     if (cfg.grand) {
-      sofa(null, -1.4, 5.6, 0, 1.4, MATS.fabric2);
-      sofa(null, -3.2, 5.6, 0, 1.4, MATS.fabric2);
-      coffeeTable(null, -2.3, 5.4);
-      box(null, { pos:[-6.85, 0.5, 6.3], scale:[0.4, 1.0, 1.6], mat:MATS.wood });
-      painting(null, -6.85, 1.7, 6.3, 90, hue(0));
-      if (isCharcoalGold) rectChandelier(null, -2.3, 6.4, 3.05);
-      else chandelier(null, -2.3, 6.4, 3.05);
+      sofa(null, X(-1.4), 5.6, R(0), 1.4, MATS.fabric2);
+      sofa(null, X(-3.2), 5.6, R(0), 1.4, MATS.fabric2);
+      coffeeTable(null, X(-2.3), 5.4);
+      box(null, { pos:[X(-6.85), 0.5, 6.3], scale:[0.4, 1.0, 1.6], mat:MATS.wood });
+      painting(null, X(-6.85), 1.7, 6.3, R(90), hue(0));
+      if (isCharcoalGold) rectChandelier(null, X(-2.3), 6.4, 3.05);
+      else chandelier(null, X(-2.3), 6.4, 3.05);
     }
 
     /* --- library / bookshelves --- */
     if (cfg.library) {
-      const lib = new pc.Entity(); lib.setLocalPosition(2.2, 0, -4.6); lib.setEulerAngles(0, -90, 0); P().addChild(lib);
+      const lib = new pc.Entity(); lib.setLocalPosition(X(2.2), 0, -4.6); lib.setEulerAngles(0, R(-90), 0); P().addChild(lib);
       box(lib, { pos:[0, 1.3, 0], scale:[3.0, 2.6, 0.4], mat:MATS.wood });
       for (let r = 0; r < 5; r++) box(lib, { pos:[0, 0.45+r*0.5, 0.16], scale:[2.8, 0.04, 0.06], mat:MATS.woodLight });
       const bc = ["#7a2e2e","#2e4a6a","#3a5a3a","#6a5a2e","#4a2e5a"];
@@ -807,10 +827,10 @@
         box(lib, { pos:[-1.3+b*0.28, 0.7+r*0.5, 0.16], scale:[0.18, 0.34, 0.22], mat:M({ color:hx(bc[(r+b)%5]), gloss:0.3 }) });
     }
 
-    /* --- infinity pool glow --- */
+    /* --- infinity pool glow (centred, mirror-agnostic) --- */
     if (cfg.pool) infinityPool();
 
-    /* --- glass atrium overhead --- */
+    /* --- glass atrium overhead (centred, mirror-agnostic) --- */
     if (cfg.atrium) glassAtrium(H);
 
     /* --- farmhouse exposed beams --- */
@@ -818,18 +838,22 @@
 
     /* --- cedar screens --- */
     if (cfg.cedar) {
-      cedarScreens(null, -5.5, -5.5, 0);
-      cedarScreens(null, 5.5, -5.5, 0);
+      cedarScreens(null, X(-5.5), -5.5, R(0));
+      cedarScreens(null, X(5.5), -5.5, R(0));
     }
 
-    /* --- room zone labels from config --- */
+    /* --- room zone labels from config (x mirrored, normalised so x1<x2) --- */
     const rl = cfg.roomLabels || ["Master Bedroom","Open Kitchen","Dining Area","Formal Living","Entrance Foyer"];
+    const zone = (name, ax1, z1, ax2, z2) => {
+      const mx1 = X(ax1), mx2 = X(ax2);
+      return { name, x1: Math.min(mx1, mx2), x2: Math.max(mx1, mx2), z1, z2 };
+    };
     state.rooms = [
-      { name: rl[0], x1:2.5, z1:4,  x2:7,   z2:8 },
-      { name: rl[1], x1:-7,  z1:-6, x2:0,   z2:-2.2 },
-      { name: rl[2], x1:1,   z1:-2, x2:7,   z2:3.8 },
-      { name: rl[3], x1:-7,  z1:-2, x2:0.8, z2:5 },
-      { name: rl[4], x1:-7,  z1:5,  x2:2.4, z2:8 }
+      zone(rl[0], 2.5, 4,  7,   8),
+      zone(rl[1], -7,  -6, 0,   -2.2),
+      zone(rl[2], 1,   -2, 7,   3.8),
+      zone(rl[3], -7,  -2, 0.8, 5),
+      zone(rl[4], -7,  5,  2.4, 8)
     ];
   }
 
@@ -858,7 +882,8 @@
   function collide(nx, nz) {
     const r = 0.34;
     let px = nx, pz = nz;
-    const onStair = px > STAIR.x0 && px < STAIR.x1 && pz < STAIR.zBot + 0.2 && pz > STAIR.zTop - 0.2;
+    const S = state.stair || STAIR_BASE;
+    const onStair = px > S.x0 && px < S.x1 && pz < S.zBot + 0.2 && pz > S.zTop - 0.2;
     for (const w of state.walls) {
       if (w.lvl !== 2 && w.lvl !== state.level) continue;
       // let the player pass freely through the stairwell footprint while climbing
@@ -877,7 +902,9 @@
     if (state.level === 1) {
       const u = state.upRooms || ["Upstairs Suite", "Family Bedroom", "Upper Landing"];
       if (z > 4.2) return u[2];
-      return x < 0 ? u[0] : u[1];
+      // west suite is u[0]; under a mirrored plan it lives on the +x side
+      const west = state.mirror ? x > 0 : x < 0;
+      return west ? u[0] : u[1];
     }
     for (const r of state.rooms)
       if (x >= r.x1 && x <= r.x2 && z >= r.z1 && z <= r.z2) return r.name;
@@ -974,10 +1001,11 @@
 
     // ---- vertical: climb the staircase, switch floors at top/bottom ----
     const H = 3.2, EYE = 1.65;
-    const onStair = p.x > STAIR.x0 && p.x < STAIR.x1 && p.z < STAIR.zBot && p.z > STAIR.zTop;
+    const S = state.stair || STAIR_BASE;
+    const onStair = p.x > S.x0 && p.x < S.x1 && p.z < S.zBot && p.z > S.zTop;
     let floorY;
     if (onStair) {
-      const climb = Math.max(0, Math.min(1, (STAIR.zBot - p.z) / (STAIR.zBot - STAIR.zTop)));
+      const climb = Math.max(0, Math.min(1, (S.zBot - p.z) / (S.zBot - S.zTop)));
       floorY = climb * H;
       if (climb > 0.9) state.level = 1;
       else if (climb < 0.1) state.level = 0;
@@ -1020,7 +1048,7 @@
   // (re)build the furnished interior for a given config; cheap, cached by key
   function rebuild(cfg) {
     const labels = (cfg.roomLabels || []).join(",") + "/" + (cfg.upRoomLabels || []).join(",");
-    const key = `${cfg.theme}|${cfg.grand?1:0}|${cfg.library?1:0}|${cfg.cinema?1:0}|${cfg.pool?1:0}|${cfg.atrium?1:0}|${cfg.farmhouse?1:0}|${cfg.cedar?1:0}|${cfg.terrazzo?1:0}|${labels}`;
+    const key = `${cfg.theme}|${cfg.grand?1:0}|${cfg.library?1:0}|${cfg.cinema?1:0}|${cfg.pool?1:0}|${cfg.atrium?1:0}|${cfg.farmhouse?1:0}|${cfg.cedar?1:0}|${cfg.terrazzo?1:0}|${cfg.mirror?1:0}|${labels}`;
     if (key === curCfgKey && world) return;
     curCfgKey = key;
     curTheme = THEMES[cfg.theme] || THEMES.charcoalCream;
@@ -1051,8 +1079,9 @@
       ensureApp();
       rebuild(cfg);
       // reset spawn at the foyer looking into the house (toward -Z)
-      state.pos = { x: -1.5, y: 1.65, z: 7.0 };
-      state.yaw = 0; state.pitch = -4;
+      const sp = state.spawn || { x: -1.5, z: 7.0, yaw: 0, pitch: -4 };
+      state.pos = { x: sp.x, y: 1.65, z: sp.z };
+      state.yaw = sp.yaw; state.pitch = sp.pitch;
       state.level = 0; state.eyeY = null;
       state.curRoom = ""; roomLabel.textContent = (cfg.roomLabels && cfg.roomLabels[4]) || "Entrance Foyer";
       app.resizeCanvas();
