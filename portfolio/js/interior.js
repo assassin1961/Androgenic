@@ -27,45 +27,60 @@
   const SOLD_CFG = [
     // 0: Margalla View Manor
     { theme:"charcoalCream", grand:true, cinema:true, pool:true,
-      roomLabels:["Master Suite","Chef's Kitchen","Cinema Lounge","Glass Drawing Room","Entrance Foyer"] },
+      roomLabels:["Master Suite","Chef's Kitchen","Cinema Lounge","Glass Drawing Room","Entrance Foyer"],
+      upRoomLabels:["Master Suite + Dressing","Guest Suite","Family Lounge"] },
     // 1: Villa Serena
     { theme:"charcoalCream", grand:true, cinema:true,
-      roomLabels:["Master Suite","Open Kitchen","Cinema Lounge","Formal Living","Entrance Foyer"] },
+      roomLabels:["Master Suite","Open Kitchen","Cinema Lounge","Formal Living","Entrance Foyer"],
+      upRoomLabels:["Master Suite","Children's Bedroom","Upper Lounge"] },
     // 2: Enclave Residence
     { theme:"greyGraphite", grand:true,
-      roomLabels:["Master Bedroom","Kitchen","Dining Room","Double-Height Lounge","Entrance Foyer"] },
+      roomLabels:["Master Bedroom","Kitchen","Dining Room","Double-Height Lounge","Entrance Foyer"],
+      upRoomLabels:["Master Bedroom","Second Bedroom","Mezzanine Lounge"] },
     // 3: Casa Blanca E-11
     { theme:"spanishWarm", grand:false, terrazzo:true,
-      roomLabels:["Bedroom","Kitchen","Dining","Sunken Lounge","Entrance"] },
+      roomLabels:["Bedroom","Kitchen","Dining","Sunken Lounge","Entrance"],
+      upRoomLabels:["Master Bedroom","Guest Bedroom","Study Landing"] },
     // 4: Gulberg Farmhouse
     { theme:"brickWarm", grand:true, library:true, farmhouse:true,
-      roomLabels:["Master Suite","Farmhouse Kitchen","Dining Pavilion","Living Pavilion","Foyer & Orchard"] },
+      roomLabels:["Master Suite","Farmhouse Kitchen","Dining Pavilion","Living Pavilion","Foyer & Orchard"],
+      upRoomLabels:["Master Suite","Guest Annexe Room","Reading Loft"] },
     // 5: Hilltop Modern
     { theme:"greyGraphite", grand:false,
-      roomLabels:["Bedroom","Kitchen","Dining","Glazed Lounge","Foyer"] },
+      roomLabels:["Bedroom","Kitchen","Dining","Glazed Lounge","Foyer"],
+      upRoomLabels:["Master Bedroom","Second Bedroom","Hilltop Terrace Lounge"] },
     // 6: Phase 6 Palazzo
     { theme:"heritage", grand:true, library:true,
-      roomLabels:["Master Suite","Twin Kitchens","Cigar Lounge","Drawing Room","Entrance Foyer"] },
+      roomLabels:["Master Suite","Twin Kitchens","Cigar Lounge","Drawing Room","Entrance Foyer"],
+      upRoomLabels:["Master Suite + Dressing","Guest Suite","Upper Drawing Room"] },
     // 7: Gulberg Heritage House
     { theme:"heritage", grand:true, library:true, atrium:true,
-      roomLabels:["Master Suite","Kitchen","Dining","Glass Atrium","Entrance Foyer"] },
+      roomLabels:["Master Suite","Kitchen","Dining","Glass Atrium","Entrance Foyer"],
+      upRoomLabels:["Master Suite","Heritage Bedroom","Atrium Gallery"] },
     // 8: Bahria Orchard Villa
     { theme:"bahriaTown", grand:false,
-      roomLabels:["Master Suite","Kitchen","Dining","Drawing Room","Courtyard Entrance"] },
+      roomLabels:["Master Suite","Kitchen","Dining","Drawing Room","Courtyard Entrance"],
+      upRoomLabels:["Master Suite","Children's Bedroom","Upper Landing"] },
     // 9: Model Town Estate
     { theme:"heritage", grand:true, library:true,
-      roomLabels:["Master Suite","Kitchen","Dining Room","Drawing Room","Colonial Veranda"] },
+      roomLabels:["Master Suite","Kitchen","Dining Room","Drawing Room","Colonial Veranda"],
+      upRoomLabels:["Master Suite","Guest Bedroom","Veranda Lounge"] },
     // 10: Lake City Linear
     { theme:"whiteOak", grand:true, cedar:true,
-      roomLabels:["Master Suite","Kitchen","Dining","Gallery Living","Entrance Gallery"] },
+      roomLabels:["Master Suite","Kitchen","Dining","Gallery Living","Entrance Gallery"],
+      upRoomLabels:["Master Suite","Second Bedroom","Gallery Mezzanine"] },
     // 11: Phase 5 Courtyard
     { theme:"spanishWarm", grand:false, terrazzo:true,
-      roomLabels:["Bedroom","Kitchen","Dining","Courtyard Lounge","Entrance"] }
+      roomLabels:["Bedroom","Kitchen","Dining","Courtyard Lounge","Entrance"],
+      upRoomLabels:["Master Bedroom","Guest Bedroom","Courtyard Landing"] }
   ];
   const DEAL_CFG = [
-    { theme:"bahriaTown", grand:false, roomLabels:["Master Suite","Kitchen","Dining","Drawing Room","Entrance Foyer"] },
-    { theme:"charcoalCream", grand:true, cinema:true, roomLabels:["Master Suite","Chef's Kitchen","Cinema Lounge","Formal Living","Entrance Foyer"] },
-    { theme:"bahriaTown", grand:false, terrazzo:true, roomLabels:["Bedroom","Kitchen","Dining","Courtyard Lounge","Entrance"] }
+    { theme:"bahriaTown", grand:false, roomLabels:["Master Suite","Kitchen","Dining","Drawing Room","Entrance Foyer"],
+      upRoomLabels:["Master Suite","Children's Bedroom","Upper Landing"] },
+    { theme:"charcoalCream", grand:true, cinema:true, roomLabels:["Master Suite","Chef's Kitchen","Cinema Lounge","Formal Living","Entrance Foyer"],
+      upRoomLabels:["Master Suite","Guest Suite","Family Lounge"] },
+    { theme:"bahriaTown", grand:false, terrazzo:true, roomLabels:["Bedroom","Kitchen","Dining","Courtyard Lounge","Entrance"],
+      upRoomLabels:["Master Bedroom","Guest Bedroom","Courtyard Landing"] }
   ];
   let curTheme = THEMES.charcoalCream;
   const hx = (s) => [parseInt(s.slice(1, 3), 16) / 255, parseInt(s.slice(3, 5), 16) / 255, parseInt(s.slice(5, 7), 16) / 255];
@@ -119,24 +134,24 @@
   function marbleTex() {
     const mc = (curTheme && curTheme.marble) || ["#efece4", "#e3ddd0"];
     return tex((ctx, s) => {
+      // soft diagonal base wash
       const g = ctx.createLinearGradient(0, 0, s, s);
-      g.addColorStop(0, mc[0]); g.addColorStop(0.5, mc[1]); g.addColorStop(1, mc[0]);
+      g.addColorStop(0, mc[0]); g.addColorStop(0.55, mc[1]); g.addColorStop(1, mc[0]);
       ctx.fillStyle = g; ctx.fillRect(0, 0, s, s);
-      ctx.strokeStyle = "rgba(150,140,120,0.35)"; ctx.lineWidth = 1.2;
-      for (let i = 0; i < 16; i++) {
+      // a few gentle, faint veins (much calmer than before)
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "rgba(150,140,120,0.16)"; ctx.lineWidth = 1.0;
+      for (let i = 0; i < 4; i++) {
         ctx.beginPath();
         let x = Math.random() * s, y = Math.random() * s;
         ctx.moveTo(x, y);
-        for (let j = 0; j < 5; j++) { x += (Math.random() - 0.5) * s * 0.4; y += (Math.random() - 0.5) * s * 0.4; ctx.lineTo(x, y); }
+        for (let j = 0; j < 6; j++) { x += (Math.random() - 0.5) * s * 0.3; y += (Math.random() - 0.5) * s * 0.3; ctx.lineTo(x, y); }
         ctx.stroke();
       }
-      ctx.strokeStyle = "rgba(201,164,92,0.18)";
-      for (let i = 0; i < 5; i++) {
-        ctx.beginPath(); let x = Math.random() * s, y = Math.random() * s; ctx.moveTo(x, y);
-        for (let j = 0; j < 4; j++) { x += (Math.random() - 0.5) * s * 0.5; y += (Math.random() - 0.5) * s * 0.5; ctx.lineTo(x, y); }
-        ctx.stroke();
-      }
-    }, 256, 4, 4);
+      // crisp polished-tile grout seam at the edges (one slab per tile)
+      ctx.strokeStyle = "rgba(120,112,98,0.22)"; ctx.lineWidth = 1.4;
+      ctx.strokeRect(0.5, 0.5, s - 1, s - 1);
+    }, 256, 3, 3);
   }
   function terrazzotex() {
     return tex((ctx, s) => {
@@ -404,12 +419,95 @@
     for (let i = 0; i < 6; i++) box(g, { pos: [-w / 2 + i * (w / 5), 1.7, 0], scale: [w / 9, 2.6, 0.08], mat: MATS.fabric2 });
     return g;
   }
-  function stairs(parent, x, z, rot) {
-    const g = new pc.Entity(); g.setLocalPosition(x, 0, z); g.setEulerAngles(0, rot, 0); (parent || P()).addChild(g);
-    for (let i = 0; i < 8; i++) box(g, { pos: [0, 0.15 + i * 0.22, -i * 0.3], scale: [1.8, 0.22, 0.32], mat: MATS.marbleWhite });
-    box(g, { pos: [0.95, 1.0, -1.0], scale: [0.06, 1.2, 3.0], mat: MATS.glass });
-    box(g, { pos: [0.95, 1.6, -1.0], scale: [0.08, 0.08, 3.0], mat: MATS.gold });
-    return g;
+  /* ---------- WALKABLE STAIRCASE ----------
+     Fixed footprint: x in [STAIR.x0, STAIR.x1], z in [STAIR.zBot, STAIR.zTop].
+     Climbs from y=0 at zBot (near back wall) up to y=H at zTop.
+     The tick() loop reads this same footprint to raise the camera. */
+  const STAIR = { x0: 0.1, x1: 1.9, zBot: 7.5, zTop: 4.6 };
+  function staircase(H) {
+    const steps = 16;
+    const xMid = (STAIR.x0 + STAIR.x1) / 2, w = STAIR.x1 - STAIR.x0;
+    const run = STAIR.zBot - STAIR.zTop;          // total horizontal travel
+    const stepDepth = run / steps, stepRise = H / steps;
+    for (let i = 0; i < steps; i++) {
+      const z = STAIR.zBot - stepDepth * (i + 0.5);
+      const y = stepRise * (i + 0.5);
+      box(null, { pos: [xMid, y - stepRise / 2, z], scale: [w, stepRise + 0.02, stepDepth + 0.02], mat: MATS.marbleWhite });
+    }
+    // glass balustrade down the open (west) side
+    box(null, { pos: [STAIR.x0 - 0.04, H * 0.5 + 0.4, (STAIR.zBot + STAIR.zTop) / 2], scale: [0.05, H + 0.8, run], mat: MATS.glass });
+    box(null, { pos: [STAIR.x0 - 0.04, H + 0.55, (STAIR.zBot + STAIR.zTop) / 2], scale: [0.07, 0.07, run], mat: MATS.gold });
+    // newel light at the foot
+    prim("cylinder", null, { pos: [STAIR.x1 + 0.1, 0.5, STAIR.zBot - 0.1], scale: [0.12, 1.0, 0.12], mat: MATS.gold });
+    prim("sphere", null, { pos: [STAIR.x1 + 0.1, 1.1, STAIR.zBot - 0.1], scale: [0.26, 0.26, 0.26], mat: MATS.warm });
+  }
+
+  /* ---------- UPPER FLOOR ----------
+     A real second storey: slab with a stairwell void, perimeter walls,
+     two bedroom suites + a landing lounge, reachable by the staircase. */
+  function buildUpperFloor(cfg, H) {
+    const slabTop = H, t = 0.12, cy = slabTop - t / 2;
+    const hole = { x0: STAIR.x0 - 0.2, x1: STAIR.x1 + 0.2, z0: STAIR.zTop, z1: 8 };
+    const slab = (x0, x1, z0, z1) =>
+      box(null, { pos: [(x0 + x1) / 2, cy, (z0 + z1) / 2], scale: [x1 - x0, t, z1 - z0], mat: MATS.floor });
+    // slab around the stairwell hole (covers x[-7,7] z[-6,8] minus hole)
+    slab(-7, hole.x0, -6, 8);
+    slab(hole.x1, 7, -6, 8);
+    slab(hole.x0, hole.x1, -6, hole.z0);
+
+    // upper ceiling + cove lights
+    box(null, { pos: [0, 2 * H + 0.05, 1], scale: [14, 0.1, 14], mat: MATS.ceiling, shadow: false });
+    for (const cz of [-3, 1, 5]) box(null, { pos: [0, 2 * H - 0.06, cz], scale: [10, 0.04, 0.18], mat: MATS.warm, shadow: false });
+
+    // upper perimeter walls (lvl 1)
+    wallSeg(-7, 8, 7, 8, H, MATS.wall, true, 0.16, slabTop, 1);
+    wallSeg(-7, -6, 7, -6, H, MATS.wall, true, 0.16, slabTop, 1);
+    wallSeg(-7, -6, -7, 8, H, MATS.wall, true, 0.16, slabTop, 1);
+    wallSeg(7, -6, 7, 8, H, MATS.wall, true, 0.16, slabTop, 1);
+    // central partition splitting two suites, doorway gap z 0.5..1.7
+    wallSeg(0, -6, 0, 0.5, H, MATS.wall, true, 0.16, slabTop, 1);
+    wallSeg(0, 1.7, 0, 4, H, MATS.wall, true, 0.16, slabTop, 1);
+    wallSeg(-7, 4, hole.x0, 4, H, MATS.wall, true, 0.16, slabTop, 1);
+
+    // stairwell guard rails (lvl 1 collision so you can't fall in)
+    const rail = (x1, z1, x2, z2) => {
+      wallSeg(x1, z1, x2, z2, 1.0, MATS.glass, true, 0.06, slabTop, 1);
+      wallSeg(x1, z1, x2, z2, 0.06, MATS.gold, false, 0.08, slabTop + 1.0, 1);
+    };
+    rail(hole.x0, hole.z0, hole.x0, hole.z1);   // west edge
+    rail(hole.x1, hole.z0, hole.x1, hole.z1);   // east edge
+    rail(hole.x0, hole.z1, hole.x1, hole.z1);   // back edge
+
+    // furnish upstairs on a group raised to the slab
+    const up = new pc.Entity(); up.setLocalPosition(0, slabTop, 0); P().addChild(up);
+    // west suite
+    prim("plane", up, { pos: [-3.5, 0.02, 0], scale: [4.5, 1, 4.5], mat: MATS.rug, shadow: false });
+    bed(up, -3.5, -1.5);
+    wardrobe(up, -6.6, 1.5, 90);
+    chandelier(up, -3.5, 0, 2.9);
+    painting(up, -3.5, 1.9, -5.9, 0, hue3(cfg, 0));
+    plant(up, -6.3, -4.8, 1.0);
+    // east suite
+    prim("plane", up, { pos: [3.8, 0.02, -1], scale: [4.5, 1, 4.5], mat: MATS.rug, shadow: false });
+    bed(up, 3.8, -2.2);
+    wardrobe(up, 6.6, 0.5, -90);
+    chandelier(up, 3.8, -1, 2.9);
+    painting(up, 3.8, 1.9, -5.9, 0, hue3(cfg, 1));
+    plant(up, 6.2, -4.8, 1.0);
+    // landing lounge (south, by the stairwell)
+    sofa(up, -2.5, 6.2, 180, 2.2, MATS.fabric);
+    coffeeTable(up, -2.5, 5.4);
+    plant(up, -6.2, 7.0, 1.1);
+    chandelier(up, -3, 6, 2.9);
+
+    state.upRooms = (cfg.upRoomLabels && cfg.upRoomLabels.length === 3)
+      ? cfg.upRoomLabels
+      : ["Upstairs Suite", "Family Bedroom", "Upper Landing"];
+  }
+  // helper for upstairs art hue without leaking the closure var
+  function hue3(cfg, i) {
+    const art = curTheme.art;
+    return art[(i + 1) % art.length];
   }
 
   /* cinema room — tiered seats, large screen */
@@ -469,8 +567,10 @@
     return g;
   }
 
-  /* ---------- walls + shell ---------- */
-  function wallSeg(x1, z1, x2, z2, h, mat, collide = true, thick = 0.16) {
+  /* ---------- walls + shell ----------
+     baseY = vertical base of the wall (0 = ground, H = upper floor)
+     lvl   = collision level: 0 ground only, 1 upper only, 2 both */
+  function wallSeg(x1, z1, x2, z2, h, mat, collide = true, thick = 0.16, baseY = 0, lvl = 0) {
     const dx = x2 - x1, dz = z2 - z1, len = Math.hypot(dx, dz);
     const cx = (x1 + x2) / 2, cz = (z1 + z2) / 2, ang = Math.atan2(dx, dz) * 180 / Math.PI;
     const e = new pc.Entity();
@@ -478,10 +578,10 @@
     e.render.meshInstances.forEach((mi) => (mi.material = mat));
     e.render.castShadows = true; e.render.receiveShadows = true;
     e.setLocalScale(thick, h, len);
-    e.setLocalPosition(cx, h / 2, cz);
+    e.setLocalPosition(cx, baseY + h / 2, cz);
     e.setEulerAngles(0, ang, 0);
     P().addChild(e);
-    if (collide) state.walls.push({ x1, z1, x2, z2 });
+    if (collide) state.walls.push({ x1, z1, x2, z2, lvl });
     return e;
   }
   function windowOnWall(x1, z1, x2, z2, mat) {
@@ -500,11 +600,11 @@
     const hue = (i) => art[i % art.length];
     buildMats();
     const H = 3.2;
-    // floor + ceiling
-    box(null, { pos: [0, -0.05, 1], scale: [14, 0.1, 14], mat: MATS.floor });
-    box(null, { pos: [0, H + 0.05, 1], scale: [14, 0.1, 14], mat: MATS.ceiling, shadow: false });
-    // cove light strips on ceiling
-    for (const cz of [-3, 1, 5]) box(null, { pos: [0, H - 0.06, cz], scale: [10, 0.04, 0.18], mat: MATS.warm, shadow: false });
+    // ground floor — single slab, terrazzo or marble per listing (no overlay → no z-fighting)
+    const floorMat = cfg.terrazzo ? MATS.terrazzof : MATS.floor;
+    box(null, { pos: [0, -0.05, 1], scale: [14, 0.1, 14], mat: floorMat });
+    // cove light strips below the upper-floor slab
+    for (const cz of [-3, 1, 5]) box(null, { pos: [0, H - 0.12, cz], scale: [10, 0.04, 0.18], mat: MATS.warm, shadow: false });
 
     // outer walls (with south doorway gap x -3..-1)
     wallSeg(-7, 8, -3, 8, H, MATS.wall);
@@ -527,11 +627,6 @@
     curtain(null, 6.7, -1.5, -90, 2.6);
 
     const isBahria = curTheme === THEMES.bahriaTown;
-
-    /* --- apply terrazzo floor override --- */
-    if (cfg.terrazzo) {
-      box(null, { pos: [0, -0.04, 1], scale: [14, 0.1, 14], mat: MATS.terrazzof });
-    }
 
     /* --- WEST / LIVING area --- */
     if (isBahria) {
@@ -583,8 +678,9 @@
     kitchen(null);
     plant(null, -6.2, -5, 1.0);
 
-    /* --- FOYER --- */
-    stairs(null, 1.4, 6.9, 180);
+    /* --- FOYER + walkable staircase + second storey --- */
+    staircase(H);
+    buildUpperFloor(cfg, H);
     plant(null, -6.3, 7.2, 1.2);
     painting(null, 0, 1.9, -5.9, 0, hue(2));
 
@@ -663,11 +759,15 @@
     }
   }
 
-  /* ---------- collision ---------- */
+  /* ---------- collision (only walls on the current floor) ---------- */
   function collide(nx, nz) {
     const r = 0.34;
     let px = nx, pz = nz;
+    const onStair = px > STAIR.x0 && px < STAIR.x1 && pz < STAIR.zBot + 0.2 && pz > STAIR.zTop - 0.2;
     for (const w of state.walls) {
+      if (w.lvl !== 2 && w.lvl !== state.level) continue;
+      // let the player pass freely through the stairwell footprint while climbing
+      if (onStair && w.lvl === 1) continue;
       const dx = w.x2 - w.x1, dz = w.z2 - w.z1;
       const l2 = dx * dx + dz * dz || 1;
       let t = ((px - w.x1) * dx + (pz - w.z1) * dz) / l2;
@@ -679,6 +779,11 @@
     return [px, pz];
   }
   function roomAt(x, z) {
+    if (state.level === 1) {
+      const u = state.upRooms || ["Upstairs Suite", "Family Bedroom", "Upper Landing"];
+      if (z > 4.2) return u[2];
+      return x < 0 ? u[0] : u[1];
+    }
     for (const r of state.rooms)
       if (x >= r.x1 && x <= r.x2 && z >= r.z1 && z <= r.z2) return r.name;
     return "Show Home";
@@ -771,9 +876,25 @@
     const [cx, cz] = collide(p.x + mx * speed, p.z + mz * speed);
     p.x = Math.max(-6.6, Math.min(6.6, cx));
     p.z = Math.max(-5.6, Math.min(7.6, cz));
-    camRoot.setLocalPosition(p.x, 1.65, p.z);
+
+    // ---- vertical: climb the staircase, switch floors at top/bottom ----
+    const H = 3.2, EYE = 1.65;
+    const onStair = p.x > STAIR.x0 && p.x < STAIR.x1 && p.z < STAIR.zBot && p.z > STAIR.zTop;
+    let floorY;
+    if (onStair) {
+      const climb = Math.max(0, Math.min(1, (STAIR.zBot - p.z) / (STAIR.zBot - STAIR.zTop)));
+      floorY = climb * H;
+      if (climb > 0.9) state.level = 1;
+      else if (climb < 0.1) state.level = 0;
+    } else {
+      floorY = state.level * H;
+    }
+    // ease the eye height so steps feel smooth rather than jittery
+    const targetEye = floorY + EYE;
+    state.eyeY = state.eyeY == null ? targetEye : state.eyeY + (targetEye - state.eyeY) * Math.min(1, dt * 12);
+    camRoot.setLocalPosition(p.x, state.eyeY, p.z);
     camRoot.setLocalEulerAngles(state.pitch, state.yaw, 0);
-    const rn = roomAt(p.x, p.z);
+    const rn = onStair ? "Staircase" : roomAt(p.x, p.z);
     if (rn !== state.curRoom) { state.curRoom = rn; roomLabel.textContent = rn; }
   }
 
@@ -803,7 +924,8 @@
 
   // (re)build the furnished interior for a given config; cheap, cached by key
   function rebuild(cfg) {
-    const key = `${cfg.theme}|${cfg.grand?1:0}|${cfg.library?1:0}|${cfg.cinema?1:0}|${cfg.pool?1:0}|${cfg.atrium?1:0}|${cfg.farmhouse?1:0}|${cfg.cedar?1:0}|${cfg.terrazzo?1:0}`;
+    const labels = (cfg.roomLabels || []).join(",") + "/" + (cfg.upRoomLabels || []).join(",");
+    const key = `${cfg.theme}|${cfg.grand?1:0}|${cfg.library?1:0}|${cfg.cinema?1:0}|${cfg.pool?1:0}|${cfg.atrium?1:0}|${cfg.farmhouse?1:0}|${cfg.cedar?1:0}|${cfg.terrazzo?1:0}|${labels}`;
     if (key === curCfgKey && world) return;
     curCfgKey = key;
     curTheme = THEMES[cfg.theme] || THEMES.charcoalCream;
@@ -836,6 +958,7 @@
       // reset spawn at the foyer looking into the house (toward -Z)
       state.pos = { x: -1.5, y: 1.65, z: 7.0 };
       state.yaw = 0; state.pitch = -4;
+      state.level = 0; state.eyeY = null;
       state.curRoom = ""; roomLabel.textContent = (cfg.roomLabels && cfg.roomLabels[4]) || "Entrance Foyer";
       app.resizeCanvas();
       loader.style.display = "none";
