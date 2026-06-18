@@ -350,7 +350,7 @@ burger.addEventListener("click", () => {
 });
 
 /* ---------- SCROLLSPY (highlight the nav link for the section in view) ---------- */
-const spyTargets = ["about", "deals", "portfolio", "tourcta", "faq", "contact"]
+const spyTargets = ["about", "credentials", "services", "deals", "portfolio", "faq", "contact"]
   .map((id) => document.getElementById(id))
   .filter(Boolean);
 if ("IntersectionObserver" in window && spyTargets.length) {
