@@ -47,6 +47,46 @@
 }
 </script>
 
+<!-- Structured data: FAQ rich result -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Do you work with overseas Pakistanis who can't visit in person?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes — it is a large part of the practice. Live video walkthroughs of every viewing, verified documents shared digitally, and purchases or sales completed on a registered power of attorney. Many homes have been closed for clients in the UK, Gulf and North America who never visited until handover." }
+    },
+    {
+      "@type": "Question",
+      "name": "Which areas and plot sizes do you cover?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Premium residential across Islamabad and Lahore — DHA, Bahria Town, Gulberg Greens, F-7, E-11, B-17 and Model Town — from 5 Marla homes to 2 Kanal estates and farmhouses, including off-market inventory." }
+    },
+    {
+      "@type": "Question",
+      "name": "How is your commission structured?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Standard market rate of 1% from each side on a completed transaction, agreed in writing beforehand. No upfront charges and no fee for valuations or consultations — payment is due only when the deal closes." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can you arrange home financing or a bank loan?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Home-finance teams at several major banks can be engaged directly for pre-approval. The exact markup and tenure are confirmed by the bank based on your profile." }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you handle the legal vetting, transfer and possession?",
+      "acceptedAnswer": { "@type": "Answer", "text": "End to end — title verification, fard and mutation checks, dues clearance, transfer at the society or registrar, and physical possession, all managed on your behalf." }
+    },
+    {
+      "@type": "Question",
+      "name": "How long does a typical sale take?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The homes in this portfolio averaged just over three weeks from listing to handover, with several closing in under two. Correct pricing and a ready buyer pool are what move a property quickly." }
+    }
+  ]
+}
+</script>
+
 <link rel="preload" href="assets/fonts/playfair-display-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="assets/fonts/manrope-latin-300-normal.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="css/fonts.css" />
@@ -82,6 +122,7 @@
     <a href="#deals" data-magnetic>Available</a>
     <a href="#portfolio" data-magnetic>Sold Portfolio</a>
     <a href="#tourcta" data-magnetic>Virtual Tour</a>
+    <a href="#faq" data-magnetic>FAQ</a>
     <a href="#contact" class="nav__cta" data-magnetic>Work With Me</a>
   </nav>
   <button class="nav__burger" id="navBurger" aria-label="Menu"><span></span><span></span></button>
@@ -93,6 +134,7 @@
   <a href="#deals">Available Now</a>
   <a href="#portfolio">Sold Portfolio</a>
   <a href="#tourcta">Virtual Tour</a>
+  <a href="#faq">FAQ</a>
   <a href="#contact">Work With Me</a>
 </div>
 
@@ -315,6 +357,41 @@
         <span><b>Desktop</b> — click, then WASD to move, mouse to look</span>
         <span><b>Mobile</b> — left thumb to walk, drag to look around</span>
       </div>
+    </div>
+  </section>
+
+  <!-- ======= FAQ ======= -->
+  <section class="faq" id="faq">
+    <div class="faq__head">
+      <p class="section-eyebrow" data-reveal>Good to Know</p>
+      <h2 class="section-title" data-reveal>Questions buyers <em class="gold-italic">always ask</em></h2>
+      <p class="portfolio__intro" data-reveal>Straight answers before we ever speak. Anything else — message me on WhatsApp.</p>
+    </div>
+    <div class="faq__list" id="faqList">
+      <details class="faq__item" data-reveal>
+        <summary>Do you work with overseas Pakistanis who can't visit in person?</summary>
+        <div class="faq__answer"><p>Constantly — it's a large part of my practice. I run live video walkthroughs of every viewing, share verified documents digitally, and can complete a purchase or sale on a registered power of attorney. Several homes in this portfolio were closed entirely for clients in the UK, Gulf and North America who never set foot inside until they had the keys.</p></div>
+      </details>
+      <details class="faq__item" data-reveal>
+        <summary>Which areas and plot sizes do you cover?</summary>
+        <div class="faq__answer"><p>Premium residential across <strong>Islamabad and Lahore</strong> — DHA, Bahria Town, Gulberg Greens, F-7, E-11, B-17 and Model Town among them. I handle everything from 5 Marla starter homes to 2 Kanal estates and farmhouses, with off-market access to inventory that never reaches the public listings.</p></div>
+      </details>
+      <details class="faq__item" data-reveal>
+        <summary>How is your commission structured?</summary>
+        <div class="faq__answer"><p>Standard market rate of <strong>1% from each side</strong> on a completed transaction, agreed in writing before we begin. There are no upfront charges and no fee for valuations or consultations — I'm paid only when your deal closes successfully.</p></div>
+      </details>
+      <details class="faq__item" data-reveal>
+        <summary>Can you arrange home financing or a bank loan?</summary>
+        <div class="faq__answer"><p>Yes. I work with home-finance teams at several major banks and can connect you directly for pre-approval. The payment planner above gives you an indicative monthly figure; the bank confirms exact markup and tenure based on your profile.</p></div>
+      </details>
+      <details class="faq__item" data-reveal>
+        <summary>Do you handle the legal vetting, transfer and possession?</summary>
+        <div class="faq__answer"><p>End to end. Title verification, fard and mutation checks, dues clearance, transfer at the society or registrar, and physical possession — all managed and overseen on your behalf so nothing is left to chance.</p></div>
+      </details>
+      <details class="faq__item" data-reveal>
+        <summary>How long does a typical sale take?</summary>
+        <div class="faq__answer"><p>It depends on pricing and location, but the homes on this wall averaged just over three weeks from listing to handover — several closed in under two. Correct pricing and a ready buyer pool are what move a property fast, and that's where most of my work happens before the sign ever goes up.</p></div>
+      </details>
     </div>
   </section>
 

@@ -2,9 +2,13 @@
    ADEEL AHMED RAHMAN — LUXURY REAL ESTATE PORTFOLIO
    ============================================================ */
 
-const HAS_GSAP = typeof gsap !== "undefined";
+/* Respect the OS "reduce motion" setting: route the whole experience through
+   the static (no-anim) path — no smooth-scroll, parallax, cursor or timelines. */
+const REDUCED = typeof window.matchMedia === "function" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const HAS_GSAP = typeof gsap !== "undefined" && !REDUCED;
 const HAS_ST = HAS_GSAP && typeof ScrollTrigger !== "undefined";
-const HAS_LENIS = typeof Lenis !== "undefined";
+const HAS_LENIS = typeof Lenis !== "undefined" && !REDUCED;
 if (!HAS_GSAP) document.documentElement.classList.add("no-anim");
 
 /* ---------- SOLD PROPERTIES ---------- */
@@ -343,6 +347,31 @@ window.addEventListener("scroll", () => {
 burger.addEventListener("click", () => {
   burger.classList.toggle("is-open");
   mobileMenu.classList.toggle("is-open");
+});
+
+/* ---------- SCROLLSPY (highlight the nav link for the section in view) ---------- */
+const spyTargets = ["about", "deals", "portfolio", "tourcta", "faq", "contact"]
+  .map((id) => document.getElementById(id))
+  .filter(Boolean);
+if ("IntersectionObserver" in window && spyTargets.length) {
+  const navLinks = document.querySelectorAll(".nav__links a");
+  const spy = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      const href = "#" + e.target.id;
+      navLinks.forEach((a) => a.classList.toggle("is-current", a.getAttribute("href") === href));
+    });
+  }, { rootMargin: "-45% 0px -50% 0px", threshold: 0 });
+  spyTargets.forEach((t) => spy.observe(t));
+}
+
+/* ---------- FAQ ACCORDION (open one at a time) ---------- */
+const faqItems = document.querySelectorAll(".faq__item");
+faqItems.forEach((item) => {
+  item.addEventListener("toggle", () => {
+    if (!item.open) return;
+    faqItems.forEach((other) => { if (other !== item) other.open = false; });
+  });
 });
 
 /* ---------- FILTERS ---------- */
