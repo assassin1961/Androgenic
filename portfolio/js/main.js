@@ -184,6 +184,7 @@ PROPERTIES.forEach((p, i) => {
       <img src="${p.img}" alt="${p.title}" loading="lazy" />
       <span class="card__sold">SOLD${p.soldIn ? ` · ${p.soldIn} DAYS` : ""}</span>
       <span class="card__size">${p.sizeLabel}</span>
+      <button class="card__fav" type="button" data-fav="${i}" aria-label="Save ${p.title} to shortlist" aria-pressed="false">♥</button>
     </div>
     <div class="card__body">
       <p class="card__loc">${p.loc}</p>
@@ -193,7 +194,7 @@ PROPERTIES.forEach((p, i) => {
         <span>🛏 ${p.beds} Beds</span><span>🛁 ${p.baths} Baths</span><span>📐 ${p.area}</span>
       </div>
       <div class="card__foot">
-        <span class="card__price"><em>Closed at</em>${p.price}</span>
+        <span class="card__price"><em>Closed at</em><span class="price-val" data-price="${p.price}">${p.price}</span></span>
         <span class="card__view">View Story →</span>
       </div>
       <button class="card__tour-btn" type="button">▷ Virtual Tour</button>
@@ -204,6 +205,10 @@ PROPERTIES.forEach((p, i) => {
     openLightbox(i);
     const lb = document.getElementById("lbTourBtn");
     if (lb && lb.onclick) lb.onclick();
+  });
+  card.querySelector(".card__fav").addEventListener("click", (e) => {
+    e.stopPropagation();
+    window.Favorites && window.Favorites.toggle(i, e.currentTarget);
   });
   guardImage(card.querySelector(".card__media img"), i, p.title);
   grid.appendChild(card);
@@ -411,7 +416,7 @@ function openLightbox(i) {
   document.getElementById("lbLoc").textContent = p.loc + " · Sold " + p.year;
   document.getElementById("lbTitle").textContent = p.title;
   document.getElementById("lbDesc").textContent = p.desc;
-  document.getElementById("lbPrice").textContent = p.price;
+  setPriceEl(document.getElementById("lbPrice"), p.price);
   document.getElementById("lbSpecs").innerHTML = `
     <div><span>Plot Size</span><strong>${p.sizeLabel}</strong></div>
     <div><span>Covered Area</span><strong>${p.area}</strong></div>
@@ -540,7 +545,7 @@ function openDealLightbox(d, i) {
   document.getElementById("lbLoc").textContent = d.loc + " · Available Now";
   document.getElementById("lbTitle").textContent = d.title;
   document.getElementById("lbDesc").textContent = d.specs;
-  document.getElementById("lbPrice").textContent = d.demand;
+  setPriceEl(document.getElementById("lbPrice"), d.demand);
   document.getElementById("lbPriceLabel").textContent = "Demand";
   document.getElementById("lbSold").style.display = "none";
   document.getElementById("lbSpecs").innerHTML = "";
@@ -576,7 +581,7 @@ if (dealsGrid) {
         <h3 class="card__title">${d.title}</h3>
         <div class="card__tags">${d.tags.map((t) => `<span>${t}</span>`).join("")}</div>
         <p class="deal__specs">${d.specs}</p>
-        <div class="deal__price"><span>Demand</span><strong>${d.demand}</strong></div>
+        <div class="deal__price"><span>Demand</span><strong class="price-val" data-price="${d.demand}">${d.demand}</strong></div>
         <div class="deal__actions">
           <a class="btn btn--wa" href="${wa}" target="_blank" rel="noopener">WhatsApp Now</a>
           <a class="btn btn--ghost btn--sm" href="tel:+16134083945">Call</a>
@@ -678,5 +683,227 @@ if (toTop) {
   }, { passive: true });
   toTop.addEventListener("click", () => {
     if (lenis) lenis.scrollTo(0); else window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+}
+
+/* ---------- TOAST ---------- */
+const toastEl = document.getElementById("toast");
+let toastTimer;
+function toast(msg) {
+  if (!toastEl) return;
+  toastEl.textContent = msg;
+  toastEl.classList.add("is-visible");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("is-visible"), 2600);
+}
+
+/* ---------- MULTI-CURRENCY PRICING (overseas buyers) ----------
+   Indicative FX vs PKR — clearly labelled as approximate in the UI. */
+const FX = { PKR: 1, USD: 1 / 278, GBP: 1 / 353, AED: 1 / 76, SAR: 1 / 74 };
+const SYM = { PKR: "PKR", USD: "$", GBP: "£", AED: "AED ", SAR: "SAR " };
+let CUR = (function () {
+  try { return localStorage.getItem("ar_cur") || "PKR"; } catch (e) { return "PKR"; }
+})();
+
+function parsePKR(str) {
+  const m = String(str).match(/([\d.]+)\s*(arab|crore|cr|lakh|lac)?/i);
+  if (!m) return 0;
+  let v = parseFloat(m[1]);
+  const unit = (m[2] || "crore").toLowerCase();
+  if (unit === "arab") v *= 1e9;
+  else if (unit.startsWith("cr")) v *= 1e7;
+  else if (unit.startsWith("la")) v *= 1e5;
+  return v;
+}
+function fmtMoney(pkr) {
+  if (CUR === "PKR") return null; // keep original crore string
+  const v = pkr * FX[CUR];
+  let num = v, suf = "";
+  if (v >= 1e6) { num = v / 1e6; suf = "M"; }
+  else if (v >= 1e3) { num = v / 1e3; suf = "K"; }
+  const n = num >= 100 ? Math.round(num).toString() : num.toFixed(num >= 10 ? 1 : 2);
+  return SYM[CUR] + n + suf;
+}
+function priceDisplay(original) {
+  if (CUR === "PKR") return original;
+  return fmtMoney(parsePKR(original)) || original;
+}
+function setPriceEl(el, original) {
+  if (!el) return;
+  el.dataset.price = original;
+  el.textContent = priceDisplay(original);
+}
+function updateAllPrices() {
+  document.querySelectorAll("[data-price]").forEach((el) => {
+    el.textContent = priceDisplay(el.dataset.price);
+  });
+}
+function buildCurrencySwitch() {
+  const order = ["PKR", "USD", "GBP", "AED", "SAR"];
+  document.querySelectorAll("[data-cur-switch]").forEach((wrap) => {
+    wrap.innerHTML =
+      `<span class="cur-switch__label">Prices in</span>` +
+      order.map((c) => `<button type="button" class="cur-pill${c === CUR ? " is-active" : ""}" data-cur="${c}">${c}</button>`).join("") +
+      `<span class="cur-switch__note">indicative FX</span>`;
+    wrap.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-cur]");
+      if (b) setCurrency(b.dataset.cur);
+    });
+  });
+}
+function setCurrency(c) {
+  if (!FX[c]) return;
+  CUR = c;
+  try { localStorage.setItem("ar_cur", c); } catch (e) {}
+  document.querySelectorAll(".cur-pill").forEach((b) => b.classList.toggle("is-active", b.dataset.cur === c));
+  updateAllPrices();
+  if (c !== "PKR") toast(`Showing indicative prices in ${c}`);
+}
+buildCurrencySwitch();
+if (CUR !== "PKR") updateAllPrices();
+
+/* ---------- FAVORITES / SHORTLIST (localStorage) ---------- */
+window.Favorites = (function () {
+  let favs = [];
+  try { favs = JSON.parse(localStorage.getItem("ar_favs") || "[]"); } catch (e) { favs = []; }
+  const save = () => { try { localStorage.setItem("ar_favs", JSON.stringify(favs)); } catch (e) {} };
+
+  const countEl = document.getElementById("favCount");
+  const navFav = document.getElementById("navFav");
+  const drawer = document.getElementById("shortlist");
+  const listEl = document.getElementById("shortlistList");
+  const sCount = document.getElementById("shortlistCount");
+  const sendBtn = document.getElementById("shortlistSend");
+
+  function isFav(i) { return favs.includes(i); }
+  function syncCards() {
+    document.querySelectorAll(".card__fav").forEach((btn) => {
+      const i = +btn.dataset.fav;
+      const on = isFav(i);
+      btn.classList.toggle("is-fav", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+  function updateCount() {
+    if (countEl) countEl.textContent = favs.length;
+    if (navFav) navFav.classList.toggle("has-favs", favs.length > 0);
+  }
+  function toggle(i, btn) {
+    const at = favs.indexOf(i);
+    if (at === -1) { favs.push(i); toast("Saved to your shortlist ♥"); }
+    else { favs.splice(at, 1); }
+    save(); updateCount(); syncCards();
+    if (btn) {
+      btn.classList.toggle("is-fav", isFav(i));
+      if (isFav(i)) { btn.classList.remove("pop"); void btn.offsetWidth; btn.classList.add("pop"); }
+    }
+    if (drawer && drawer.classList.contains("is-open")) renderDrawer();
+  }
+  function waLink() {
+    if (!favs.length) return "#";
+    const lines = favs.map((i) => {
+      const p = PROPERTIES[i];
+      return `• ${p.title} — ${p.loc} (${p.sizeLabel}, ${p.price})`;
+    });
+    const msg = `Hello Adeel, I've shortlisted these homes on your site and would like more details:\n\n${lines.join("\n")}`;
+    return `https://wa.me/16134083945?text=${encodeURIComponent(msg)}`;
+  }
+  function renderDrawer() {
+    if (sCount) sCount.textContent = favs.length;
+    if (sendBtn) {
+      sendBtn.href = waLink();
+      sendBtn.classList.toggle("is-disabled", favs.length === 0);
+    }
+    if (!listEl) return;
+    if (!favs.length) {
+      listEl.innerHTML = `<p class="shortlist__empty">No saved homes yet. Tap the ♥ on any listing to add it here.</p>`;
+      return;
+    }
+    listEl.innerHTML = favs.map((i) => {
+      const p = PROPERTIES[i];
+      const img = (document.querySelectorAll(".card__media img")[i] || {}).src || p.img;
+      return `<div class="sl-item">
+        <img src="${img}" alt="${p.title}" />
+        <div class="sl-item__body">
+          <strong>${p.title}</strong><span>${p.loc}</span>
+          <em class="price-val" data-price="${p.price}">${priceDisplay(p.price)}</em>
+        </div>
+        <button class="sl-item__rm" type="button" data-rm="${i}" aria-label="Remove">✕</button>
+      </div>`;
+    }).join("");
+    listEl.querySelectorAll("[data-rm]").forEach((b) =>
+      b.addEventListener("click", () => toggle(+b.dataset.rm)));
+  }
+  function open() {
+    if (!drawer) return;
+    renderDrawer();
+    drawer.classList.add("is-open");
+    drawer.setAttribute("aria-hidden", "false");
+    if (lenis) lenis.stop();
+  }
+  function close() {
+    if (!drawer) return;
+    drawer.classList.remove("is-open");
+    drawer.setAttribute("aria-hidden", "true");
+    if (lenis) lenis.start();
+  }
+
+  if (navFav) navFav.addEventListener("click", open);
+  const sb = document.getElementById("shortlistBackdrop");
+  const sc = document.getElementById("shortlistClose");
+  const scl = document.getElementById("shortlistClear");
+  if (sb) sb.addEventListener("click", close);
+  if (sc) sc.addEventListener("click", close);
+  if (scl) scl.addEventListener("click", () => { favs = []; save(); updateCount(); syncCards(); renderDrawer(); });
+  if (sendBtn) sendBtn.addEventListener("click", (e) => { if (!favs.length) e.preventDefault(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+
+  updateCount(); syncCards();
+  return { toggle, isFav, syncCards };
+})();
+
+/* ---------- MARKET INSIGHTS (animate bars + numbers on view) ---------- */
+(function () {
+  const bars = document.querySelectorAll("[data-bar]");
+  const vals = document.querySelectorAll("[data-bar-val]");
+  if (!bars.length) return;
+  const animateVal = (el) => {
+    const end = parseFloat(el.dataset.barVal);
+    const suffix = el.dataset.suffix || "";
+    if (!HAS_GSAP) { el.textContent = end + suffix; return; }
+    const o = { v: 0 };
+    gsap.to(o, { v: end, duration: 1.6, ease: "power2.out", onUpdate: () => { el.textContent = Math.round(o.v) + suffix; } });
+  };
+  const fire = () => {
+    bars.forEach((b) => { b.style.width = b.dataset.bar + "%"; });
+    vals.forEach(animateVal);
+  };
+  const section = document.getElementById("insights");
+  if ("IntersectionObserver" in window && section) {
+    const io = new IntersectionObserver((entries, obs) => {
+      entries.forEach((e) => { if (e.isIntersecting) { fire(); obs.disconnect(); } });
+    }, { threshold: 0.25 });
+    io.observe(section);
+  } else { fire(); }
+})();
+
+/* ---------- BOOK A CONSULTATION ---------- */
+const bookForm = document.getElementById("bookForm");
+if (bookForm) {
+  const dateInput = bookForm.querySelector('input[name="date"]');
+  if (dateInput) dateInput.min = new Date().toISOString().split("T")[0];
+  bookForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const d = new FormData(bookForm);
+    const msg =
+      `Hello Adeel, I'd like to book a consultation.\n\n` +
+      `Name: ${d.get("name") || "—"}\n` +
+      `Phone: ${d.get("phone") || "—"}\n` +
+      `Date: ${d.get("date") || "—"}\n` +
+      `Time: ${d.get("time")}\n` +
+      `Purpose: ${d.get("intent")}\n` +
+      `Meet by: ${d.get("mode")}`;
+    window.open(`https://wa.me/16134083945?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
+    toast("Opening WhatsApp to confirm your slot…");
   });
 }

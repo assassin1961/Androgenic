@@ -142,6 +142,9 @@
     <a href="#faq" data-magnetic>FAQ</a>
     <a href="#contact" class="nav__cta" data-magnetic>Work With Me</a>
   </nav>
+  <button class="nav__fav" id="navFav" type="button" aria-label="View saved homes" data-magnetic>
+    <span class="nav__fav-heart">♥</span><span class="nav__fav-count" id="favCount">0</span>
+  </button>
   <button class="nav__burger" id="navBurger" aria-label="Menu"><span></span><span></span></button>
 </header>
 
@@ -372,6 +375,7 @@
       <p class="section-eyebrow" data-reveal>Available Now</p>
       <h2 class="section-title" data-reveal>Hot deals, <em class="gold-italic">act fast</em></h2>
       <p class="portfolio__intro" data-reveal>Fresh inventory from my desk — message me on WhatsApp before these join the sold wall.</p>
+      <div class="cur-switch" data-cur-switch data-reveal aria-label="Display prices in your currency"></div>
     </div>
     <div class="deals__grid" id="dealsGrid"><!-- deals injected by JS --></div>
   </section>
@@ -423,6 +427,8 @@
       <button class="chip" data-filter="kanal">1 Kanal +</button>
     </div>
 
+    <div class="cur-switch cur-switch--center" data-cur-switch data-reveal aria-label="Display prices in your currency"></div>
+
     <div class="portfolio__grid" id="grid"><!-- cards injected by JS --></div>
   </section>
 
@@ -464,6 +470,38 @@
         <p>Where smart capital is moving — strong appreciation runway and modern homes at entry-friendly rates.</p>
         <div class="area__meta"><span>5 – 10 Marla</span><strong>PKR 2.3 – 4.2 Cr</strong></div>
       </article>
+    </div>
+  </section>
+
+  <!-- ======= MARKET INSIGHTS ======= -->
+  <section class="insights" id="insights">
+    <div class="insights__head">
+      <p class="section-eyebrow" data-reveal>The Numbers</p>
+      <h2 class="section-title" data-reveal>A track record you can <em class="gold-italic">measure</em></h2>
+      <p class="portfolio__intro" data-reveal>Not promises — performance. Here's how the portfolio actually performed.</p>
+    </div>
+    <div class="insights__grid">
+      <div class="insight" data-reveal>
+        <div class="insight__top"><span class="insight__label">Homes sold at or above asking</span><strong class="insight__val" data-bar-val="68" data-suffix="%">0%</strong></div>
+        <div class="insight__bar"><i data-bar="68"></i></div>
+      </div>
+      <div class="insight" data-reveal>
+        <div class="insight__top"><span class="insight__label">Sold within 30 days of listing</span><strong class="insight__val" data-bar-val="74" data-suffix="%">0%</strong></div>
+        <div class="insight__bar"><i data-bar="74"></i></div>
+      </div>
+      <div class="insight" data-reveal>
+        <div class="insight__top"><span class="insight__label">Repeat &amp; referral clients</span><strong class="insight__val" data-bar-val="61" data-suffix="%">0%</strong></div>
+        <div class="insight__bar"><i data-bar="61"></i></div>
+      </div>
+      <div class="insight" data-reveal>
+        <div class="insight__top"><span class="insight__label">Deals closed for overseas buyers</span><strong class="insight__val" data-bar-val="35" data-suffix="%">0%</strong></div>
+        <div class="insight__bar"><i data-bar="35"></i></div>
+      </div>
+    </div>
+    <div class="insights__cards">
+      <div class="insight-card glass" data-reveal><strong data-count="21" data-suffix=" days">0</strong><span>Average time to handover</span></div>
+      <div class="insight-card glass" data-reveal><strong>4.9<em>/5</em></strong><span>Average client rating</span></div>
+      <div class="insight-card glass" data-reveal><strong data-count="87" data-suffix="+">0</strong><span>Five-star reviews</span></div>
     </div>
   </section>
 
@@ -584,6 +622,49 @@
     </div>
   </section>
 
+  <!-- ======= BOOK A CONSULTATION ======= -->
+  <section class="booking" id="book">
+    <div class="booking__card glass" data-reveal>
+      <div class="booking__intro">
+        <p class="section-eyebrow">No Cost · No Obligation</p>
+        <h2 class="section-title">Book a <em class="gold-italic">private consultation</em></h2>
+        <p>Pick a day and time that suits you. Whether you're buying, selling, or just want an honest read on
+        the market, we'll talk it through — in person, by phone, or on a video call for overseas clients.</p>
+        <ul class="booking__perks">
+          <li>✓ MBA-grade valuation &amp; market view</li>
+          <li>✓ Tailored shortlist or selling strategy</li>
+          <li>✓ Video call available for any timezone</li>
+        </ul>
+      </div>
+      <form class="booking__form" id="bookForm">
+        <div class="booking__grid">
+          <label>Your name<input name="name" placeholder="e.g. Adeel Rahman" required /></label>
+          <label>Phone / WhatsApp<input name="phone" placeholder="+92 / +44 / +1 …" /></label>
+          <label>Preferred date<input name="date" type="date" required /></label>
+          <label>Preferred time
+            <select name="time">
+              <option>Morning (9–12)</option><option>Afternoon (12–4)</option>
+              <option>Evening (4–8)</option><option>Late (8–10)</option>
+            </select>
+          </label>
+          <label>I'd like to
+            <select name="intent">
+              <option>Buy a home</option><option>Sell my home</option><option>Invest</option>
+              <option>Free valuation</option><option>Just explore</option>
+            </select>
+          </label>
+          <label>Meet by
+            <select name="mode">
+              <option>In person</option><option>Phone call</option><option>Video call (overseas)</option>
+            </select>
+          </label>
+        </div>
+        <button type="submit" class="btn btn--wa">Request My Slot on WhatsApp</button>
+        <p class="booking__fine">I'll confirm your appointment personally within a few hours.</p>
+      </form>
+    </div>
+  </section>
+
   <!-- ======= CONTACT ======= -->
   <section class="contact" id="contact">
     <div class="contact__bg">
@@ -654,6 +735,25 @@
   </div>
   <div class="tour__joy" id="tourJoy"><div class="tour__joy-knob" id="tourJoyKnob"></div></div>
 </div>
+
+<!-- ======= SHORTLIST DRAWER ======= -->
+<div class="shortlist" id="shortlist" aria-hidden="true">
+  <div class="shortlist__backdrop" id="shortlistBackdrop"></div>
+  <aside class="shortlist__panel">
+    <header class="shortlist__head">
+      <h3>Your Shortlist <span id="shortlistCount">0</span></h3>
+      <button class="shortlist__close" id="shortlistClose" aria-label="Close">✕</button>
+    </header>
+    <div class="shortlist__list" id="shortlistList"></div>
+    <footer class="shortlist__foot">
+      <a class="btn btn--wa" id="shortlistSend" href="#" target="_blank" rel="noopener">Send My Shortlist on WhatsApp</a>
+      <button class="shortlist__clear" id="shortlistClear" type="button">Clear all</button>
+    </footer>
+  </aside>
+</div>
+
+<!-- ======= TOAST ======= -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <!-- ======= LIGHTBOX ======= -->
 <div class="lightbox" id="lightbox" aria-hidden="true">
