@@ -1117,6 +1117,54 @@ body::before {
   .booking__grid { grid-template-columns: 1fr; }
 }
 
+/* ============ FINANCING PARTNERS ============ */
+.partners {
+  padding: clamp(2.5rem, 5vw, 4rem) 6vw;
+  text-align: center;
+  border-top: 1px solid rgba(243,238,227,0.08);
+  border-bottom: 1px solid rgba(243,238,227,0.08);
+  background: rgba(10,15,30,0.4);
+}
+.partners__label {
+  font-size: 0.68rem; letter-spacing: 0.26em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 1.6rem;
+}
+.partners__row {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: clamp(1.6rem, 4vw, 3.4rem);
+}
+.partners__row span {
+  font-family: var(--serif); font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+  font-weight: 500; color: rgba(243,238,227,0.55); letter-spacing: 0.04em;
+  transition: color 0.4s var(--ease), transform 0.4s var(--ease);
+}
+.partners__row span:hover { color: var(--gold-bright); transform: translateY(-2px); }
+
+/* ============ STICKY MOBILE ACTION BAR ============ */
+.mobile-bar { display: none; }
+@media (max-width: 760px) {
+  .mobile-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 930;
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px;
+    background: rgba(243,238,227,0.1);
+    border-top: 1px solid rgba(201,164,92,0.25);
+    backdrop-filter: blur(16px);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .mobile-bar__btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0.2rem; padding: 0.75rem 0.5rem;
+    background: rgba(10,15,30,0.92); color: var(--cream);
+    font-size: 0.72rem; letter-spacing: 0.08em; font-weight: 600;
+  }
+  .mobile-bar__ico { font-size: 1.1rem; }
+  .mobile-bar__btn--wa { background: #1ebe57; color: #fff; }
+  .mobile-bar__btn--gold { background: var(--gold); color: var(--ink); }
+  /* free the corners — the bar replaces the floating buttons on mobile */
+  .whatsapp-fab { display: none; }
+  .to-top { bottom: 5rem; }
+}
+
 /* ============ REDUCED MOTION ============ */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
